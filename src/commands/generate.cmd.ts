@@ -1,52 +1,39 @@
 import type { Command } from "commander";
-import { input, select, number } from "@inquirer/prompts";
+import { input, select } from "@inquirer/prompts";
 import clipboard from "clipboardy";
-
-function inferMode(score: number): string {
-  if (score <= 6) return "solo";
-  if (score <= 10) return "team-small";
-  return "team-full";
-}
 
 function buildPayloadXml(opts: {
   intent: string;
   scope: string;
   priority: string;
   skills: string;
-  model: string;
-  complexity: number;
 }): string {
-  const mode = inferMode(opts.complexity);
-  const skillLines = opts.skills
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => `      <skill>${s}</skill>`)
-    .join("\n");
+  const skillsAttr = opts.skills.trim()
+    ? `\n    <skills>${opts.skills.trim()}</skills>`
+    : "";
 
-  return `<payload version="3.0">
+  return `<payload version="2.0">
   <meta>
     <intent>${opts.intent}</intent>
-    <scope>${opts.scope}</scope>
+    <scope>${opts.scope}</scope>${skillsAttr}
     <priority>${opts.priority}</priority>
-    <complexity score="${opts.complexity}" mode="${mode}" />
-    <model>${opts.model}</model>
   </meta>
 
-  <skills>
-${skillLines || "      <!-- Add skills here -->"}
-  </skills>
-
   <context>
-    <!-- Provide relevant context for the Architect -->
+    <summary><!-- Background and reasoning --></summary>
   </context>
 
   <tasks>
-    <!-- The Architect will populate tasks based on the intent -->
+    <task id="1" type="create | edit | delete">
+      <target><!-- file/path --></target>
+      <action><!-- What to do --></action>
+      <spec><!-- Detailed specification --></spec>
+      <done><!-- Definition of done --></done>
+    </task>
   </tasks>
 
   <validate>
-    <!-- Define acceptance criteria -->
+    <check><!-- How to verify success --></check>
   </validate>
 </payload>`;
 }
@@ -70,40 +57,15 @@ export function registerGenerateCommand(program: Command): void {
       });
 
       const skills = await input({
-        message: "Skills/plugins (comma-separated):",
+        message: "Skills/plugins (comma-separated, optional):",
       });
 
-      const model = await select({
-        message: "Architect model:",
-        choices: [
-          {
-            value: "gemini-3.1-pro-preview-customtools",
-            name: "gemini-3.1-pro-preview-customtools (default)",
-          },
-          { value: "gemini-2.5-pro", name: "gemini-2.5-pro" },
-        ],
-      });
-
-      const complexity = await number({
-        message: "Complexity score (0-15):",
-        min: 0,
-        max: 15,
-        required: true,
-      });
-
-      const xml = buildPayloadXml({
-        intent,
-        scope,
-        priority,
-        skills,
-        model,
-        complexity: complexity ?? 0,
-      });
+      const xml = buildPayloadXml({ intent, scope, priority, skills });
 
       clipboard.writeSync(xml);
 
       console.log(
-        "\n\x1b[32m✓\x1b[0m Payload XML (v3.0) copied to clipboard! Paste it into your Architect to continue."
+        "\n\x1b[32m\u2713\x1b[0m Payload XML (v2.0) copied to clipboard! Paste it into your Architect to continue."
       );
     });
 }

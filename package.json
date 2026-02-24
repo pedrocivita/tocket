@@ -1,11 +1,11 @@
 {
   "name": "@pedrocivita/tocket",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "The Context Engineering Framework for Multi-Agent Workspaces",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "tocket": "./dist/index.js"
+    "tocket": "dist/index.js"
   },
   "files": [
     "dist"
@@ -13,7 +13,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && node --test dist/tests/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -31,7 +32,8 @@
   },
   "homepage": "https://github.com/pedrocivita/tocket#readme",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.3.0",
