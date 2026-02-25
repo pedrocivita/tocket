@@ -81,9 +81,10 @@ Your job is to **analyze, plan, and decide**. You produce structured payloads th
 
 ```
 tocket CLI
-  ├── init       → Scaffold .context/, CLAUDE.md, GEMINI.md
+  ├── init       → Scaffold .context/, CLAUDE.md, GEMINI.md, .cursorrules
   ├── generate   → Interactive payload XML builder → clipboard
-  └── sync       → Append session summary to progress.md
+  ├── sync       → Append session summary to progress.md
+  └── validate   → Verify Memory Bank structure and content
 ```
 
 New commands follow the `src/commands/<name>.cmd.ts` pattern with a `register*Command` export.

@@ -137,16 +137,24 @@ There is no watch mode configured yet. After editing, run `npm run build` manual
 
 ## Testing
 
-There is no test framework configured yet. This is a planned milestone.
+The project uses Node.js built-in test runner (`node:test`) with 38+ tests across 9 suites.
 
-For now, test manually:
+```bash
+npm test    # Compiles TypeScript and runs all tests
+```
+
+Test file: `src/tests/memory-bank.test.ts` — validates all template functions, stack detection, and file generation.
+
+For manual command testing:
 
 ```bash
 npm run build
 node dist/index.js --help
-node dist/index.js init        # Test in a temp directory
-node dist/index.js generate    # Test interactive flow
-node dist/index.js sync        # Test in a directory with .context/
+node dist/index.js init          # Test in a temp directory
+node dist/index.js init --force  # Test overwrite without prompts
+node dist/index.js generate      # Test interactive flow
+node dist/index.js sync          # Test in a directory with .context/
+node dist/index.js validate      # Test Memory Bank validation
 ```
 
 ## CI

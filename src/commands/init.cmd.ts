@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { input } from "@inquirer/prompts";
+import { input, confirm } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join } from "node:path";
 import type { StackInfo } from "../templates/memory-bank.js";
@@ -131,7 +131,9 @@ export function registerInitCommand(program: Command): void {
   program
     .command("init")
     .description("Scaffold an agentic workspace with Memory Bank and triangulation config")
-    .action(async () => {
+    .option("-f, --force", "Overwrite existing files without prompting")
+    .action(async (options: { force?: boolean }) => {
+      const force = options.force ?? false;
       const cwd = process.cwd();
       const { stack, detectedName, detectedDescription } = await detectStack(cwd);
 
@@ -179,8 +181,21 @@ export function registerInitCommand(program: Command): void {
 
       for (const [filePath, content] of files) {
         const fullPath = join(cwd, filePath);
+        const exists = await fileExists(fullPath);
+
+        if (exists && !force) {
+          const overwrite = await confirm({
+            message: `${filePath} already exists. Overwrite?`,
+            default: false,
+          });
+          if (!overwrite) {
+            console.log(`  skipped ${filePath}`);
+            continue;
+          }
+        }
+
         await writeFile(fullPath, content, "utf-8");
-        console.log(`  created ${filePath}`);
+        console.log(`  ${exists ? "updated" : "created"} ${filePath}`);
       }
 
       console.log(

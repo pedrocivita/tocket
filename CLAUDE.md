@@ -16,10 +16,9 @@ Your job is to **implement precisely**, following the Architect's plans. Read th
 ```bash
 npm install          # Install dependencies
 npm run build        # Compile TypeScript (tsc → dist/)
+npm test             # Run test suite (node:test, 38+ tests)
 node dist/index.js   # Run CLI locally
 ```
-
-There are no tests yet. Do not add a test step to CI until a test framework is configured.
 
 ---
 
