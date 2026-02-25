@@ -11,6 +11,8 @@ import { registerConfigCommand } from "./commands/config.cmd.js";
 import { registerEjectCommand } from "./commands/eject.cmd.js";
 import { registerFocusCommand } from "./commands/focus.cmd.js";
 import { registerStatusCommand } from "./commands/status.cmd.js";
+import { registerDoctorCommand } from "./commands/doctor.cmd.js";
+import { registerLintCommand } from "./commands/lint.cmd.js";
 
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "..", "package.json"), "utf-8"),
@@ -31,6 +33,8 @@ registerConfigCommand(program);
 registerEjectCommand(program);
 registerFocusCommand(program);
 registerStatusCommand(program);
+registerDoctorCommand(program);
+registerLintCommand(program);
 
 // No-args: show interactive dashboard (TTY) or help (non-TTY)
 const args = process.argv.slice(2);

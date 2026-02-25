@@ -4,6 +4,15 @@
 
 This file is **agent-agnostic**. Whether you are Claude, Gemini, GPT, Cursor, Cline, Copilot, or any future AI — if you see this file, follow these rules.
 
+Tocket is a **file convention**, not a framework. It adds markdown files to your repo — nothing else. No runtime dependencies, no build plugins, no code modifications.
+
+### Core Principles
+
+- **Zero runtime pollution** — Tocket is invisible to production code. It exists only as dev-time markdown files committed to git.
+- **Minimally intrusive** — A `.context/` directory and a few root-level configs. No entries in `package.json`, no global state, no lock files.
+- **Fully ejectable** — Run `tocket eject` (or delete the files manually) and your project is exactly as it was before.
+- **Agent-agnostic** — Any AI that can read files can follow this protocol. No vendor lock-in.
+
 ---
 
 ## 1. Memory Bank

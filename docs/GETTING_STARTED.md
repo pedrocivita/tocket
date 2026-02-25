@@ -1,6 +1,19 @@
 # Getting Started with Tocket
 
-Set up your first multi-agent workspace in 5 minutes.
+Set up your first multi-agent workspace in 5 minutes. Tocket is a file convention — it adds markdown files to your repo, nothing else. No runtime dependencies, no `package.json` changes, no build plugins.
+
+## Safe to try
+
+Tocket only creates markdown files. You can test it on a branch and eject if you don't like it:
+
+```bash
+git checkout -b test/tocket
+npx @pedrocivita/tocket init        # scaffold the workspace
+# ... try a few AI sessions ...
+npx @pedrocivita/tocket eject        # removes all Tocket files
+```
+
+Your main branch stays untouched. See the [Developer Guide](DEVELOPERS_GUIDE.md) for detailed safe-testing workflows.
 
 ## What you'll get
 
@@ -32,7 +45,7 @@ npx @pedrocivita/tocket init
 
 ## Option B: Manual setup
 
-You don't need the CLI. Tocket is just a file convention.
+You don't need the CLI. Tocket is just markdown files — create them yourself and skip the CLI entirely.
 
 ### Step 1: Create the Memory Bank
 

@@ -10,6 +10,7 @@ import {
   getRecentCommits,
   getRecentCommitsRaw,
   getCurrentBranch,
+  getLastCommitMessage,
 } from "../utils/git.js";
 
 // Use the Tocket repo itself for "in git" tests
@@ -47,6 +48,12 @@ describe("git - in a git repository", () => {
     const files = getModifiedFiles(tocketRoot);
     assert.ok(Array.isArray(files));
   });
+
+  it("getLastCommitMessage returns a non-empty string", () => {
+    const msg = getLastCommitMessage(tocketRoot);
+    assert.ok(typeof msg === "string");
+    assert.ok(msg.length > 0);
+  });
 });
 
 describe("git - in a non-git directory", () => {
@@ -79,5 +86,9 @@ describe("git - in a non-git directory", () => {
 
   it("getCurrentBranch returns empty string", () => {
     assert.equal(getCurrentBranch(tempDir), "");
+  });
+
+  it("getLastCommitMessage returns empty string", () => {
+    assert.equal(getLastCommitMessage(tempDir), "");
   });
 });

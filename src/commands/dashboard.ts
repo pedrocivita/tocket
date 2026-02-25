@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { banner, heading, success, dim, warn } from "../utils/theme.js";
 import { getConfig } from "../utils/config.js";
 
-type Action = "init" | "generate" | "sync" | "validate" | "config" | "focus" | "status" | "eject" | "exit";
+type Action = "init" | "generate" | "sync" | "validate" | "config" | "focus" | "status" | "doctor" | "lint" | "eject" | "exit";
 
 function extractFocus(content: string): string {
   const match = content.match(/## Current Focus\s*\n+(.+)/);
@@ -58,6 +58,8 @@ export async function showDashboard(program: Command): Promise<void> {
         { value: "validate", name: "Validate workspace" },
         { value: "focus", name: "Update focus" },
         { value: "status", name: "Workspace status" },
+        { value: "doctor", name: "Run diagnostics" },
+        { value: "lint", name: "Lint context quality" },
         { value: "config", name: "Configure settings" },
         { value: "eject", name: "Eject workspace" },
         { value: "exit", name: "Exit" },

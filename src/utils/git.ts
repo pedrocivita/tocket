@@ -67,6 +67,18 @@ export function getRecentCommitsRaw(
   }
 }
 
+export function getLastCommitMessage(cwd: string = process.cwd()): string {
+  if (!isGitRepo(cwd)) return "";
+  try {
+    return execSync("git log -1 --pretty=%B", {
+      cwd,
+      encoding: "utf-8",
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
 export function getCurrentBranch(cwd: string = process.cwd()): string {
   if (!isGitRepo(cwd)) return "";
   try {

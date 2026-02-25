@@ -47,6 +47,9 @@ The CLI automates the scaffolding, provides smart defaults, and adds quality-of-
 # Scaffold a new workspace (creates .context/, TOCKET.md, CLAUDE.md, GEMINI.md)
 npx @pedrocivita/tocket init
 
+# Or just the essentials (3 files)
+npx @pedrocivita/tocket init --minimal
+
 # Or open the interactive dashboard
 npx @pedrocivita/tocket
 ```
@@ -83,8 +86,26 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
 | `tocket focus` | Update the Current Focus in `activeContext.md` |
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
+| `tocket doctor` | Deep workspace diagnostics (content health, git tracking, staleness) |
+| `tocket lint` | Audit `.context/` content quality and suggest improvements |
 | `tocket config` | Manage global settings (`~/.tocketrc.json`) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
+
+### CI-friendly flags
+
+Every interactive command has flags for non-interactive use:
+
+```bash
+# Minimal init (3 files instead of 9)
+tocket init --minimal --name myproject --description "My app" --force
+
+# Sync without prompt
+tocket sync --summary "Fixed auth bug and added tests"
+
+# Generate to stdout or file instead of clipboard
+tocket generate --to stdout
+tocket generate --to payload.xml
+```
 
 ## How it works
 

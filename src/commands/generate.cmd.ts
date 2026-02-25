@@ -1,18 +1,18 @@
 import type { Command } from "commander";
 import { input, select, confirm } from "@inquirer/prompts";
-import clipboard from "clipboardy";
+import { writeFileSync } from "node:fs";
 import { success, heading, dim, banner } from "../utils/theme.js";
 import { getConfig } from "../utils/config.js";
-import { getStagedFiles, getModifiedFiles } from "../utils/git.js";
+import { getStagedFiles, getModifiedFiles, getLastCommitMessage } from "../utils/git.js";
 
-interface TaskInput {
+export interface TaskInput {
   intent: string;
   scope: string;
   priority: string;
   skills: string;
 }
 
-function buildPayloadXml(tasks: TaskInput[]): string {
+export function buildPayloadXml(tasks: TaskInput[]): string {
   const first = tasks[0];
   const skillsAttr = first.skills.trim()
     ? `\n    <skills>${first.skills.trim()}</skills>`
@@ -50,7 +50,7 @@ ${taskBlocks}
 </payload>`;
 }
 
-function suggestScope(): string {
+export function suggestScope(): string {
   const staged = getStagedFiles();
   const modified = getModifiedFiles();
   const all = [...new Set([...staged, ...modified])];
@@ -62,7 +62,8 @@ export function registerGenerateCommand(program: Command): void {
     .command("generate")
     .description("Build payload XMLs interactively for Architect-Executor handoff")
     .option("--no-preview", "Skip payload preview before copying")
-    .action(async (options: { preview?: boolean }) => {
+    .option("--to <target>", "Output target: clipboard (default), stdout, or file path")
+    .action(async (options: { preview?: boolean; to?: string }) => {
       const config = await getConfig();
 
       if (!config.theme?.disableBanner) {
@@ -81,7 +82,11 @@ export function registerGenerateCommand(program: Command): void {
           console.log(heading(`\n  Task ${taskNum}\n`));
         }
 
-        const intent = await input({ message: "Intent (goal in one line):" });
+        const lastCommit = getLastCommitMessage();
+        const intent = await input({
+          message: "Intent (goal in one line):",
+          default: lastCommit || undefined,
+        });
 
         const scope = await input({
           message: "Scope (files/folders affected):",
@@ -124,13 +129,24 @@ export function registerGenerateCommand(program: Command): void {
         console.log(dim("--- End Preview ---\n"));
       }
 
-      clipboard.writeSync(xml);
-
-      console.log(
-        success(`Payload XML (v2.0) copied to clipboard!`) +
-        dim(` ${tasks.length} task(s).`) +
-        "\n" +
-        dim("  Paste it into your Architect to continue.\n"),
-      );
+      const target = options.to ?? "clipboard";
+      if (target === "stdout") {
+        console.log(xml);
+      } else if (target === "clipboard") {
+        const { default: clipboard } = await import("clipboardy");
+        clipboard.writeSync(xml);
+        console.log(
+          success(`Payload XML (v2.0) copied to clipboard!`) +
+          dim(` ${tasks.length} task(s).`) +
+          "\n" +
+          dim("  Paste it into your Architect to continue.\n"),
+        );
+      } else {
+        writeFileSync(target, xml, "utf-8");
+        console.log(
+          success(`Payload XML (v2.0) written to ${target}!`) +
+          dim(` ${tasks.length} task(s).\n`),
+        );
+      }
     });
 }

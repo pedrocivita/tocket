@@ -24,6 +24,16 @@ your-project/
 
 That's it — 9 markdown files. No config in `package.json`, no build plugins, no runtime dependencies. Everything is plain text committed to git.
 
+### Minimal mode
+
+If 9 files feels like too much, use `--minimal` to scaffold only the essentials:
+
+```bash
+npx @pedrocivita/tocket init --minimal
+```
+
+This creates just 3 files: `.context/activeContext.md`, `.context/systemPatterns.md`, and `TOCKET.md`. You can always add the remaining files later by running `init` again.
+
 ---
 
 ## Setting up safely with branches
@@ -40,14 +50,21 @@ git checkout -b setup/tocket
 ### Step 2: Initialize the workspace
 
 ```bash
+# Interactive (asks for name and description)
 npx @pedrocivita/tocket init
+
+# Or fully non-interactive (CI-friendly)
+npx @pedrocivita/tocket init --name myproject --description "My app" --force
+
+# Or minimal (3 files instead of 9)
+npx @pedrocivita/tocket init --minimal --name myproject --description "My app" --force
 ```
 
 The CLI will:
 1. **Auto-detect your stack** from `package.json` (language, runtime, build tool, framework, notable dependencies)
-2. **Ask for a project name** and short description (pre-filled from package.json if available)
-3. **Create `.context/`** with five markdown files pre-populated with your stack info
-4. **Create agent configs** (`TOCKET.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`) at the repo root
+2. **Ask for a project name** and short description (pre-filled from package.json if available) — or use `--name` and `--description` to skip prompts
+3. **Create `.context/`** with markdown files pre-populated with your stack info
+4. **Create agent configs** (`TOCKET.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`) at the repo root — unless `--minimal` is used
 
 If any of these files already exist (e.g., you already have a `CLAUDE.md`), the CLI will ask before overwriting. Use `--force` to skip the prompts.
 
@@ -130,13 +147,18 @@ The payload XML is the contract. It includes what files to touch, what to do, an
 
 ```bash
 npx @pedrocivita/tocket generate
+
+# Or output to stdout/file instead of clipboard
+npx @pedrocivita/tocket generate --to stdout
+npx @pedrocivita/tocket generate --to payload.xml
 ```
 
 This interactive command:
 - Auto-fills the scope from your current git diff (staged + modified files)
+- Includes the last commit message as default intent
 - Walks you through intent, priority, and tasks
 - Generates valid payload XML
-- Copies it to your clipboard
+- Copies it to your clipboard (or outputs to `--to` target)
 
 ### Updating focus
 
@@ -154,6 +176,9 @@ After a work session:
 
 ```bash
 npx @pedrocivita/tocket sync
+
+# Or non-interactive
+npx @pedrocivita/tocket sync --summary "Fixed auth bug and added tests"
 ```
 
 This appends a timestamped summary with your recent git commits to `.context/progress.md`.
@@ -269,6 +294,22 @@ npx @pedrocivita/tocket status
 ```
 
 Shows a one-line summary: workspace health, current focus, git branch, and which agent configs are present.
+
+### Deep diagnostics
+
+```bash
+npx @pedrocivita/tocket doctor
+```
+
+Runs a thorough check: file existence, content health (is the focus populated? are conventions documented?), git tracking (is `.context/` committed?), and staleness detection.
+
+### Context quality audit
+
+```bash
+npx @pedrocivita/tocket lint
+```
+
+Audits the content quality of your Memory Bank files and provides actionable suggestions: missing sections, placeholder content, empty conventions, orphan agent configs, uncommitted changes.
 
 ---
 

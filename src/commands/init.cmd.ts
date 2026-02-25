@@ -134,8 +134,12 @@ export function registerInitCommand(program: Command): void {
     .command("init")
     .description("Scaffold an agentic workspace with Memory Bank and triangulation config")
     .option("-f, --force", "Overwrite existing files without prompting")
-    .action(async (options: { force?: boolean }) => {
+    .option("--minimal", "Scaffold only essential files (.context/ + TOCKET.md)")
+    .option("--name <name>", "Project name (skip prompt)")
+    .option("--description <desc>", "Project description (skip prompt)")
+    .action(async (options: { force?: boolean; minimal?: boolean; name?: string; description?: string }) => {
       const force = options.force ?? false;
+      const minimal = options.minimal ?? false;
       const cwd = process.cwd();
       const globalConfig = await getConfig();
 
@@ -157,11 +161,11 @@ export function registerInitCommand(program: Command): void {
         console.log();
       }
 
-      const projectName = await input({
+      const projectName = options.name ?? await input({
         message: "Project Name:",
         default: detectedName || undefined,
       });
-      const description = await input({
+      const description = options.description ?? await input({
         message: "Short Description:",
         default: detectedDescription || undefined,
       });
@@ -187,7 +191,16 @@ export function registerInitCommand(program: Command): void {
         [join(".context", "progress.md"), progressMd(projectName)],
       ];
 
-      for (const [filePath, content] of files) {
+      const minimalPaths = new Set([
+        "TOCKET.md",
+        join(".context", "activeContext.md"),
+        join(".context", "systemPatterns.md"),
+      ]);
+      const filesToWrite = minimal
+        ? files.filter(([path]) => minimalPaths.has(path))
+        : files;
+
+      for (const [filePath, content] of filesToWrite) {
         const fullPath = join(cwd, filePath);
         const exists = await fileExists(fullPath);
 

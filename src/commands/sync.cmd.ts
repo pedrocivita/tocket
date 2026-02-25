@@ -11,7 +11,8 @@ export function registerSyncCommand(program: Command): void {
   program
     .command("sync")
     .description("Update Memory Bank from git history and session artifacts")
-    .action(async () => {
+    .option("--summary <text>", "Session summary (skip prompt)")
+    .action(async (options: { summary?: string }) => {
       const progressPath = join(process.cwd(), ".context", "progress.md");
       const contextDir = join(process.cwd(), ".context");
 
@@ -23,7 +24,7 @@ export function registerSyncCommand(program: Command): void {
 
       const config = await getConfig();
 
-      const summary = await input({
+      const summary = options.summary ?? await input({
         message: "What did you accomplish in this session?",
       });
 

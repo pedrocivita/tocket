@@ -1,6 +1,6 @@
 # Tocket Rules
 
-Complete reference for the Tocket Protocol. For the agent-facing spec, see [TOCKET.md](../TOCKET.md).
+Conventions for the Tocket file-based protocol. Tocket is a lightweight set of markdown files — these rules describe how agents should read, write, and hand off context. For the agent-facing spec, see [TOCKET.md](../TOCKET.md).
 
 ---
 

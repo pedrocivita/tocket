@@ -7,12 +7,12 @@ const PASS = themePass("");
 const WARN = themeWarn("");
 const FAIL = themeFail("");
 
-interface CheckResult {
+export interface CheckResult {
   icon: string;
   message: string;
 }
 
-function checkFile(
+export function checkFile(
   basePath: string,
   relativePath: string,
   required: boolean
@@ -27,7 +27,7 @@ function checkFile(
   return { icon: WARN, message: `${relativePath} missing (optional)` };
 }
 
-function checkStale(basePath: string, relativePath: string): CheckResult | null {
+export function checkStale(basePath: string, relativePath: string): CheckResult | null {
   const fullPath = join(basePath, relativePath);
   if (!existsSync(fullPath)) return null;
 
@@ -45,7 +45,7 @@ function checkStale(basePath: string, relativePath: string): CheckResult | null 
   return null;
 }
 
-function checkAgentFile(basePath: string): CheckResult {
+export function checkAgentFile(basePath: string): CheckResult {
   const agentFiles = [
     "CLAUDE.md",
     "GEMINI.md",
