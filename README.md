@@ -32,10 +32,13 @@ The CLI just automates the scaffolding.
 ## Quick Start
 
 ```bash
+# Interactive dashboard — guided entry point
+npx @pedrocivita/tocket
+
 # Scaffold a new workspace (creates .context/, TOCKET.md, CLAUDE.md, GEMINI.md)
 npx @pedrocivita/tocket init
 
-# Generate a payload XML for agent handoff
+# Generate a payload XML with smart git integration
 npx @pedrocivita/tocket generate
 
 # Sync session progress into Memory Bank
@@ -44,12 +47,31 @@ npx @pedrocivita/tocket sync
 
 ## Commands
 
-| Command           | What it does                                                   |
-| ----------------- | -------------------------------------------------------------- |
-| `tocket init`     | Scaffolds `.context/`, `TOCKET.md`, `CLAUDE.md`, `GEMINI.md`   |
-| `tocket generate` | Interactive payload XML builder — copies to clipboard          |
-| `tocket sync`     | Appends session summary + git log to `.context/progress.md`    |
-| `tocket validate` | Checks if the current directory has a valid Tocket Memory Bank |
+| Command           | What it does                                                         |
+| ----------------- | -------------------------------------------------------------------- |
+| `tocket`          | Interactive dashboard with guided menu                               |
+| `tocket init`     | Scaffolds `.context/`, `TOCKET.md`, `CLAUDE.md`, `GEMINI.md`         |
+| `tocket generate` | Smart payload builder — auto-fills scope from git, multi-task support |
+| `tocket sync`     | Appends session summary + git log to `.context/progress.md`          |
+| `tocket validate` | Checks if the current directory has a valid Tocket Memory Bank       |
+| `tocket config`   | Manage global settings (`~/.tocketrc.json`)                          |
+
+## Configuration
+
+Set global defaults so you don't repeat yourself:
+
+```bash
+# Interactive setup
+tocket config
+
+# Or use flags (CI-friendly)
+tocket config --author "Your Name" --priority medium --skills "core,lsp"
+
+# View current config
+tocket config --show
+```
+
+Config is stored at `~/.tocketrc.json` and pre-fills author, priority, and skills in all commands.
 
 ## How Triangulation works
 

@@ -16,13 +16,19 @@ your-project/
   GEMINI.md               # Architect instructions (for Gemini)
 ```
 
-## Option A: Using the CLI
+## Option A: Using the CLI (recommended)
+
+```bash
+npx @pedrocivita/tocket
+```
+
+This opens the interactive dashboard. Select "Initialize workspace" and follow the prompts.
+
+Or run the init command directly:
 
 ```bash
 npx @pedrocivita/tocket init
 ```
-
-Answer two prompts (project name, short description) and you're done.
 
 ## Option B: Manual setup
 
@@ -110,7 +116,17 @@ These are optional. The `TOCKET.md` spec alone is enough for any agent to follow
 npx @pedrocivita/tocket generate
 ```
 
-This walks you through building a payload interactively and copies the XML to your clipboard. Paste it into your Architect agent's chat.
+This walks you through building a payload interactively. It auto-fills the scope from your git status, supports multiple tasks, shows a preview, and copies the XML to your clipboard.
+
+### Configuring defaults
+
+Set your name and preferences once:
+
+```bash
+npx @pedrocivita/tocket config
+```
+
+This saves to `~/.tocketrc.json` and pre-fills author, priority, and skills in future commands.
 
 ### Syncing progress
 

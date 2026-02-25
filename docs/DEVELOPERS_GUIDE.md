@@ -28,13 +28,25 @@ node dist/index.js --help
 ```
 tocket/
   src/
-    index.ts                    # CLI entry point (Commander setup)
+    index.ts                    # CLI entry point (Commander setup + dashboard detection)
     commands/
       init.cmd.ts               # tocket init — scaffold workspace
-      generate.cmd.ts           # tocket generate — build payload XML
+      generate.cmd.ts           # tocket generate — smart payload builder
       sync.cmd.ts               # tocket sync — update Memory Bank
+      validate.cmd.ts           # tocket validate — workspace health check
+      config.cmd.ts             # tocket config — global settings TUI
+      dashboard.ts              # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts            # Template functions for scaffolded files
+    utils/
+      theme.ts                  # Purple theme, ASCII banner, semantic helpers
+      git.ts                    # Git wrappers (staged files, commits, branch)
+      config.ts                 # Global config (~/.tocketrc.json) read/write
+    tests/
+      memory-bank.test.ts       # Template tests (38 tests)
+      theme.test.ts             # Theme utility tests (10 tests)
+      git.test.ts               # Git utility tests (12 tests)
+      config.test.ts            # Config utility tests (7 tests)
   dist/                         # Compiled output (gitignored)
   docs/                         # Documentation (you are here)
   .context/                     # Memory Bank (committed)
@@ -52,6 +64,7 @@ tocket/
 | Commander.js | 14 | CLI framework |
 | @inquirer/prompts | 8 | Interactive prompts |
 | clipboardy | 5 | Clipboard access |
+| chalk | 5 | Terminal styling (purple theme) |
 
 ## Code conventions
 
@@ -137,24 +150,31 @@ There is no watch mode configured yet. After editing, run `npm run build` manual
 
 ## Testing
 
-The project uses Node.js built-in test runner (`node:test`) with 38+ tests across 9 suites.
+The project uses Node.js built-in test runner (`node:test`) with 67 tests across 20 suites.
 
 ```bash
 npm test    # Compiles TypeScript and runs all tests
 ```
 
-Test file: `src/tests/memory-bank.test.ts` — validates all template functions, stack detection, and file generation.
+Test files:
+- `src/tests/memory-bank.test.ts` — template function tests (38 tests)
+- `src/tests/theme.test.ts` — theme utility smoke tests (10 tests)
+- `src/tests/git.test.ts` — git wrapper tests (12 tests)
+- `src/tests/config.test.ts` — config read/write tests (7 tests)
 
 For manual command testing:
 
 ```bash
 npm run build
 node dist/index.js --help
+node dist/index.js               # Test dashboard (interactive menu)
 node dist/index.js init          # Test in a temp directory
 node dist/index.js init --force  # Test overwrite without prompts
-node dist/index.js generate      # Test interactive flow
+node dist/index.js generate      # Test smart scope from git
 node dist/index.js sync          # Test in a directory with .context/
 node dist/index.js validate      # Test Memory Bank validation
+node dist/index.js config --show # Test config display
+node dist/index.js config --author "Test" # Test non-interactive config
 ```
 
 ## CI
@@ -166,7 +186,7 @@ GitHub Actions runs on push to `main` and on pull requests:
 - `npm ci`
 - `npm run build`
 
-No test step yet (will be added when tests exist).
+- `npm test` (build + 67 tests)
 
 ## Submitting changes
 

@@ -7,6 +7,7 @@ import { registerInitCommand } from "./commands/init.cmd.js";
 import { registerGenerateCommand } from "./commands/generate.cmd.js";
 import { registerSyncCommand } from "./commands/sync.cmd.js";
 import { registerValidateCommand } from "./commands/validate.cmd.js";
+import { registerConfigCommand } from "./commands/config.cmd.js";
 
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "..", "package.json"), "utf-8"),
@@ -23,5 +24,13 @@ registerInitCommand(program);
 registerGenerateCommand(program);
 registerSyncCommand(program);
 registerValidateCommand(program);
+registerConfigCommand(program);
 
-program.parse();
+// No-args: show interactive dashboard (TTY) or help (non-TTY)
+const args = process.argv.slice(2);
+if (args.length === 0 && process.stdin.isTTY) {
+  const { showDashboard } = await import("./commands/dashboard.js");
+  await showDashboard(program);
+} else {
+  program.parse();
+}

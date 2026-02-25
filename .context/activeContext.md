@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**v1.2.1 refinements complete.** Added `--force` flag to init, dynamic version from package.json, CI test integration, stale docs fixed, examples/walkthrough.md created. All session debt cleared.
+**v2.0.0 — Premium UX Overhaul.** Added purple theme (chalk), interactive dashboard, `tocket config` command, smart git-powered generate (auto-scope, multi-task, preview), global config (~/.tocketrc.json), and 29 new tests (67 total). All 4 open decisions resolved.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
+| 2026-02-24 | v2.0: theme, dashboard, config, smart generate, 67 tests        | Claude (Executor) |
 | 2026-02-24 | --force flag, version dedupe, CI tests, doc updates, examples   | Claude (Executor) |
 | 2026-02-24 | Smart Init: auto-detect stack, .cursorrules, 38 tests, v1.2.0   | Claude (Executor) |
 | 2026-02-24 | Test suite (29 tests, node:test), version 1.1.0, release prep   | Claude (Executor) |
@@ -22,10 +23,10 @@
 
 ## Open Decisions
 
-- Add `tocket config` command with TUI (Inquirer) for managing global preferences (`~/.tocketrc`)?
-- Auto-fill `<scope>` in generated payloads using `git diff --name-only` or `git status`?
-- Add branded terminal theme (purple/Action colors) using `chalk` + ASCII logo via `figlet`?
-- Should `tocket generate` automatically read the last commit for context in prompt generation?
+- ~~Add `tocket config` command~~ **Done** (TUI + non-interactive flags)
+- ~~Auto-fill `<scope>` from git~~ **Done** (getStagedFiles + getModifiedFiles)
+- ~~Add branded terminal theme~~ **Done** (chalk, static ASCII banner, no figlet)
+- Should `tocket generate` automatically read the last commit for context in prompt generation? (deferred to v2.1)
 
 ## Session Debt (Identified by Self-Improve)
 

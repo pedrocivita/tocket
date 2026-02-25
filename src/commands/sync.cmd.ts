@@ -2,16 +2,10 @@ import type { Command } from "commander";
 import { input } from "@inquirer/prompts";
 import { existsSync } from "node:fs";
 import { appendFile, writeFile } from "node:fs/promises";
-import { execSync } from "node:child_process";
 import { join } from "node:path";
-
-function getRecentCommits(): string {
-  try {
-    return execSync("git log --oneline -5", { encoding: "utf-8" }).trim();
-  } catch {
-    return "_No commits found or not a git repository._";
-  }
-}
+import { success, error as themeError } from "../utils/theme.js";
+import { getRecentCommitsRaw } from "../utils/git.js";
+import { getConfig } from "../utils/config.js";
 
 export function registerSyncCommand(program: Command): void {
   program
@@ -22,21 +16,22 @@ export function registerSyncCommand(program: Command): void {
       const contextDir = join(process.cwd(), ".context");
 
       if (!existsSync(contextDir)) {
-        console.error(
-          "\x1b[31mMemory Bank not found. Run 'tocket init' first.\x1b[0m"
-        );
+        console.error(themeError("Memory Bank not found. Run 'tocket init' first."));
         process.exitCode = 1;
         return;
       }
+
+      const config = await getConfig();
 
       const summary = await input({
         message: "What did you accomplish in this session?",
       });
 
-      const commits = getRecentCommits();
+      const commits = getRecentCommitsRaw();
       const date = new Date().toISOString().split("T")[0];
 
-      const block = `## Session: ${date}
+      const authorTag = config.author ? ` (${config.author})` : "";
+      const block = `## Session: ${date}${authorTag}
 
 **Summary**: ${summary}
 
@@ -59,8 +54,6 @@ ${commits}
         await appendFile(progressPath, block, "utf-8");
       }
 
-      console.log(
-        "\n\x1b[32m✓\x1b[0m Memory Bank synchronized successfully!"
-      );
+      console.log("\n" + success("Memory Bank synchronized!"));
     });
 }

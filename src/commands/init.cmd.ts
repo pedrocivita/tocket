@@ -2,6 +2,8 @@ import type { Command } from "commander";
 import { input, confirm } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join } from "node:path";
+import { banner, heading, info, success, dim } from "../utils/theme.js";
+import { getConfig } from "../utils/config.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 import {
   claudeMd,
@@ -135,17 +137,23 @@ export function registerInitCommand(program: Command): void {
     .action(async (options: { force?: boolean }) => {
       const force = options.force ?? false;
       const cwd = process.cwd();
+      const globalConfig = await getConfig();
+
+      if (!globalConfig.theme?.disableBanner) {
+        console.log(banner());
+      }
+
       const { stack, detectedName, detectedDescription } = await detectStack(cwd);
 
       const hasDetection = Boolean(stack.language);
       if (hasDetection) {
-        console.log("\n  Auto-detected stack from package.json:");
-        if (stack.language) console.log(`    Language:  ${stack.language}`);
-        if (stack.runtime) console.log(`    Runtime:   ${stack.runtime}`);
-        if (stack.build) console.log(`    Build:     ${stack.build}`);
-        if (stack.framework) console.log(`    Framework: ${stack.framework}`);
+        console.log(heading("  Auto-detected stack:\n"));
+        if (stack.language) console.log(info(`Language:  ${stack.language}`));
+        if (stack.runtime) console.log(info(`Runtime:   ${stack.runtime}`));
+        if (stack.build) console.log(info(`Build:     ${stack.build}`));
+        if (stack.framework) console.log(info(`Framework: ${stack.framework}`));
         if (stack.extras.length)
-          console.log(`    Extras:    ${stack.extras.join(", ")}`);
+          console.log(info(`Extras:    ${stack.extras.join(", ")}`));
         console.log();
       }
 
@@ -189,17 +197,19 @@ export function registerInitCommand(program: Command): void {
             default: false,
           });
           if (!overwrite) {
-            console.log(`  skipped ${filePath}`);
+            console.log("  " + dim(`skipped ${filePath}`));
             continue;
           }
         }
 
         await writeFile(fullPath, content, "utf-8");
-        console.log(`  ${exists ? "updated" : "created"} ${filePath}`);
+        console.log("  " + success(`${exists ? "updated" : "created"} ${filePath}`));
       }
 
       console.log(
-        `\nAgentic workspace initialized for ${projectName}!${hasDetection ? " Stack pre-populated from package.json." : ""} Ready to launch.`
+        "\n" + success(`Workspace initialized for ${projectName}!`) +
+        (hasDetection ? dim(" Stack pre-populated from package.json.") : "") +
+        "\n" + dim("  Next: run tocket generate to create your first payload.\n")
       );
     });
 }

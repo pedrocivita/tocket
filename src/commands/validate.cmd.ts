@@ -1,10 +1,11 @@
 import type { Command } from "commander";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { success as themePass, warn as themeWarn, error as themeFail, heading } from "../utils/theme.js";
 
-const PASS = "\x1b[32m\u2713\x1b[0m";
-const WARN = "\x1b[33m\u26A0\x1b[0m";
-const FAIL = "\x1b[31m\u2717\x1b[0m";
+const PASS = themePass("");
+const WARN = themeWarn("");
+const FAIL = themeFail("");
 
 interface CheckResult {
   icon: string;
@@ -75,7 +76,7 @@ export function registerValidateCommand(program: Command): void {
       const results: CheckResult[] = [];
       let hasFailure = false;
 
-      console.log("\nValidating Tocket workspace...\n");
+      console.log(heading("\nValidating Tocket workspace...\n"));
 
       // Required files
       results.push(checkFile(cwd, join(".context"), true));
@@ -119,12 +120,10 @@ export function registerValidateCommand(program: Command): void {
       console.log("");
 
       if (hasFailure) {
-        console.log(
-          "\x1b[31mWorkspace has issues.\x1b[0m Run \x1b[1mtocket init\x1b[0m to scaffold missing files."
-        );
+        console.log(themeFail("Workspace has issues.") + " Run tocket init to scaffold missing files.");
         process.exitCode = 1;
       } else {
-        console.log("\x1b[32mWorkspace is healthy.\x1b[0m");
+        console.log(themePass("Workspace is healthy."));
       }
     });
 }

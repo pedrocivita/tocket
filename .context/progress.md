@@ -83,10 +83,20 @@
 - [x] Test suite expanded: 38 tests across 9 suites (was 29/8)
 - [ ] `npm publish` — ready for Pedro to execute with npm auth
 
+## Milestone: v2.0.0 — Premium UX Overhaul
+
+**Status**: Complete
+
+- [x] Purple terminal theme (`chalk`, static ASCII banner)
+- [x] Interactive dashboard (`tocket` no-args)
+- [x] `tocket config` command (TUI + flags)
+- [x] Smart generate (auto-scope from git, multi-task loop, preview)
+- [x] Global config persistence (`~/.tocketrc.json`)
+- [x] 29 new tests for theme, git, and config utilities (67 total)
+
 ## Next Up
 
-- [ ] Add `--force` flag to `tocket init` for overwriting existing files
-- [ ] Add `tocket doctor` for deeper diagnostics (payload XML linting, git status)
+- [ ] Add `tocket doctor` for deeper diagnostics (payload XML linting)
 - [ ] Add tests for validate command (filesystem mocking)
 - [ ] Add tests for generate command (XML output structure)
-- [ ] Consider `examples/` directory with real payload exchange walkthrough
+- [ ] Investigate `tocket generate` automatically reading the last commit for context
