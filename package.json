@@ -1,6 +1,6 @@
 {
   "name": "@pedrocivita/tocket",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "The Context Engineering Framework for Multi-Agent Workspaces",
   "type": "module",
   "main": "dist/index.js",
@@ -14,7 +14,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && node --test dist/tests/*.test.js"
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "test:coverage": "npm run build && c8 node --test dist/tests/*.test.js"
   },
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
+    "c8": "^11.0.0",
     "typescript": "^5.9.3"
   }
 }

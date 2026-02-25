@@ -1,9 +1,10 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
+import { checkGitignoreConflict } from "../commands/init.cmd.js";
 
 // Path to the built CLI
 const cliPath = join(import.meta.dirname, "..", "index.js");
@@ -89,6 +90,37 @@ describe("init --minimal file count", () => {
     const skippedContextFiles = ["productContext.md", "techContext.md", "progress.md"];
     for (const f of skippedContextFiles) {
       assert.ok(!existsSync(join(contextDir, f)), `${f} should not exist in minimal mode`);
+    }
+  });
+});
+
+describe("checkGitignoreConflict", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "tocket-gitignore-"));
+
+  after(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("returns null when .context/ is not ignored", () => {
+    execSync("git init", { cwd: tempDir });
+    const result = checkGitignoreConflict(tempDir);
+    assert.equal(result, null);
+  });
+
+  it("returns warning when .context/ is in .gitignore", () => {
+    writeFileSync(join(tempDir, ".gitignore"), ".context/\n", "utf-8");
+    const result = checkGitignoreConflict(tempDir);
+    assert.ok(result !== null);
+    assert.ok(result!.includes(".gitignore"));
+  });
+
+  it("returns null for non-git directory", () => {
+    const nonGitDir = mkdtempSync(join(tmpdir(), "tocket-nogit-"));
+    try {
+      const result = checkGitignoreConflict(nonGitDir);
+      assert.equal(result, null);
+    } finally {
+      rmSync(nonGitDir, { recursive: true, force: true });
     }
   });
 });
