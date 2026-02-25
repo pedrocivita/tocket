@@ -4,12 +4,14 @@
 
 ## Current Focus
 
-**v2.1.0 released.** Added `tocket focus`, `tocket eject`, and `tocket status`. 84 tests, 26 suites. Tagged v2.1.0, pushed to origin. Ready for `npm publish`.
+**v2.2.0 released.** Added `tocket doctor`, `tocket lint`, `--minimal` init, and multiple `--no-tui` flags. 135 tests, 40 suites. Codebase is now significantly less invasive and more useful as a pure context scaffold.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
+| 2026-02-25 | v2.2: doctor, lint, minimal init, non-interactive flags, tests  | Claude (Executor) |
+| 2026-02-25 | Docs: File convention and zero-runtime pollution pivot          | Claude (Executor) |
 | 2026-02-25 | v2.1: focus, eject, status, dashboard, 84 tests, tagged+pushed  | Claude (Executor) |
 | 2026-02-24 | v2.0: theme, dashboard, config, smart generate, 67 tests        | Claude (Executor) |
 | 2026-02-24 | --force flag, version dedupe, CI tests, doc updates, examples   | Claude (Executor) |
@@ -24,10 +26,9 @@
 
 ## Open Decisions
 
-- ~~Add `tocket config` command~~ **Done** (TUI + non-interactive flags)
-- ~~Auto-fill `<scope>` from git~~ **Done** (getStagedFiles + getModifiedFiles)
-- ~~Add branded terminal theme~~ **Done** (chalk, static ASCII banner, no figlet)
-- Should `tocket generate` automatically read the last commit for context in prompt generation? (deferred to v2.1)
+- ~~Add `tocket doctor` for deeper diagnostics~~ **Done**
+- ~~Investigate `tocket generate` automatically reading the last commit for context~~ **Done**
+- How to propagate `tocket lint` warnings to the Agent's system prompt dynamically? (deferred)
 
 ## Session Debt (Identified by Self-Improve)
 

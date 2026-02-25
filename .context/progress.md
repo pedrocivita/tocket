@@ -106,24 +106,36 @@
 - [x] Version bumped to 2.1.0
 - [x] README updated with new commands
 
+## Milestone: v2.2.0 — Less Invasive, More Useful
+
+**Status**: Complete
+
+- [x] Add `--minimal`, `--name`, `--description` flags to `init` command
+- [x] Add `--summary` flag to `sync` command
+- [x] Add `--to` stdout/file flag to `generate` command
+- [x] Create `tocket lint` and `tocket doctor` commands for context auditing
+- [x] Investigate `tocket generate` automatically reading the last commit for context
+- [x] Massive test suite expansion (from 84 to 135 tests)
+
 ## Next Up
 
-- [ ] Add `tocket doctor` for deeper diagnostics (payload XML linting)
-- [ ] Add tests for validate command (filesystem mocking)
-- [ ] Add tests for generate command (XML output structure)
-- [ ] Investigate `tocket generate` automatically reading the last commit for context
+- [ ] Investigate programmatic agent error handoffs via CLI
+- [ ] Add global default templates for initialization
+- [ ] Explore custom LLM generation via Tocket plugins
+
 ## Session: 2026-02-25
 
-**Summary**: 
+**Summary**:
+Claude successfully completed Part A (reducing invasiveness via flags like `--minimal`) and Part B (adding `tocket lint` and `tocket doctor`). The test suite was dramatically expanded to 135 tests. The README and docs have been updated to pivot the messaging strongly towards "Context and Harness Engineering" rather than just a CLI tool.
 
 **Recent Commits**:
+
 ```
+bd71c4c feat: release v2.2.0 - Less Invasive, More Useful (lint, doctor, minimal)
+4a83d1c docs: Tocket OSS Documentation Pivot (Context Engineering)
 f751c4b feat: release v2.0.0 - Premium UX with theme, dashboard, config, and smart generate
 d3438fd feat: add --force flag, dynamic version, CI tests, and resolve session debt
 875128d feat: release v1.2.0 - Smart Init & Cursorrules Support
-c8334cb feat: Tocket CLI v1.0.0 - Context Engineering Framework
-ba93f05 Initial commit
 ```
 
 ---
-
