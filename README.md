@@ -43,6 +43,12 @@ npx @pedrocivita/tocket generate
 
 # Sync session progress into Memory Bank
 npx @pedrocivita/tocket sync
+
+# Update the current focus
+npx @pedrocivita/tocket focus "Refactoring payment module"
+
+# Remove all Tocket files (with confirmation)
+npx @pedrocivita/tocket eject
 ```
 
 ## Commands
@@ -54,7 +60,9 @@ npx @pedrocivita/tocket sync
 | `tocket generate` | Smart payload builder — auto-fills scope from git, multi-task support |
 | `tocket sync`     | Appends session summary + git log to `.context/progress.md`          |
 | `tocket validate` | Checks if the current directory has a valid Tocket Memory Bank       |
+| `tocket focus`    | Update the Current Focus in `.context/activeContext.md`              |
 | `tocket config`   | Manage global settings (`~/.tocketrc.json`)                          |
+| `tocket eject`    | Remove all Tocket files from the workspace                           |
 
 ## Configuration
 

@@ -94,9 +94,36 @@
 - [x] Global config persistence (`~/.tocketrc.json`)
 - [x] 29 new tests for theme, git, and config utilities (67 total)
 
+## Milestone: v2.1.0 — Focus & Eject Commands
+
+**Status**: Complete
+
+- [x] `tocket focus <message>` — update Current Focus in activeContext.md
+- [x] `tocket eject` — remove all Tocket-generated files (with --force flag)
+- [x] Dashboard integration (Update Focus + Eject Workspace menu items)
+- [x] Tests for focus (regex replacement, file round-trip, edge cases)
+- [x] Tests for eject (removal, missing files, partial workspace)
+- [x] Version bumped to 2.1.0
+- [x] README updated with new commands
+
 ## Next Up
 
 - [ ] Add `tocket doctor` for deeper diagnostics (payload XML linting)
 - [ ] Add tests for validate command (filesystem mocking)
 - [ ] Add tests for generate command (XML output structure)
 - [ ] Investigate `tocket generate` automatically reading the last commit for context
+## Session: 2026-02-25
+
+**Summary**: 
+
+**Recent Commits**:
+```
+f751c4b feat: release v2.0.0 - Premium UX with theme, dashboard, config, and smart generate
+d3438fd feat: add --force flag, dynamic version, CI tests, and resolve session debt
+875128d feat: release v1.2.0 - Smart Init & Cursorrules Support
+c8334cb feat: Tocket CLI v1.0.0 - Context Engineering Framework
+ba93f05 Initial commit
+```
+
+---
+

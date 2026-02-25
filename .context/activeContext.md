@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**v2.0.0 — Premium UX Overhaul.** Added purple theme (chalk), interactive dashboard, `tocket config` command, smart git-powered generate (auto-scope, multi-task, preview), global config (~/.tocketrc.json), and 29 new tests (67 total). All 4 open decisions resolved.
+**v2.1.0 — Focus & Eject Commands.** Added `tocket focus` for quick activeContext updates and `tocket eject` for clean workspace removal. Dashboard menu expanded with both new commands. Tests added for both.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
+| 2026-02-25 | v2.1: focus, eject, dashboard integration, 81 tests             | Claude (Executor) |
 | 2026-02-24 | v2.0: theme, dashboard, config, smart generate, 67 tests        | Claude (Executor) |
 | 2026-02-24 | --force flag, version dedupe, CI tests, doc updates, examples   | Claude (Executor) |
 | 2026-02-24 | Smart Init: auto-detect stack, .cursorrules, 38 tests, v1.2.0   | Claude (Executor) |
