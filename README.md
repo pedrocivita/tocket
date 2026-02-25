@@ -61,6 +61,7 @@ npx @pedrocivita/tocket eject
 | `tocket sync`     | Appends session summary + git log to `.context/progress.md`          |
 | `tocket validate` | Checks if the current directory has a valid Tocket Memory Bank       |
 | `tocket focus`    | Update the Current Focus in `.context/activeContext.md`              |
+| `tocket status`   | Quick overview of workspace, focus, branch, and agents               |
 | `tocket config`   | Manage global settings (`~/.tocketrc.json`)                          |
 | `tocket eject`    | Remove all Tocket files from the workspace                           |
 
