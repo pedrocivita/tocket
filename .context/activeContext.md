@@ -4,13 +4,13 @@
 
 ## Current Focus
 
-**v2.1.0 — Focus & Eject Commands.** Added `tocket focus` for quick activeContext updates and `tocket eject` for clean workspace removal. Dashboard menu expanded with both new commands. Tests added for both.
+**v2.1.0 released.** Added `tocket focus`, `tocket eject`, and `tocket status`. 84 tests, 26 suites. Tagged v2.1.0, pushed to origin. Ready for `npm publish`.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
-| 2026-02-25 | v2.1: focus, eject, dashboard integration, 81 tests             | Claude (Executor) |
+| 2026-02-25 | v2.1: focus, eject, status, dashboard, 84 tests, tagged+pushed  | Claude (Executor) |
 | 2026-02-24 | v2.0: theme, dashboard, config, smart generate, 67 tests        | Claude (Executor) |
 | 2026-02-24 | --force flag, version dedupe, CI tests, doc updates, examples   | Claude (Executor) |
 | 2026-02-24 | Smart Init: auto-detect stack, .cursorrules, 38 tests, v1.2.0   | Claude (Executor) |
