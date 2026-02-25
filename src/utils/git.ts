@@ -2,6 +2,25 @@ import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
+/**
+ * Check whether `.context/` is ignored by git in the given working directory.
+ * Returns true if `.context/` is in .gitignore, false otherwise.
+ * Returns false for non-git directories.
+ */
+export function isContextIgnored(cwd: string = process.cwd()): boolean {
+  if (!isGitRepo(cwd)) return false;
+  try {
+    const output = execSync("git check-ignore .context/", {
+      cwd,
+      encoding: "utf-8",
+    }).trim();
+    return output.length > 0;
+  } catch {
+    // exit code 1 = not ignored
+    return false;
+  }
+}
+
 export function isGitRepo(cwd: string = process.cwd()): boolean {
   return existsSync(join(cwd, ".git"));
 }

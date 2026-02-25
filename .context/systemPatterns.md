@@ -3,17 +3,31 @@
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│                   tocket CLI                      │
-│                                                   │
-│  index.ts ─── Commander program                   │
-│     ├── init.cmd.ts     (scaffold workspace)      │
-│     ├── generate.cmd.ts (build payload XML)       │
-│     └── sync.cmd.ts     (update Memory Bank)      │
-│                                                   │
-│  templates/                                       │
-│     └── memory-bank.ts  (file content generators) │
-└──────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│                      tocket CLI                       │
+│                                                       │
+│  index.ts ─── Commander program + dashboard detection │
+│     ├── init.cmd.ts       (scaffold workspace)        │
+│     ├── generate.cmd.ts   (build payload XML)         │
+│     ├── sync.cmd.ts       (update Memory Bank)        │
+│     ├── validate.cmd.ts   (health check)              │
+│     ├── config.cmd.ts     (global settings TUI)       │
+│     ├── focus.cmd.ts      (update Current Focus)      │
+│     ├── status.cmd.ts     (quick workspace overview)  │
+│     ├── doctor.cmd.ts     (deep diagnostics)          │
+│     ├── lint.cmd.ts       (context quality audit)     │
+│     ├── eject.cmd.ts      (remove scaffolding)        │
+│     └── dashboard.ts      (interactive menu, no-args) │
+│                                                       │
+│  templates/                                           │
+│     └── memory-bank.ts    (file content generators)   │
+│                                                       │
+│  utils/                                               │
+│     ├── theme.ts          (purple theme, banner)      │
+│     ├── git.ts            (git wrappers)              │
+│     ├── config.ts         (~/.tocketrc.json)          │
+│     └── context.ts        (shared constants/helpers)  │
+└───────────────────────────────────────────────────────┘
 ```
 
 ## Patterns

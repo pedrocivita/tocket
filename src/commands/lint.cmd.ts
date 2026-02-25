@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { success as themePass, warn as themeWarn, error as themeFail, heading, dim, info as themeInfo } from "../utils/theme.js";
 import { isGitRepo } from "../utils/git.js";
+import { STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
 
 export interface LintResult {
   severity: "pass" | "warn" | "info" | "fail";
@@ -174,7 +175,7 @@ export function registerLintCommand(program: Command): void {
         // Staleness check
         const stats = statSync(acPath);
         const daysSince = Math.floor((Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24));
-        if (daysSince > 7) {
+        if (daysSince > STALENESS_THRESHOLD_DAYS) {
           const r: LintResult = {
             severity: "warn",
             message: `Last modified ${daysSince} days ago`,

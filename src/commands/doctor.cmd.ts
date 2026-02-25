@@ -3,7 +3,8 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { success as themePass, warn as themeWarn, error as themeFail, heading, dim } from "../utils/theme.js";
-import { isGitRepo } from "../utils/git.js";
+import { isGitRepo, isContextIgnored } from "../utils/git.js";
+import { STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
 
 const PASS = themePass("");
 const WARN = themeWarn("");
@@ -79,16 +80,9 @@ export function checkGitTracking(cwd: string): DiagResult[] {
   }
 
   // Check if .context/ is in .gitignore
-  try {
-    const output = execSync("git check-ignore .context/", {
-      cwd,
-      encoding: "utf-8",
-    }).trim();
-    if (output) {
-      results.push({ icon: FAIL, message: ".context/ is in .gitignore (should be tracked)" });
-    }
-  } catch {
-    // exit code 1 = not ignored (good)
+  if (isContextIgnored(cwd)) {
+    results.push({ icon: FAIL, message: ".context/ is in .gitignore (should be tracked)" });
+  } else {
     results.push({ icon: PASS, message: ".context/ is not gitignored" });
   }
 
@@ -120,7 +114,7 @@ export function checkStaleness(basePath: string): DiagResult | null {
     (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24)
   );
 
-  if (daysSinceModified > 7) {
+  if (daysSinceModified > STALENESS_THRESHOLD_DAYS) {
     return {
       icon: WARN,
       message: `activeContext.md last modified ${daysSinceModified} days ago (may be stale)`,

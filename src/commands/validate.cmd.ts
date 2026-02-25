@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { success as themePass, warn as themeWarn, error as themeFail, heading } from "../utils/theme.js";
+import { STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
 
 const PASS = themePass("");
 const WARN = themeWarn("");
@@ -36,7 +37,7 @@ export function checkStale(basePath: string, relativePath: string): CheckResult 
     (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24)
   );
 
-  if (daysSinceModified > 7) {
+  if (daysSinceModified > STALENESS_THRESHOLD_DAYS) {
     return {
       icon: WARN,
       message: `${relativePath} last modified ${daysSinceModified} days ago (may be stale)`,

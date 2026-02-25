@@ -5,16 +5,9 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { banner, heading, success, dim, warn } from "../utils/theme.js";
 import { getConfig } from "../utils/config.js";
+import { extractFocus } from "../utils/context.js";
 
 type Action = "init" | "generate" | "sync" | "validate" | "config" | "focus" | "status" | "doctor" | "lint" | "eject" | "exit";
-
-function extractFocus(content: string): string {
-  const match = content.match(/## Current Focus\s*\n+(.+)/);
-  if (!match?.[1]) return "";
-  const line = match[1].trim();
-  if (line.startsWith("_") || line.includes("No active tasks")) return "";
-  return line.length > 80 ? line.substring(0, 77) + "..." : line;
-}
 
 export async function showDashboard(program: Command): Promise<void> {
   const config = await getConfig();

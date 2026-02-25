@@ -1,10 +1,11 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   isGitRepo,
+  isContextIgnored,
   getStagedFiles,
   getModifiedFiles,
   getRecentCommits,
@@ -12,6 +13,7 @@ import {
   getCurrentBranch,
   getLastCommitMessage,
 } from "../utils/git.js";
+import { execSync } from "node:child_process";
 
 // Use the Tocket repo itself for "in git" tests
 const tocketRoot = join(import.meta.dirname, "..", "..");
@@ -90,5 +92,27 @@ describe("git - in a non-git directory", () => {
 
   it("getLastCommitMessage returns empty string", () => {
     assert.equal(getLastCommitMessage(tempDir), "");
+  });
+
+  it("isContextIgnored returns false for non-git directory", () => {
+    assert.equal(isContextIgnored(tempDir), false);
+  });
+});
+
+describe("isContextIgnored", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "tocket-gitignore-test-"));
+
+  after(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("returns false when .context/ is not ignored", () => {
+    execSync("git init", { cwd: tempDir });
+    assert.equal(isContextIgnored(tempDir), false);
+  });
+
+  it("returns true when .context/ is in .gitignore", () => {
+    writeFileSync(join(tempDir, ".gitignore"), ".context/\n", "utf-8");
+    assert.equal(isContextIgnored(tempDir), true);
   });
 });

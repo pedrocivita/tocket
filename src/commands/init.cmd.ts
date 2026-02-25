@@ -2,9 +2,8 @@ import type { Command } from "commander";
 import { input, confirm } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join } from "node:path";
-import { execSync } from "node:child_process";
 import { banner, heading, info, success, warn, dim } from "../utils/theme.js";
-import { isGitRepo } from "../utils/git.js";
+import { isContextIgnored } from "../utils/git.js";
 import { getConfig } from "../utils/config.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 import {
@@ -132,17 +131,8 @@ async function detectStack(cwd: string): Promise<{
 }
 
 export function checkGitignoreConflict(cwd: string): string | null {
-  if (!isGitRepo(cwd)) return null;
-  try {
-    const output = execSync("git check-ignore .context/", {
-      cwd,
-      encoding: "utf-8",
-    }).trim();
-    if (output) {
-      return ".context/ is listed in .gitignore — agents won't see committed context. Remove it from .gitignore to use Tocket.";
-    }
-  } catch {
-    // exit code 1 = not ignored (good)
+  if (isContextIgnored(cwd)) {
+    return ".context/ is listed in .gitignore — agents won't see committed context. Remove it from .gitignore to use Tocket.";
   }
   return null;
 }

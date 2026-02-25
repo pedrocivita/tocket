@@ -4,12 +4,14 @@
 
 ## Current Focus
 
-**v2.2.0 released.** Added `tocket doctor`, `tocket lint`, `--minimal` init, and multiple `--no-tui` flags. 135 tests, 40 suites. Codebase is now significantly less invasive and more useful as a pure context scaffold.
+**v2.2.2 — session debt cleanup.** Extracted shared utils (extractFocus, STALENESS_THRESHOLD_DAYS, isContextIgnored). 149 tests, 44 suites.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
+| 2026-02-25 | v2.2.2: session debt cleanup, shared utils, 149 tests           | Claude (Executor) |
+| 2026-02-25 | v2.2.1: gitignore check on init, c8 coverage, 138 tests        | Claude (Executor) |
 | 2026-02-25 | v2.2: doctor, lint, minimal init, non-interactive flags, tests  | Claude (Executor) |
 | 2026-02-25 | Docs: File convention and zero-runtime pollution pivot          | Claude (Executor) |
 | 2026-02-25 | v2.1: focus, eject, status, dashboard, 84 tests, tagged+pushed  | Claude (Executor) |
@@ -32,4 +34,4 @@
 
 ## Session Debt (Identified by Self-Improve)
 
-(None — all items resolved in this session)
+All items resolved in v2.2.2. No remaining debt.

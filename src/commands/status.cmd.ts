@@ -3,14 +3,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { success, warn, info, dim, heading, purple, bold } from "../utils/theme.js";
 import { getCurrentBranch, isGitRepo } from "../utils/git.js";
-
-function extractFocus(content: string): string {
-  const match = content.match(/## Current Focus\s*\n+(.+)/);
-  if (!match?.[1]) return "";
-  const line = match[1].trim();
-  if (line.startsWith("_") || line.includes("No active tasks")) return "";
-  return line.length > 80 ? line.substring(0, 77) + "..." : line;
-}
+import { extractFocus, STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
 
 function daysSince(filePath: string): number {
   const stats = statSync(filePath);
@@ -61,7 +54,7 @@ export function registerStatusCommand(program: Command): void {
         }
 
         const days = daysSince(activeContextPath);
-        if (days > 7) {
+        if (days > STALENESS_THRESHOLD_DAYS) {
           console.log("  " + warn(`Context last updated ${days} days ago`));
         }
       }
