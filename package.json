@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/pedrocivita/tocket/issues"
   },
-  "homepage": "https://github.com/pedrocivita/tocket#readme",
+  "homepage": "https://tocket.ai",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"

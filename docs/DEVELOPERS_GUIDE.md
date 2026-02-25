@@ -2,6 +2,8 @@
 
 How to run the Tocket protocol in your project — safely, on a branch, without touching your main codebase until you're ready.
 
+> Visit **[tocket.ai](https://tocket.ai)** for an overview of the framework.
+
 ---
 
 ## What Tocket adds to your repo

@@ -1,6 +1,7 @@
 ![CI](https://github.com/pedrocivita/tocket/actions/workflows/ci.yml/badge.svg)
 [![npm](https://img.shields.io/npm/v/@pedrocivita/tocket)](https://www.npmjs.com/package/@pedrocivita/tocket)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/Website-tocket.ai-7C3AED)](https://tocket.ai)
 
 # Tocket
 
@@ -181,10 +182,11 @@ Config is stored at `~/.tocketrc.json` and pre-fills author, priority, and skill
 | [Developer Guide](docs/DEVELOPERS_GUIDE.md) | How to run the Tocket protocol safely in any project |
 | [Tocket Rules](docs/TOCKET_RULES.md) | Complete reference for all protocol rules |
 | [Protocol Spec](TOCKET.md) | The agent-agnostic protocol specification |
+| [Walkthrough](examples/walkthrough.md) | End-to-end payload exchange example |
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+We welcome contributions! Visit [tocket.ai](https://tocket.ai) for an overview of the framework, then read our [Contributing Guide](CONTRIBUTING.md) to get started.
 
 This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
 

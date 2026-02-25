@@ -4,12 +4,14 @@
 
 ## Current Focus
 
-**v2.2.2 — session debt cleanup.** Extracted shared utils (extractFocus, STALENESS_THRESHOLD_DAYS, isContextIgnored). 149 tests, 44 suites.
+**Open-source preparation.** Linked tocket.ai across all docs, expanded CONTRIBUTING.md for external PRs, added GitHub issue templates, cleaned up repo. CLI at v2.2.2 (149 tests, 44 suites). Site live at tocket.ai.
 
 ## Recent Changes
 
 | Date       | Change                                                          | Agent             |
 | ---------- | --------------------------------------------------------------- | ----------------- |
+| 2026-02-25 | Open-source prep: tocket.ai links, CONTRIBUTING, issue templates | Claude (Executor) |
+| 2026-02-25 | tocket-site v1.0: premium landing page, star particles, deploy  | Claude (Executor) |
 | 2026-02-25 | v2.2.2: session debt cleanup, shared utils, 149 tests           | Claude (Executor) |
 | 2026-02-25 | v2.2.1: gitignore check on init, c8 coverage, 138 tests        | Claude (Executor) |
 | 2026-02-25 | v2.2: doctor, lint, minimal init, non-interactive flags, tests  | Claude (Executor) |
@@ -31,7 +33,15 @@
 - ~~Add `tocket doctor` for deeper diagnostics~~ **Done**
 - ~~Investigate `tocket generate` automatically reading the last commit for context~~ **Done**
 - How to propagate `tocket lint` warnings to the Agent's system prompt dynamically? (deferred)
+- ~~Custom domain for tocket-site (tocket.ai)~~ **Done — live at tocket.ai**
+- OG image generation for social sharing — not yet created
 
 ## Session Debt (Identified by Self-Improve)
 
-All items resolved in v2.2.2. No remaining debt.
+All CLI items resolved in v2.2.2. No remaining debt.
+
+### tocket-site potential improvements
+- OG image (`/public/og-image.png`) for Twitter/LinkedIn previews
+- Mobile particle count reduction (currently same as desktop)
+- Add `npm run test` with Vitest if site grows beyond single page
+- Consider custom domain setup on Vercel
