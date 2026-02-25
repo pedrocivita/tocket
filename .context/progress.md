@@ -120,7 +120,8 @@
 ## Next Up
 
 - [ ] Investigate programmatic agent error handoffs via CLI
-- [ ] Add global default templates for initialization
+- [x] Add global default templates for initialization
+- [ ] Document global templates feature in README
 - [ ] Explore custom LLM generation via Tocket plugins
 
 ## Session: 2026-02-25
@@ -136,6 +137,22 @@ bd71c4c feat: release v2.2.0 - Less Invasive, More Useful (lint, doctor, minimal
 f751c4b feat: release v2.0.0 - Premium UX with theme, dashboard, config, and smart generate
 d3438fd feat: add --force flag, dynamic version, CI tests, and resolve session debt
 875128d feat: release v1.2.0 - Smart Init & Cursorrules Support
+```
+
+---
+
+## Session: 2026-02-25 (Pedro Civita)
+
+**Summary**: Implemented global templates for init command. Support ~/.tocket/templates overrides.
+
+**Recent Commits**:
+
+```
+f7da438 feat: add GitHub issue templates for bug reports and feature requests
+85b90dc docs: add tocket.ai links, update docs for open-source readiness
+6899f10 refactor: extract shared utils, resolve session debt (v2.2.2)
+9a056f6 feat: gitignore check on init + test coverage with c8
+b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 ```
 
 ---

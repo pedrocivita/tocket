@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { banner, heading, info, success, warn, dim } from "../utils/theme.js";
 import { isContextIgnored } from "../utils/git.js";
 import { getConfig } from "../utils/config.js";
+import { readGlobalTemplate } from "../utils/templates.js";
+import type { TemplateVars } from "../utils/templates.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 import {
   claudeMd,
@@ -208,7 +210,13 @@ export function registerInitCommand(program: Command): void {
         ? files.filter(([path]) => minimalPaths.has(path))
         : files;
 
-      for (const [filePath, content] of filesToWrite) {
+      const templateVars: TemplateVars = {
+        projectName,
+        description,
+        date: new Date().toISOString().split("T")[0],
+      };
+
+      for (const [filePath, builtInContent] of filesToWrite) {
         const fullPath = join(cwd, filePath);
         const exists = await fileExists(fullPath);
 
@@ -222,6 +230,9 @@ export function registerInitCommand(program: Command): void {
             continue;
           }
         }
+
+        const userContent = await readGlobalTemplate(filePath, templateVars);
+        const content = userContent ?? builtInContent;
 
         await writeFile(fullPath, content, "utf-8");
         console.log("  " + success(`${exists ? "updated" : "created"} ${filePath}`));
