@@ -6,64 +6,134 @@
 
 **The Context Engineering Framework for Multi-Agent Workspaces**
 
-When multiple AI agents work on the same codebase, context is lost between sessions and between agents. Each one starts from scratch, re-reads files, and makes decisions that conflict with previous ones.
+AI agents forget everything between sessions. When multiple agents work on the same codebase, they re-read files, duplicate work, and make conflicting decisions. Tocket fixes this with **shared context files that any agent can read** — no vendor lock-in, no special integrations.
 
-Tocket fixes this with two primitives:
+<p align="center">
+  <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
+</p>
 
-- **Memory Bank** — A `.context/` directory with version-controlled markdown files that any AI can read. The project's ground truth lives in files, not in chat history.
-- **Triangulation** — An Architect plans, an Executor implements, and structured XML payloads are the handoff between them.
+## The idea in 30 seconds
+
+Tocket is a file convention. It adds a `.context/` directory to your repo with markdown files that describe your project's current state, architecture, and progress. Any AI agent that can read files — Claude, Gemini, GPT, Cursor, Copilot — can pick up where the last session left off.
+
+```
+your-project/
+  .context/
+    activeContext.md      # What's happening right now
+    systemPatterns.md     # How the codebase is organized
+    techContext.md        # Stack and build tools
+    productContext.md     # What the product is and why
+    progress.md           # What's done, what's next
+  TOCKET.md               # Protocol rules (for any AI)
+  CLAUDE.md               # Executor agent config
+  GEMINI.md               # Architect agent config
+```
+
+All files are plain markdown, committed to git, and readable by any tool.
+
+## You don't need the CLI
+
+The protocol is just files. You can adopt it manually:
+
+1. Create a `.context/` directory with `activeContext.md` and `systemPatterns.md`
+2. Add a [`TOCKET.md`](TOCKET.md) to your repo root
+3. Tell your agents to read `.context/` before acting
+
+The CLI automates the scaffolding, provides smart defaults, and adds quality-of-life tooling around the protocol.
+
+## Quick Start
+
+```bash
+# Scaffold a new workspace (creates .context/, TOCKET.md, CLAUDE.md, GEMINI.md)
+npx @pedrocivita/tocket init
+
+# Or open the interactive dashboard
+npx @pedrocivita/tocket
+```
+
+That's it. Your repo now has a Memory Bank. Every AI session starts by reading `.context/activeContext.md`.
+
+### Safe testing — use a branch
+
+Tocket writes files to your repo, but you can try it risk-free on a branch:
+
+```bash
+git checkout -b test/tocket-setup
+npx @pedrocivita/tocket init
+git add .context/ TOCKET.md CLAUDE.md GEMINI.md .cursorrules
+git commit -m "chore: scaffold Tocket workspace"
+
+# Try it out — run some AI sessions, see if you like it
+# Don't like it? Clean up:
+npx @pedrocivita/tocket eject     # removes all Tocket files
+# Or just delete the branch:
+git checkout main && git branch -D test/tocket-setup
+```
+
+See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing workflows.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `tocket` | Interactive dashboard with guided menu |
+| `tocket init` | Scaffold `.context/`, `TOCKET.md`, and agent configs (auto-detects your stack) |
+| `tocket generate` | Build structured payload XML (auto-fills scope from git) |
+| `tocket sync` | Append session summary + git log to `.context/progress.md` |
+| `tocket validate` | Check if the workspace has a valid Memory Bank |
+| `tocket focus` | Update the Current Focus in `activeContext.md` |
+| `tocket status` | Quick overview: workspace health, branch, focus, agents |
+| `tocket config` | Manage global settings (`~/.tocketrc.json`) |
+| `tocket eject` | Remove all Tocket files (with confirmation) |
+
+## How it works
+
+### Memory Bank
+
+The `.context/` directory is the project's shared memory. Agents read it before acting and update it after completing work. Context lives in files, not in chat history.
+
+| File | Purpose | Updated |
+| --- | --- | --- |
+| `activeContext.md` | Current focus, recent changes, open decisions | Every session |
+| `systemPatterns.md` | Architecture patterns and conventions | When patterns change |
+| `techContext.md` | Stack, build tools, critical rules | When stack changes |
+| `productContext.md` | What the product is and why | Rarely |
+| `progress.md` | Milestones and completed work | Per milestone |
+
+### Triangulation
+
+For complex tasks, Tocket separates planning from implementation:
+
+```
+Architect (any planning AI)         Executor (any coding AI)
+     |                                   |
+     |  1. Reads .context/               |
+     |  2. Analyzes task                 |
+     |  3. Generates <payload> XML       |
+     |-------- structured handoff ------>|
+     |                                   |  4. Reads .context/ + payload
+     |                                   |  5. Implements tasks
+     |                                   |  6. Updates .context/
+     |<-------- status report -----------|
+```
+
+The Architect doesn't write code. The Executor doesn't make architecture decisions. The payload XML is the contract between them. For simple tasks, a single agent can fill both roles.
 
 ## Who is this for?
 
 - Developers using **multi-agent setups** (Gemini + Claude, Cursor + Copilot, etc.)
 - Teams that want **reproducible AI-assisted development** across sessions
 - Anyone tired of re-explaining project context to AI every time they open a chat
+- Open-source maintainers who want contributors' AI agents to follow project conventions
 
-## You don't need the CLI to use Tocket
+## How is Tocket different?
 
-The protocol is just files. You can adopt it manually:
-
-1. Create a `.context/` directory with `activeContext.md` and `systemPatterns.md`
-2. Add a `TOCKET.md` to your repo root (see [the spec](TOCKET.md))
-3. Tell your AI agents to read `.context/` before acting
-
-The CLI just automates the scaffolding.
-
-## Quick Start
-
-```bash
-# Interactive dashboard — guided entry point
-npx @pedrocivita/tocket
-
-# Scaffold a new workspace (creates .context/, TOCKET.md, CLAUDE.md, GEMINI.md)
-npx @pedrocivita/tocket init
-
-# Generate a payload XML with smart git integration
-npx @pedrocivita/tocket generate
-
-# Sync session progress into Memory Bank
-npx @pedrocivita/tocket sync
-
-# Update the current focus
-npx @pedrocivita/tocket focus "Refactoring payment module"
-
-# Remove all Tocket files (with confirmation)
-npx @pedrocivita/tocket eject
-```
-
-## Commands
-
-| Command           | What it does                                                         |
-| ----------------- | -------------------------------------------------------------------- |
-| `tocket`          | Interactive dashboard with guided menu                               |
-| `tocket init`     | Scaffolds `.context/`, `TOCKET.md`, `CLAUDE.md`, `GEMINI.md`         |
-| `tocket generate` | Smart payload builder — auto-fills scope from git, multi-task support |
-| `tocket sync`     | Appends session summary + git log to `.context/progress.md`          |
-| `tocket validate` | Checks if the current directory has a valid Tocket Memory Bank       |
-| `tocket focus`    | Update the Current Focus in `.context/activeContext.md`              |
-| `tocket status`   | Quick overview of workspace, focus, branch, and agents               |
-| `tocket config`   | Manage global settings (`~/.tocketrc.json`)                          |
-| `tocket eject`    | Remove all Tocket files from the workspace                           |
+| Tool | What it does | How Tocket differs |
+| --- | --- | --- |
+| `.cursorrules` | Single-agent instructions for Cursor | Tocket defines _inter-agent_ protocol, not just single-agent rules |
+| `CLAUDE.md` | Instructions for Claude Code | Tocket generates `CLAUDE.md` as part of a broader multi-agent system |
+| `AGENTS.md` | Codex agent instructions | Same idea for one agent; Tocket coordinates multiple agents |
+| Prompt templates | Static prompts for LLMs | Tocket's Memory Bank evolves with the project; payloads are structured, not freeform |
 
 ## Configuration
 
@@ -82,53 +152,14 @@ tocket config --show
 
 Config is stored at `~/.tocketrc.json` and pre-fills author, priority, and skills in all commands.
 
-## How Triangulation works
-
-```
-Architect (any planning AI)         Executor (any coding AI)
-     │                                   │
-     │  1. Reads .context/               │
-     │  2. Analyzes task                 │
-     │  3. Generates <payload> XML       │
-     │──────── structured handoff ──────►│
-     │                                   │  4. Reads .context/ + payload
-     │                                   │  5. Implements tasks
-     │                                   │  6. Updates .context/
-     │◄──────── status report ───────────│
-```
-
-The Architect doesn't write code. The Executor doesn't make architecture decisions. The payload is the contract between them.
-
-## Memory Bank files
-
-```
-.context/
-  activeContext.md    ← Current focus. Read this first.
-  systemPatterns.md   ← Architecture decisions and conventions.
-  techContext.md      ← Stack, build tools, critical rules.
-  productContext.md   ← What the product is and why it exists.
-  progress.md         ← What's done, what's next.
-```
-
-All files are markdown. All files are committed to git. Any AI that can read files can participate.
-
 ## Documentation
 
-| Guide                                       | Description                                     |
-| ------------------------------------------- | ----------------------------------------------- |
-| [Getting Started](docs/GETTING_STARTED.md)  | Set up your first Tocket workspace in 5 minutes |
-| [Tocket Rules](docs/TOCKET_RULES.md)        | Complete reference for all protocol rules       |
-| [Developer Guide](docs/DEVELOPERS_GUIDE.md) | Contributing to the Tocket CLI codebase         |
-| [Protocol Spec](TOCKET.md)                  | The agent-agnostic protocol specification       |
-
-## How is this different from...
-
-| Tool             | What it does                         | How Tocket differs                                                                   |
-| ---------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
-| `.cursorrules`   | Single-agent instructions for Cursor | Tocket defines _inter-agent_ protocol, not just single-agent rules                   |
-| `CLAUDE.md`      | Instructions for Claude Code         | Tocket generates `CLAUDE.md` _as part of_ a broader multi-agent system               |
-| `AGENTS.md`      | Codex agent instructions             | Same idea for one agent; Tocket coordinates multiple agents                          |
-| Prompt templates | Static prompts for LLMs              | Tocket's Memory Bank evolves with the project; payloads are structured, not freeform |
+| Guide | Description |
+| --- | --- |
+| [Getting Started](docs/GETTING_STARTED.md) | Set up your first Tocket workspace in 5 minutes |
+| [Developer Guide](docs/DEVELOPERS_GUIDE.md) | How to run the Tocket protocol safely in any project |
+| [Tocket Rules](docs/TOCKET_RULES.md) | Complete reference for all protocol rules |
+| [Protocol Spec](TOCKET.md) | The agent-agnostic protocol specification |
 
 ## Contributing
 

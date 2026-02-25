@@ -1,209 +1,398 @@
 # Developer Guide
 
-Guide for contributing to the Tocket CLI codebase.
+How to run the Tocket protocol in your project — safely, on a branch, without touching your main codebase until you're ready.
 
-## Prerequisites
+---
 
-- Node.js 20+
-- npm 10+
-- Git
+## What Tocket adds to your repo
 
-## Setup
+Tocket is a file convention. Running `tocket init` creates these files:
+
+```
+your-project/
+  .context/                   # Memory Bank (5 markdown files)
+    activeContext.md          # Current focus, recent changes, open decisions
+    systemPatterns.md         # Architecture patterns and conventions
+    techContext.md            # Stack, build tools, critical rules
+    productContext.md         # What the product is and why
+    progress.md              # Milestones and completed work
+  TOCKET.md                   # Protocol spec (any AI reads this)
+  CLAUDE.md                   # Executor agent config (Claude Code)
+  GEMINI.md                   # Architect agent config (Gemini)
+  .cursorrules                # Cursor IDE agent config
+```
+
+That's it — 9 markdown files. No config in `package.json`, no build plugins, no runtime dependencies. Everything is plain text committed to git.
+
+---
+
+## Setting up safely with branches
+
+Tocket is designed to be tested without risk to your existing repo. The recommended approach is to scaffold on a branch, try it with a few AI sessions, and merge only when you're confident.
+
+### Step 1: Create a test branch
 
 ```bash
-git clone https://github.com/pedrocivita/tocket.git
-cd tocket
-npm install
-npm run build
+cd your-project
+git checkout -b setup/tocket
 ```
 
-Verify the build works:
+### Step 2: Initialize the workspace
 
 ```bash
-node dist/index.js --help
+npx @pedrocivita/tocket init
 ```
 
-## Project structure
+The CLI will:
+1. **Auto-detect your stack** from `package.json` (language, runtime, build tool, framework, notable dependencies)
+2. **Ask for a project name** and short description (pre-filled from package.json if available)
+3. **Create `.context/`** with five markdown files pre-populated with your stack info
+4. **Create agent configs** (`TOCKET.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`) at the repo root
 
-```
-tocket/
-  src/
-    index.ts                    # CLI entry point (Commander setup + dashboard detection)
-    commands/
-      init.cmd.ts               # tocket init — scaffold workspace
-      generate.cmd.ts           # tocket generate — smart payload builder
-      sync.cmd.ts               # tocket sync — update Memory Bank
-      validate.cmd.ts           # tocket validate — workspace health check
-      config.cmd.ts             # tocket config — global settings TUI
-      dashboard.ts              # Interactive menu (no-args entry point)
-    templates/
-      memory-bank.ts            # Template functions for scaffolded files
-    utils/
-      theme.ts                  # Purple theme, ASCII banner, semantic helpers
-      git.ts                    # Git wrappers (staged files, commits, branch)
-      config.ts                 # Global config (~/.tocketrc.json) read/write
-    tests/
-      memory-bank.test.ts       # Template tests (38 tests)
-      theme.test.ts             # Theme utility tests (10 tests)
-      git.test.ts               # Git utility tests (12 tests)
-      config.test.ts            # Config utility tests (7 tests)
-  dist/                         # Compiled output (gitignored)
-  docs/                         # Documentation (you are here)
-  .context/                     # Memory Bank (committed)
-  .github/
-    workflows/ci.yml            # GitHub Actions CI
-    PULL_REQUEST_TEMPLATE.md    # PR template
-```
+If any of these files already exist (e.g., you already have a `CLAUDE.md`), the CLI will ask before overwriting. Use `--force` to skip the prompts.
 
-## Tech stack
-
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| TypeScript | 5.9 | Language |
-| Node.js | 20+ | Runtime |
-| Commander.js | 14 | CLI framework |
-| @inquirer/prompts | 8 | Interactive prompts |
-| clipboardy | 5 | Clipboard access |
-| chalk | 5 | Terminal styling (purple theme) |
-
-## Code conventions
-
-### ESM
-
-The project uses ES Modules (`"type": "module"` in package.json). This means:
-
-- **All imports must use `.js` extension** — `import { foo } from "./bar.js"`, not `./bar` or `./bar.ts`
-- **Use `node:` prefix for built-ins** — `import { join } from "node:path"`
-- **Use `import type` for type-only imports** — `import type { Command } from "commander"`
-
-### Exports
-
-- **Named exports only** — no `export default`
-- Every module exports specific named functions or constants
-
-### File naming
-
-- Commands: `src/commands/<name>.cmd.ts`
-- Templates: `src/templates/<name>.ts`
-- Use `kebab-case` for file names, `camelCase` for exports
-
-### Style
-
-- Semicolons: yes
-- All code, comments, and commits in English
-- TypeScript `strict: true`
-
-## Adding a new command
-
-1. Create `src/commands/mycommand.cmd.ts`:
-
-```typescript
-import type { Command } from "commander";
-
-export function registerMycommandCommand(program: Command): void {
-  program
-    .command("mycommand")
-    .description("What it does")
-    .action(async () => {
-      // implementation
-    });
-}
-```
-
-2. Register it in `src/index.ts`:
-
-```typescript
-import { registerMycommandCommand } from "./commands/mycommand.cmd.js";
-
-// ... after other registrations:
-registerMycommandCommand(program);
-```
-
-3. Build and test:
+### Step 3: Commit the scaffolding
 
 ```bash
-npm run build
-node dist/index.js mycommand
+git add .context/ TOCKET.md CLAUDE.md GEMINI.md .cursorrules
+git commit -m "chore: scaffold Tocket workspace"
 ```
 
-## Adding a new template
+### Step 4: Run a few AI sessions
 
-Templates live in `src/templates/memory-bank.ts` as exported functions that return markdown strings:
+Open your AI tool (Claude Code, Cursor, Gemini, etc.) and work on your project normally. The agent will read `.context/activeContext.md` at the start and update it at the end.
 
-```typescript
-export const myTemplateMd = (projectName: string) =>
-  `# My Template - ${projectName}
-
-Content here. Use \`\\\`\` to escape backticks inside template literals.
-`;
-```
-
-Then import and use it in the relevant command.
-
-## Build
+After a couple sessions, check whether context is actually being preserved:
 
 ```bash
-npm run build    # Compiles TypeScript to dist/
+# See workspace health
+npx @pedrocivita/tocket status
+
+# See what the Memory Bank contains
+cat .context/activeContext.md
 ```
 
-There is no watch mode configured yet. After editing, run `npm run build` manually.
+### Step 5: Merge or discard
 
-## Testing
-
-The project uses Node.js built-in test runner (`node:test`) with 67 tests across 20 suites.
+**If you like it** — merge into main:
 
 ```bash
-npm test    # Compiles TypeScript and runs all tests
+git checkout main
+git merge setup/tocket
 ```
 
-Test files:
-- `src/tests/memory-bank.test.ts` — template function tests (38 tests)
-- `src/tests/theme.test.ts` — theme utility smoke tests (10 tests)
-- `src/tests/git.test.ts` — git wrapper tests (12 tests)
-- `src/tests/config.test.ts` — config read/write tests (7 tests)
-
-For manual command testing:
+**If you don't** — clean up with zero impact:
 
 ```bash
-npm run build
-node dist/index.js --help
-node dist/index.js               # Test dashboard (interactive menu)
-node dist/index.js init          # Test in a temp directory
-node dist/index.js init --force  # Test overwrite without prompts
-node dist/index.js generate      # Test smart scope from git
-node dist/index.js sync          # Test in a directory with .context/
-node dist/index.js validate      # Test Memory Bank validation
-node dist/index.js config --show # Test config display
-node dist/index.js config --author "Test" # Test non-interactive config
+# Option A: Eject (removes Tocket files, keeps the branch)
+npx @pedrocivita/tocket eject
+
+# Option B: Delete the branch entirely
+git checkout main
+git branch -D setup/tocket
 ```
 
-## CI
+Either way, your main branch is untouched.
 
-GitHub Actions runs on push to `main` and on pull requests:
+---
 
-- Checkout
-- Setup Node.js 20
-- `npm ci`
-- `npm run build`
+## Day-to-day workflow
 
-- `npm test` (build + 67 tests)
+Once Tocket is set up, here's how a typical development session works.
 
-## Submitting changes
+### Solo mode (one agent, simple tasks)
 
-1. Fork the repo
-2. Create a branch: `feature/my-change` or `fix/my-bug`
-3. Make focused, atomic commits in English
-4. Run `npm run build` to verify
-5. Open a PR using the template
+Most tasks don't need two agents. A single AI reads the Memory Bank, does the work, and updates the context:
 
-For architectural proposals, read the [Contributing Guide](../CONTRIBUTING.md) — complex changes should use the Memory Bank protocol.
+```
+1. Agent reads .context/activeContext.md
+2. You give it a task
+3. It implements the task
+4. It updates activeContext.md with what changed
+```
 
-## Reading the Memory Bank
+### Triangulated mode (two agents, complex tasks)
 
-Before working on the codebase, read:
+For multi-file features, refactors, or architectural changes, split planning from implementation:
 
-1. `.context/activeContext.md` — What's currently being worked on
-2. `.context/systemPatterns.md` — Architecture decisions
-3. `.context/techContext.md` — Stack details
+```
+1. Architect (e.g., Gemini) reads .context/ and analyzes the task
+2. Architect generates a <payload> XML — a structured plan
+3. You copy the payload to the Executor (e.g., Claude Code)
+4. Executor reads .context/ + the payload
+5. Executor implements each task in order
+6. Executor updates .context/ with results
+```
 
-This is the Tocket protocol applied to itself.
+The payload XML is the contract. It includes what files to touch, what to do, and how to verify the result.
+
+### Generating payloads
+
+```bash
+npx @pedrocivita/tocket generate
+```
+
+This interactive command:
+- Auto-fills the scope from your current git diff (staged + modified files)
+- Walks you through intent, priority, and tasks
+- Generates valid payload XML
+- Copies it to your clipboard
+
+### Updating focus
+
+When you switch to a different task:
+
+```bash
+npx @pedrocivita/tocket focus "Migrating auth to OAuth2"
+```
+
+This updates the "Current Focus" section in `activeContext.md` so the next AI session knows what you're working on.
+
+### Syncing progress
+
+After a work session:
+
+```bash
+npx @pedrocivita/tocket sync
+```
+
+This appends a timestamped summary with your recent git commits to `.context/progress.md`.
+
+---
+
+## What each Memory Bank file does
+
+### `activeContext.md` — The starting point
+
+Every AI session begins here. It contains:
+
+- **Current Focus** — One sentence describing the active task
+- **Recent Changes** — A table of what happened and which agent did it
+- **Open Decisions** — Anything unresolved that needs attention
+
+Update this file at the end of every session. Replace (don't append) — it should reflect the current state, not a log.
+
+### `systemPatterns.md` — How the code is organized
+
+Architecture decisions, naming conventions, and established patterns. Agents read this to follow your project's style instead of guessing.
+
+Example entries:
+- "Commands follow the registration pattern: one file per command"
+- "All API routes are in `src/routes/` with `*.route.ts` suffix"
+- "State management uses Zustand with slices in `src/store/`"
+
+Update when architecture changes. The Architect role owns this file.
+
+### `techContext.md` — Stack and build details
+
+Hard facts about your project: language, runtime, build tool, framework, critical rules. `tocket init` auto-populates this from `package.json`.
+
+Example:
+```markdown
+| Layer     | Technology    | Notes                    |
+|-----------|--------------|--------------------------|
+| Language  | TypeScript   | strict: true             |
+| Runtime   | Node.js 20+  | ESM                      |
+| Build     | Vite         | SPA mode                 |
+| Framework | React 19     | With React Router v7     |
+```
+
+### `productContext.md` — What and why
+
+Business context: what the product does, who it's for, and why it exists. Rarely changes. Useful for agents making UX or naming decisions.
+
+### `progress.md` — Done and next
+
+Milestone tracking. `tocket sync` appends session blocks here automatically. Useful for onboarding new agents or resuming after a break.
+
+---
+
+## Working with branches — advanced patterns
+
+### Feature branches with Tocket context
+
+When you start a feature branch, the `.context/` files come along. Update `activeContext.md` on the branch to reflect the feature work:
+
+```bash
+git checkout -b feature/new-dashboard
+npx @pedrocivita/tocket focus "Building new dashboard with chart components"
+
+# ... do your work ...
+
+npx @pedrocivita/tocket sync
+git add .context/
+git commit -m "chore: update context after dashboard work"
+```
+
+When you merge, the context updates merge too. If there are conflicts in `.context/` files, resolve them like any other merge conflict — pick the more current state.
+
+### Isolated experiments
+
+Want to test a big refactor with AI assistance without affecting anything?
+
+```bash
+git checkout -b experiment/refactor-api
+npx @pedrocivita/tocket focus "Experiment: refactoring API layer to use tRPC"
+
+# Let the AI go wild
+# If it works, merge. If not, delete the branch.
+```
+
+The Memory Bank on the experiment branch tracks that experiment's context independently.
+
+### Team branches
+
+On a team, each developer can have their own Tocket context on feature branches. The `activeContext.md` on `main` reflects the project-wide state, while feature branches reflect individual work.
+
+When merging, the developer updates `activeContext.md` on main to reflect what landed.
+
+---
+
+## Validating your workspace
+
+Check that your Memory Bank is healthy:
+
+```bash
+npx @pedrocivita/tocket validate
+```
+
+This checks for:
+- Required files exist in `.context/`
+- `TOCKET.md` is present
+- Agent config files are in place
+- Files aren't stale (warns if `activeContext.md` hasn't been updated in over 7 days)
+
+### Quick status check
+
+```bash
+npx @pedrocivita/tocket status
+```
+
+Shows a one-line summary: workspace health, current focus, git branch, and which agent configs are present.
+
+---
+
+## Ejecting
+
+If you decide Tocket isn't for you, remove everything cleanly:
+
+```bash
+npx @pedrocivita/tocket eject
+```
+
+This removes:
+- `.context/` (the entire directory)
+- `TOCKET.md`
+- `CLAUDE.md`
+- `GEMINI.md`
+- `.cursorrules`
+
+It does **not** touch:
+- Your global config (`~/.tocketrc.json`)
+- Any other files in your repo
+- Git history (the files were committed, so they're in history)
+
+Use `--force` to skip the confirmation prompt.
+
+---
+
+## Global configuration
+
+Set defaults that apply to all your Tocket workspaces:
+
+```bash
+# Interactive setup
+npx @pedrocivita/tocket config
+
+# Or set values directly (CI-friendly)
+npx @pedrocivita/tocket config --author "Your Name" --priority medium --skills "core,api"
+
+# See current config
+npx @pedrocivita/tocket config --show
+```
+
+Config is stored at `~/.tocketrc.json` and pre-fills author, priority, and skills when generating payloads.
+
+---
+
+## Payload format reference
+
+Payloads are XML documents that the Architect generates for the Executor. Here's the structure:
+
+```xml
+<payload version="2.0">
+  <meta>
+    <intent>One-line goal</intent>
+    <scope>Files and modules affected</scope>
+    <priority>high | medium | low</priority>
+    <skills>Optional: comma-separated skill names</skills>
+  </meta>
+
+  <context>
+    <summary>Background and reasoning (optional)</summary>
+  </context>
+
+  <tasks>
+    <task id="1" type="create | edit | delete">
+      <target>file/path</target>
+      <action>What to do (imperative)</action>
+      <spec>Detailed specification (optional)</spec>
+      <done>How to know this task is complete</done>
+    </task>
+  </tasks>
+
+  <validate>
+    <check>Human-readable verification step</check>
+    <test>Command to run (e.g., npm test)</test>
+  </validate>
+</payload>
+```
+
+Rules:
+- One payload per logical unit of work
+- Tasks are processed sequentially by `id`
+- `<validate>` is mandatory — every payload must define how to verify success
+- Version tag (`2.0`) is required
+
+See [examples/walkthrough.md](../examples/walkthrough.md) for a complete end-to-end example.
+
+---
+
+## Troubleshooting
+
+### "No Tocket workspace found"
+
+You're in a directory without `.context/`. Either `cd` to the right directory or run `tocket init`.
+
+### Agent ignores the Memory Bank
+
+Make sure the agent's instructions tell it to read `.context/` before acting. The generated `CLAUDE.md`, `GEMINI.md`, and `.cursorrules` files already include this instruction. If you're using a different agent, add it manually.
+
+### Merge conflicts in `.context/` files
+
+These are normal, especially in `activeContext.md` and `progress.md`. Resolve them the same way you'd resolve any markdown conflict: keep the more recent state. For `progress.md`, keep both session blocks.
+
+### `tocket init` doesn't detect my stack
+
+Auto-detection reads `package.json`. If your project doesn't have one (e.g., Python, Go, Rust), the CLI will still work — you'll just fill in the project name and description manually. The generated `techContext.md` will have placeholder rows for you to fill in.
+
+### Files already exist
+
+If you already have a `CLAUDE.md` or `.cursorrules`, `tocket init` will ask before overwriting. You can skip specific files or use `--force` to overwrite everything.
+
+---
+
+## Contributing to Tocket itself
+
+If you want to contribute to the Tocket CLI codebase (not just use the protocol), see the [Contributing Guide](../CONTRIBUTING.md) for setup instructions, code conventions, and the PR workflow.
+
+The CLI is built with TypeScript, Commander.js, and Node.js 20+. The project uses its own protocol — `.context/` in the Tocket repo is a live example of the Memory Bank in action.
+
+---
+
+## Next steps
+
+- [Getting Started](GETTING_STARTED.md) — 5-minute setup walkthrough
+- [Tocket Rules](TOCKET_RULES.md) — Complete protocol reference
+- [Protocol Spec](../TOCKET.md) — The agent-agnostic specification
+- [Walkthrough](../examples/walkthrough.md) — Full payload exchange example
