@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**Open-source preparation.** Linked tocket.ai across all docs, expanded CONTRIBUTING.md for external PRs, added GitHub issue templates, cleaned up repo. CLI at v2.2.2 (149 tests, 44 suites). Site live at tocket.ai.
+**v2.3.0 released.** Global user templates (`~/.tocket/templates/`) with variable interpolation. OG image added to tocket.ai for social sharing. CLI at v2.3.0 (166 tests, 49 suites). Published to npm + tagged.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-02-25 | v2.3.0: global templates, OG image, npm publish                  | Claude (Executor) |
 | 2026-02-25 | Implemented global templates (~/.tocket/templates)               | Claude (Executor) |
 | 2026-02-25 | Open-source prep: tocket.ai links, CONTRIBUTING, issue templates | Claude (Executor) |
 | 2026-02-25 | tocket-site v1.0: premium landing page, star particles, deploy   | Claude (Executor) |
@@ -35,7 +36,7 @@
 - ~~Investigate `tocket generate` automatically reading the last commit for context~~ **Done**
 - How to propagate `tocket lint` warnings to the Agent's system prompt dynamically? (deferred)
 - ~~Custom domain for tocket-site (tocket.ai)~~ **Done — live at tocket.ai**
-- OG image generation for social sharing — not yet created
+- ~~OG image generation for social sharing~~ **Done — public/og-image.png on tocket-site**
 
 ## Session Debt (Identified by Self-Improve)
 
@@ -43,7 +44,7 @@ All CLI items resolved in v2.2.2. No remaining debt.
 
 ### tocket-site potential improvements
 
-- OG image (`/public/og-image.png`) for Twitter/LinkedIn previews
+- ~~OG image (`/public/og-image.png`) for Twitter/LinkedIn previews~~ **Done**
 - Mobile particle count reduction (currently same as desktop)
 - Add `npm run test` with Vitest if site grows beyond single page
 - Consider custom domain setup on Vercel

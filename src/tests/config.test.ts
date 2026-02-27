@@ -79,6 +79,54 @@ describe("config - read and write", () => {
   });
 });
 
+describe("config - agents field", () => {
+  let tempDir: string;
+  let configPath: string;
+
+  before(() => {
+    tempDir = mkdtempSync(join(tmpdir(), "tocket-config-agents-"));
+    configPath = join(tempDir, ".tocketrc.json");
+  });
+
+  after(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("saveConfig preserves agents field", async () => {
+    const data: TocketConfig = {
+      agents: { architect: "ChatGPT", executor: "Cursor" },
+    };
+    await saveConfig(data, configPath);
+    const config = await getConfig(configPath);
+    assert.equal(config.agents?.architect, "ChatGPT");
+    assert.equal(config.agents?.executor, "Cursor");
+  });
+
+  it("updateConfig merges nested agents", async () => {
+    await saveConfig(
+      { agents: { architect: "Gemini", executor: "Claude Code" } },
+      configPath,
+    );
+    await updateConfig({ agents: { executor: "Windsurf" } }, configPath);
+    const config = await getConfig(configPath);
+    assert.equal(config.agents?.architect, "Gemini");
+    assert.equal(config.agents?.executor, "Windsurf");
+  });
+
+  it("agents coexist with other fields", async () => {
+    const data: TocketConfig = {
+      author: "Pedro",
+      agents: { architect: "Gemini", executor: "Claude Code" },
+      defaults: { priority: "high" },
+    };
+    await saveConfig(data, configPath);
+    const config = await getConfig(configPath);
+    assert.equal(config.author, "Pedro");
+    assert.equal(config.agents?.architect, "Gemini");
+    assert.equal(config.defaults?.priority, "high");
+  });
+});
+
 describe("config - error handling", () => {
   it("getConfig returns empty object for non-existent path", async () => {
     const config = await getConfig("/nonexistent/path/.tocketrc.json");

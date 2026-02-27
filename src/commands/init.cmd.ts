@@ -1,16 +1,22 @@
 import type { Command } from "commander";
 import { input, confirm } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { banner, heading, info, success, warn, dim } from "../utils/theme.js";
 import { isContextIgnored } from "../utils/git.js";
 import { getConfig } from "../utils/config.js";
 import { readGlobalTemplate } from "../utils/templates.js";
 import type { TemplateVars } from "../utils/templates.js";
+import {
+  getExecutorFileName,
+  getArchitectFileName,
+  getExecutorDisplayName,
+  getArchitectDisplayName,
+} from "../utils/agents.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 import {
-  claudeMd,
-  geminiMd,
+  executorMd,
+  architectMd,
   tocketMd,
   activeContextMd,
   systemPatternsMd,
@@ -183,13 +189,20 @@ export function registerInitCommand(program: Command): void {
       const contextDir = join(cwd, ".context");
       await mkdir(contextDir, { recursive: true });
 
+      // Resolve agent names and file conventions
+      const executorName = getExecutorDisplayName(globalConfig.agents?.executor);
+      const architectName = getArchitectDisplayName(globalConfig.agents?.architect);
+      const executorFile = getExecutorFileName(globalConfig.agents?.executor);
+      const architectFile = getArchitectFileName(globalConfig.agents?.architect);
+
       const files: Array<[string, string]> = [
-        ["TOCKET.md", tocketMd(projectName)],
-        ["CLAUDE.md", claudeMd(projectName, description)],
-        ["GEMINI.md", geminiMd(projectName, description)],
-        [".cursorrules", cursorrulesMd(projectName, description)],
+        ["TOCKET.md", tocketMd(projectName, executorFile, architectFile)],
+        [executorFile, executorFile === ".cursorrules"
+          ? cursorrulesMd(projectName, description, architectFile)
+          : executorMd(projectName, description, executorName, architectFile)],
+        [architectFile, architectMd(projectName, description, architectName, executorName, executorFile)],
         [join(".context", "activeContext.md"), activeContextMd(projectName)],
-        [join(".context", "systemPatterns.md"), systemPatternsMd(projectName)],
+        [join(".context", "systemPatterns.md"), systemPatternsMd(projectName, architectName, executorName)],
         [
           join(".context", "productContext.md"),
           productContextMd(projectName, description),
@@ -214,6 +227,10 @@ export function registerInitCommand(program: Command): void {
         projectName,
         description,
         date: new Date().toISOString().split("T")[0],
+        architectName,
+        executorName,
+        architectFile,
+        executorFile,
       };
 
       for (const [filePath, builtInContent] of filesToWrite) {
@@ -230,6 +247,8 @@ export function registerInitCommand(program: Command): void {
             continue;
           }
         }
+
+        await mkdir(dirname(fullPath), { recursive: true });
 
         const userContent = await readGlobalTemplate(filePath, templateVars);
         const content = userContent ?? builtInContent;

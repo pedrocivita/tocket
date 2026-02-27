@@ -50,7 +50,7 @@ describe("init --name --description (non-interactive)", () => {
       { cwd: tempDir, encoding: "utf-8" },
     );
 
-    // All 9 files should exist (not minimal)
+    // All 8 files should exist (not minimal, no .cursorrules by default)
     assert.ok(existsSync(join(tempDir, ".context", "activeContext.md")));
     assert.ok(existsSync(join(tempDir, ".context", "systemPatterns.md")));
     assert.ok(existsSync(join(tempDir, ".context", "productContext.md")));
@@ -59,7 +59,8 @@ describe("init --name --description (non-interactive)", () => {
     assert.ok(existsSync(join(tempDir, "TOCKET.md")));
     assert.ok(existsSync(join(tempDir, "CLAUDE.md")));
     assert.ok(existsSync(join(tempDir, "GEMINI.md")));
-    assert.ok(existsSync(join(tempDir, ".cursorrules")));
+    // .cursorrules is only generated when executor is Cursor
+    assert.ok(!existsSync(join(tempDir, ".cursorrules")));
   });
 });
 

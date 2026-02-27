@@ -1,7 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  executorMd,
   claudeMd,
+  architectMd,
   geminiMd,
   tocketMd,
   activeContextMd,
@@ -13,19 +15,20 @@ import {
 } from "../templates/memory-bank.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 
-describe("claudeMd", () => {
-  const output = claudeMd("TestProject", "A test project");
+describe("executorMd (claudeMd)", () => {
+  const output = executorMd("TestProject", "A test project");
 
   it("includes the project name in the title", () => {
-    assert.ok(output.includes("# CLAUDE.md - TestProject"));
+    assert.ok(output.includes("TestProject"));
+    assert.ok(output.includes("Executor Instructions"));
   });
 
   it("includes the description as a blockquote", () => {
     assert.ok(output.includes("> A test project"));
   });
 
-  it("defines the Executor role", () => {
-    assert.ok(output.includes("**Executor**"));
+  it("defines the Executor role with default agent name", () => {
+    assert.ok(output.includes("**Executor** (Claude Code)"));
   });
 
   it("references the Memory Bank files", () => {
@@ -33,22 +36,42 @@ describe("claudeMd", () => {
     assert.ok(output.includes(".context/systemPatterns.md"));
   });
 
+  it("references the architect file", () => {
+    assert.ok(output.includes("GEMINI.md"));
+  });
+
   it("handles empty description gracefully", () => {
-    const noDesc = claudeMd("Foo", "");
-    assert.ok(noDesc.includes("# CLAUDE.md - Foo"));
+    const noDesc = executorMd("Foo", "");
+    assert.ok(noDesc.includes("Foo"));
     assert.ok(!noDesc.includes("> \n"));
+  });
+
+  it("accepts custom agent names", () => {
+    const custom = executorMd("Proj", "desc", "Cursor", "ARCHITECT.md");
+    assert.ok(custom.includes("**Executor** (Cursor)"));
+    assert.ok(custom.includes("ARCHITECT.md"));
+  });
+
+  it("backward compat: claudeMd alias works", () => {
+    const output = claudeMd("Test", "desc");
+    assert.ok(output.includes("**Executor**"));
   });
 });
 
-describe("geminiMd", () => {
-  const output = geminiMd("TestProject", "A test project");
+describe("architectMd (geminiMd)", () => {
+  const output = architectMd("TestProject", "A test project");
 
   it("includes the project name in the title", () => {
-    assert.ok(output.includes("# GEMINI.md - TestProject"));
+    assert.ok(output.includes("TestProject"));
+    assert.ok(output.includes("Architect Instructions"));
   });
 
-  it("defines the Architect role", () => {
-    assert.ok(output.includes("**Architect**"));
+  it("defines the Architect role with default agent name", () => {
+    assert.ok(output.includes("**Architect** (Gemini)"));
+  });
+
+  it("references the executor file", () => {
+    assert.ok(output.includes("CLAUDE.md"));
   });
 
   it("references payload v2.0 format", () => {
@@ -57,6 +80,18 @@ describe("geminiMd", () => {
 
   it("does not reference the deprecated mission-brief format", () => {
     assert.ok(!output.includes("<mission-brief"));
+  });
+
+  it("accepts custom agent names", () => {
+    const custom = architectMd("Proj", "desc", "ChatGPT", "Cursor", ".cursorrules");
+    assert.ok(custom.includes("**Architect** (ChatGPT)"));
+    assert.ok(custom.includes("Executor (Cursor)"));
+    assert.ok(custom.includes(".cursorrules"));
+  });
+
+  it("backward compat: geminiMd alias works", () => {
+    const output = geminiMd("Test", "desc");
+    assert.ok(output.includes("**Architect**"));
   });
 });
 
@@ -91,6 +126,17 @@ describe("tocketMd", () => {
   it("includes a payload example with v2.0", () => {
     assert.ok(output.includes('<payload version="2.0">'));
   });
+
+  it("references default executor and architect files in Quick Start", () => {
+    assert.ok(output.includes("CLAUDE.md"));
+    assert.ok(output.includes("GEMINI.md"));
+  });
+
+  it("accepts custom file names in Quick Start", () => {
+    const custom = tocketMd("Proj", ".cursorrules", "ARCHITECT.md");
+    assert.ok(custom.includes(".cursorrules"));
+    assert.ok(custom.includes("ARCHITECT.md"));
+  });
 });
 
 describe("activeContextMd", () => {
@@ -122,6 +168,17 @@ describe("systemPatternsMd", () => {
     assert.ok(output.includes("## Tech Stack"));
     assert.ok(output.includes("## Conventions"));
     assert.ok(output.includes("## Key Decisions"));
+  });
+
+  it("includes default agent names in conventions", () => {
+    assert.ok(output.includes("Gemini (Architect)"));
+    assert.ok(output.includes("Claude Code (Executor)"));
+  });
+
+  it("accepts custom agent names", () => {
+    const custom = systemPatternsMd("Proj", "ChatGPT", "Cursor");
+    assert.ok(custom.includes("ChatGPT (Architect)"));
+    assert.ok(custom.includes("Cursor (Executor)"));
   });
 });
 

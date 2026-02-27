@@ -6,6 +6,10 @@ export interface TemplateVars {
   projectName: string;
   description: string;
   date: string;
+  architectName: string;
+  executorName: string;
+  architectFile: string;
+  executorFile: string;
 }
 
 export function getGlobalTemplatesPath(baseDir?: string): string {
@@ -19,7 +23,11 @@ export function interpolateTemplate(
   return content
     .replaceAll("{{projectName}}", vars.projectName)
     .replaceAll("{{description}}", vars.description)
-    .replaceAll("{{date}}", vars.date);
+    .replaceAll("{{date}}", vars.date)
+    .replaceAll("{{architectName}}", vars.architectName)
+    .replaceAll("{{executorName}}", vars.executorName)
+    .replaceAll("{{architectFile}}", vars.architectFile)
+    .replaceAll("{{executorFile}}", vars.executorFile);
 }
 
 export async function readGlobalTemplate(

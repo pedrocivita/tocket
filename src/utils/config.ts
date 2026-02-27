@@ -5,6 +5,10 @@ import { readFile, writeFile } from "node:fs/promises";
 export interface TocketConfig {
   author?: string;
   defaultAgent?: string;
+  agents?: {
+    architect?: string;
+    executor?: string;
+  };
   defaults?: {
     priority?: "high" | "medium" | "low";
     skills?: string;
@@ -46,6 +50,7 @@ export async function updateConfig(
   const merged: TocketConfig = {
     ...current,
     ...partial,
+    agents: { ...current.agents, ...partial.agents },
     defaults: { ...current.defaults, ...partial.defaults },
     theme: { ...current.theme, ...partial.theme },
   };

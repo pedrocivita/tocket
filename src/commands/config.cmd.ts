@@ -6,6 +6,7 @@ import {
   resetConfig,
   getConfigPath,
 } from "../utils/config.js";
+import { DEFAULT_ARCHITECT, DEFAULT_EXECUTOR } from "../utils/agents.js";
 import { success, heading, dim } from "../utils/theme.js";
 
 export function registerConfigCommand(program: Command): void {
@@ -13,7 +14,9 @@ export function registerConfigCommand(program: Command): void {
     .command("config")
     .description("Manage global Tocket configuration (~/.tocketrc.json)")
     .option("--author <name>", "Set default author name")
-    .option("--agent <name>", "Set default agent name")
+    .option("--agent <name>", "Set default agent name (deprecated, use --architect/--executor)")
+    .option("--architect <name>", "Set architect agent (e.g. Gemini, ChatGPT)")
+    .option("--executor <name>", "Set executor agent (e.g. \"Claude Code\", Cursor, Windsurf)")
     .option("--priority <level>", "Set default priority (high|medium|low)")
     .option("--skills <list>", "Set default skills (comma-separated)")
     .option("--show", "Display current configuration")
@@ -23,6 +26,8 @@ export function registerConfigCommand(program: Command): void {
       async (options: {
         author?: string;
         agent?: string;
+        architect?: string;
+        executor?: string;
         priority?: string;
         skills?: string;
         show?: boolean;
@@ -64,12 +69,21 @@ export function registerConfigCommand(program: Command): void {
 
         // Non-interactive: handle individual flags
         const hasFlags =
-          options.author || options.agent || options.priority || options.skills;
+          options.author || options.agent || options.architect ||
+          options.executor || options.priority || options.skills;
 
         if (hasFlags) {
           const config = await getConfig();
           if (options.author) config.author = options.author;
           if (options.agent) config.defaultAgent = options.agent;
+          if (options.architect) {
+            if (!config.agents) config.agents = {};
+            config.agents.architect = options.architect;
+          }
+          if (options.executor) {
+            if (!config.agents) config.agents = {};
+            config.agents.executor = options.executor;
+          }
           if (options.priority) {
             if (!config.defaults) config.defaults = {};
             config.defaults.priority = options.priority as
@@ -91,15 +105,29 @@ export function registerConfigCommand(program: Command): void {
 
         console.log(heading("\n  Tocket Configuration\n"));
 
+        // ── Identity ──
+        console.log(dim("  ── Identity ──\n"));
+
         const author = await input({
           message: "Author name:",
           default: current.author || undefined,
         });
 
-        const agent = await input({
-          message: "Default agent name:",
-          default: current.defaultAgent || undefined,
+        // ── Agent Roles ──
+        console.log(dim("\n  ── Agent Roles ──\n"));
+
+        const architect = await input({
+          message: "Architect (planner):",
+          default: current.agents?.architect || DEFAULT_ARCHITECT,
         });
+
+        const executor = await input({
+          message: "Executor (implementer):",
+          default: current.agents?.executor || DEFAULT_EXECUTOR,
+        });
+
+        // ── Payload Defaults ──
+        console.log(dim("\n  ── Payload Defaults ──\n"));
 
         const priority = await select({
           message: "Default priority:",
@@ -119,7 +147,10 @@ export function registerConfigCommand(program: Command): void {
         await saveConfig({
           ...current,
           author: author || undefined,
-          defaultAgent: agent || undefined,
+          agents: {
+            architect: architect || undefined,
+            executor: executor || undefined,
+          },
           defaults: {
             priority: priority as "high" | "medium" | "low",
             skills: skills || undefined,

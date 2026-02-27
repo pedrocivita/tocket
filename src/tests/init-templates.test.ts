@@ -15,6 +15,10 @@ const vars: TemplateVars = {
   projectName: "MyProject",
   description: "A test project",
   date: "2026-02-25",
+  architectName: "Gemini",
+  executorName: "Claude Code",
+  architectFile: "GEMINI.md",
+  executorFile: "CLAUDE.md",
 };
 
 // ─── interpolateTemplate ────────────────────────────────────────────
@@ -64,6 +68,32 @@ describe("interpolateTemplate", () => {
     const raw = "No placeholders here.";
     const result = interpolateTemplate(raw, vars);
     assert.equal(result, raw);
+  });
+
+  it("replaces {{architectName}}", () => {
+    const result = interpolateTemplate("Architect: {{architectName}}", vars);
+    assert.equal(result, "Architect: Gemini");
+  });
+
+  it("replaces {{executorName}}", () => {
+    const result = interpolateTemplate("Executor: {{executorName}}", vars);
+    assert.equal(result, "Executor: Claude Code");
+  });
+
+  it("replaces {{architectFile}}", () => {
+    const result = interpolateTemplate("File: {{architectFile}}", vars);
+    assert.equal(result, "File: GEMINI.md");
+  });
+
+  it("replaces {{executorFile}}", () => {
+    const result = interpolateTemplate("File: {{executorFile}}", vars);
+    assert.equal(result, "File: CLAUDE.md");
+  });
+
+  it("replaces all agent variables in a single string", () => {
+    const tpl = "{{architectName}} -> {{architectFile}}, {{executorName}} -> {{executorFile}}";
+    const result = interpolateTemplate(tpl, vars);
+    assert.equal(result, "Gemini -> GEMINI.md, Claude Code -> CLAUDE.md");
   });
 });
 

@@ -25,9 +25,9 @@ your-project/
     techContext.md        # Stack and build tools
     productContext.md     # What the product is and why
     progress.md           # What's done, what's next
-  TOCKET.md               # Protocol rules (for any AI)
-  CLAUDE.md               # Executor agent config
-  GEMINI.md               # Architect agent config
+  TOCKET.md               # Protocol rules (agent-agnostic)
+  CLAUDE.md               # Executor instructions (auto-detected per agent)
+  GEMINI.md               # Architect instructions (auto-detected per agent)
 ```
 
 All files are plain markdown, committed to git, and readable by any tool.
@@ -45,11 +45,14 @@ The CLI automates the scaffolding, provides smart defaults, and adds quality-of-
 ## Quick Start
 
 ```bash
-# Scaffold a new workspace (creates .context/, TOCKET.md, CLAUDE.md, GEMINI.md)
+# Scaffold a new workspace
 npx @pedrocivita/tocket init
 
 # Or just the essentials (3 files)
 npx @pedrocivita/tocket init --minimal
+
+# Configure your agents (optional — defaults to Claude Code + Gemini)
+npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
 
 # Or open the interactive dashboard
 npx @pedrocivita/tocket
@@ -64,7 +67,7 @@ Tocket writes files to your repo, but you can try it risk-free on a branch:
 ```bash
 git checkout -b test/tocket-setup
 npx @pedrocivita/tocket init
-git add .context/ TOCKET.md CLAUDE.md GEMINI.md .cursorrules
+git add .context/ TOCKET.md CLAUDE.md GEMINI.md
 git commit -m "chore: scaffold Tocket workspace"
 
 # Try it out — run some AI sessions, see if you like it
@@ -81,7 +84,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | Command | What it does |
 | --- | --- |
 | `tocket` | Interactive dashboard with guided menu |
-| `tocket init` | Scaffold `.context/`, `TOCKET.md`, and agent configs (auto-detects your stack) |
+| `tocket init` | Scaffold `.context/`, `TOCKET.md`, and agent configs (auto-detects stack + agents) |
 | `tocket generate` | Build structured payload XML (auto-fills scope from git) |
 | `tocket sync` | Append session summary + git log to `.context/progress.md` |
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
@@ -89,7 +92,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
 | `tocket doctor` | Deep workspace diagnostics (content health, git tracking, staleness) |
 | `tocket lint` | Audit `.context/` content quality and suggest improvements |
-| `tocket config` | Manage global settings (`~/.tocketrc.json`) |
+| `tocket config` | Manage global settings: agent roles, author, priority (`~/.tocketrc.json`) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -153,26 +156,46 @@ The Architect doesn't write code. The Executor doesn't make architecture decisio
 | Tool | What it does | How Tocket differs |
 | --- | --- | --- |
 | `.cursorrules` | Single-agent instructions for Cursor | Tocket defines _inter-agent_ protocol, not just single-agent rules |
-| `CLAUDE.md` | Instructions for Claude Code | Tocket generates `CLAUDE.md` as part of a broader multi-agent system |
+| `CLAUDE.md` | Instructions for Claude Code | Tocket generates agent configs as part of a broader multi-agent system |
 | `AGENTS.md` | Codex agent instructions | Same idea for one agent; Tocket coordinates multiple agents |
 | Prompt templates | Static prompts for LLMs | Tocket's Memory Bank evolves with the project; payloads are structured, not freeform |
+| Vendor-locked tools | Tied to one provider | Tocket works with **any LLM/tool** — configure via `tocket config` |
 
 ## Configuration
 
-Set global defaults so you don't repeat yourself:
+Configure your preferred agents and defaults:
 
 ```bash
-# Interactive setup
-tocket config
+# Configure your agent roles
+tocket config --architect "Gemini" --executor "Claude Code"
 
-# Or use flags (CI-friendly)
+# Set payload defaults
 tocket config --author "Your Name" --priority medium --skills "core,lsp"
+
+# Or use the interactive setup (sections: Identity, Agent Roles, Payload Defaults)
+tocket config
 
 # View current config
 tocket config --show
 ```
 
-Config is stored at `~/.tocketrc.json` and pre-fills author, priority, and skills in all commands.
+Config is stored at `~/.tocketrc.json`.
+
+### Supported Agents
+
+Tocket auto-generates the correct instruction file for each agent:
+
+| Agent | Role | Generated File |
+| --- | --- | --- |
+| Claude Code | Executor | `CLAUDE.md` |
+| Cursor | Executor | `.cursorrules` |
+| Windsurf | Executor | `.windsurfrules` |
+| Copilot | Executor | `.github/copilot-instructions.md` |
+| Gemini | Architect | `GEMINI.md` |
+| _(any other)_ | Executor | `EXECUTOR.md` |
+| _(any other)_ | Architect | `ARCHITECT.md` |
+
+Don't see your agent? It still works — unknown agents get generic files, and you can override any template via [`~/.tocket/templates/`](docs/DEVELOPERS_GUIDE.md).
 
 ## Documentation
 
