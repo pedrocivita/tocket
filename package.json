@@ -1,6 +1,6 @@
 {
   "name": "@pedrocivita/tocket",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "The Context Engineering Framework for Multi-Agent Workspaces",
   "type": "module",
   "main": "dist/index.js",
