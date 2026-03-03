@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { input, select, confirm } from "@inquirer/prompts";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { success, heading, dim, banner } from "../utils/theme.js";
 import { getConfig } from "../utils/config.js";
 import { getStagedFiles, getModifiedFiles, getLastCommitMessage } from "../utils/git.js";
@@ -117,6 +118,12 @@ export function registerGenerateCommand(program: Command): void {
       }
 
       const xml = buildPayloadXml(tasks);
+
+      // Persist payload for `tocket diff`
+      const tocketDir = join(process.cwd(), ".tocket");
+      mkdirSync(tocketDir, { recursive: true });
+      writeFileSync(join(tocketDir, "last-payload.xml"), xml, "utf-8");
+      console.log(dim("  Payload saved to .tocket/last-payload.xml"));
 
       // Preview
       if (options.preview !== false) {

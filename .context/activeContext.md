@@ -4,12 +4,14 @@
 
 ## Current Focus
 
-**v2.3.0 released.** Global user templates (`~/.tocket/templates/`) with variable interpolation. OG image added to tocket.ai for social sharing. CLI at v2.3.0 (166 tests, 49 suites). Published to npm + tagged.
+**v2.5.0 releasing.** Two new commands: `tocket diff` (payload vs git changes verification) and `tocket handoff` (clipboard-ready context summary). New XML parser utility. Generate now persists payload to `.tocket/last-payload.xml`. Doctor checks last payload staleness. 248 tests, 60 suites.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-03-02 | v2.5.0: tocket diff, tocket handoff, XML parser, payload persist | Claude (Executor) |
+| 2026-02-26 | v2.4.0: configurable agent roles, smart file mapping, TUI revamp | Claude (Executor) |
 | 2026-02-25 | v2.3.0: global templates, OG image, npm publish                  | Claude (Executor) |
 | 2026-02-25 | Implemented global templates (~/.tocket/templates)               | Claude (Executor) |
 | 2026-02-25 | Open-source prep: tocket.ai links, CONTRIBUTING, issue templates | Claude (Executor) |
@@ -37,6 +39,9 @@
 - How to propagate `tocket lint` warnings to the Agent's system prompt dynamically? (deferred)
 - ~~Custom domain for tocket-site (tocket.ai)~~ **Done — live at tocket.ai**
 - ~~OG image generation for social sharing~~ **Done — public/og-image.png on tocket-site**
+- ~~npm publish v2.4.0 pending~~ **Superseded by v2.5.0**
+- Consider `tocket run` (automated payload execution) for v3.0
+- Consider `tocket split` (swarm mode / multi-teammate payloads) for v3.0
 
 ## Session Debt (Identified by Self-Improve)
 
@@ -44,7 +49,5 @@ All CLI items resolved in v2.2.2. No remaining debt.
 
 ### tocket-site potential improvements
 
-- ~~OG image (`/public/og-image.png`) for Twitter/LinkedIn previews~~ **Done**
 - Mobile particle count reduction (currently same as desktop)
 - Add `npm run test` with Vitest if site grows beyond single page
-- Consider custom domain setup on Vercel

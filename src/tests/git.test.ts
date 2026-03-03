@@ -12,6 +12,8 @@ import {
   getRecentCommitsRaw,
   getCurrentBranch,
   getLastCommitMessage,
+  getDiffFiles,
+  getRecentlyModifiedFiles,
 } from "../utils/git.js";
 import { execSync } from "node:child_process";
 
@@ -56,6 +58,16 @@ describe("git - in a git repository", () => {
     assert.ok(typeof msg === "string");
     assert.ok(msg.length > 0);
   });
+
+  it("getDiffFiles returns an array", () => {
+    const files = getDiffFiles(undefined, tocketRoot);
+    assert.ok(Array.isArray(files));
+  });
+
+  it("getRecentlyModifiedFiles returns an array", () => {
+    const files = getRecentlyModifiedFiles(120, tocketRoot);
+    assert.ok(Array.isArray(files));
+  });
 });
 
 describe("git - in a non-git directory", () => {
@@ -96,6 +108,14 @@ describe("git - in a non-git directory", () => {
 
   it("isContextIgnored returns false for non-git directory", () => {
     assert.equal(isContextIgnored(tempDir), false);
+  });
+
+  it("getDiffFiles returns empty array", () => {
+    assert.deepEqual(getDiffFiles(undefined, tempDir), []);
+  });
+
+  it("getRecentlyModifiedFiles returns empty array", () => {
+    assert.deepEqual(getRecentlyModifiedFiles(120, tempDir), []);
   });
 });
 

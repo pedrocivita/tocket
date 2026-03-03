@@ -156,3 +156,18 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 ```
 
 ---
+## Session: 2026-02-27 (Pedro Civita)
+
+**Summary**: Implemented LLM configuring feature (--architect and --executor) along with TUI revamp, dynamic file scaffolding, cleaning of legacy files, and released as v2.4.0
+
+**Recent Commits**:
+```
+7a12ab1 chore: release v2.4.0
+129484d feat: add configurable agent roles (--architect / --executor)
+aa6db24 chore: release v2.3.0
+5cbe0e4 feat: add global user templates support (~/.tocket/templates/)
+9215627 docs: update Memory Bank after global templates implementation
+```
+
+---
+

@@ -109,3 +109,36 @@ export function getCurrentBranch(cwd: string = process.cwd()): string {
     return "";
   }
 }
+
+export function getDiffFiles(
+  ref?: string,
+  cwd: string = process.cwd(),
+): string[] {
+  if (!isGitRepo(cwd)) return [];
+  try {
+    const cmd = ref
+      ? `git diff --name-only ${ref}`
+      : "git diff --name-only HEAD";
+    const output = execSync(cmd, { cwd, encoding: "utf-8" }).trim();
+    return output ? output.split("\n") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getRecentlyModifiedFiles(
+  sinceMinutes: number = 120,
+  cwd: string = process.cwd(),
+): string[] {
+  if (!isGitRepo(cwd)) return [];
+  try {
+    const output = execSync(
+      `git log --diff-filter=ACMR --name-only --pretty=format: --since="${sinceMinutes} minutes ago"`,
+      { cwd, encoding: "utf-8" },
+    ).trim();
+    if (!output) return [];
+    return [...new Set(output.split("\n").filter((l) => l.length > 0))];
+  } catch {
+    return [];
+  }
+}

@@ -179,6 +179,32 @@ export function registerDoctorCommand(program: Command): void {
       // 4. Git tracking
       results.push(...checkGitTracking(cwd));
 
+      // 5. Last payload check
+      const lastPayloadPath = join(cwd, ".tocket", "last-payload.xml");
+      if (existsSync(lastPayloadPath)) {
+        const payloadStats = statSync(lastPayloadPath);
+        const daysSince = Math.floor(
+          (Date.now() - payloadStats.mtimeMs) / (1000 * 60 * 60 * 24),
+        );
+        if (daysSince > STALENESS_THRESHOLD_DAYS) {
+          results.push({
+            icon: WARN,
+            message: `Last payload is ${daysSince} days old`,
+          });
+        } else {
+          results.push({
+            icon: PASS,
+            message: "Last payload found (.tocket/last-payload.xml)",
+          });
+        }
+      } else {
+        results.push({
+          icon: WARN,
+          message:
+            "No last payload found — run tocket generate",
+        });
+      }
+
       // Print results
       for (const r of results) {
         console.log(`  ${r.icon} ${r.message}`);

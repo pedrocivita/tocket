@@ -13,6 +13,8 @@ import { registerFocusCommand } from "./commands/focus.cmd.js";
 import { registerStatusCommand } from "./commands/status.cmd.js";
 import { registerDoctorCommand } from "./commands/doctor.cmd.js";
 import { registerLintCommand } from "./commands/lint.cmd.js";
+import { registerDiffCommand } from "./commands/diff.cmd.js";
+import { registerHandoffCommand } from "./commands/handoff.cmd.js";
 
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "..", "package.json"), "utf-8"),
@@ -35,6 +37,8 @@ registerFocusCommand(program);
 registerStatusCommand(program);
 registerDoctorCommand(program);
 registerLintCommand(program);
+registerDiffCommand(program);
+registerHandoffCommand(program);
 
 // No-args: show interactive dashboard (TTY) or help (non-TTY)
 const args = process.argv.slice(2);

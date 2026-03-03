@@ -7,7 +7,7 @@ import { banner, heading, success, dim, warn } from "../utils/theme.js";
 import { getConfig } from "../utils/config.js";
 import { extractFocus } from "../utils/context.js";
 
-type Action = "init" | "generate" | "sync" | "validate" | "config" | "focus" | "status" | "doctor" | "lint" | "eject" | "exit";
+type Action = "init" | "generate" | "diff" | "sync" | "handoff" | "validate" | "config" | "focus" | "status" | "doctor" | "lint" | "eject" | "exit";
 
 export async function showDashboard(program: Command): Promise<void> {
   const config = await getConfig();
@@ -47,7 +47,9 @@ export async function showDashboard(program: Command): Promise<void> {
   const choices: Array<{ value: Action; name: string }> = hasWorkspace
     ? [
         { value: "generate", name: "Generate payload" },
+        { value: "diff", name: "Diff payload vs changes" },
         { value: "sync", name: "Sync progress" },
+        { value: "handoff", name: "Handoff summary" },
         { value: "validate", name: "Validate workspace" },
         { value: "focus", name: "Update focus" },
         { value: "status", name: "Workspace status" },
