@@ -141,9 +141,10 @@ For multi-file features, refactors, or architectural changes, split planning fro
 4. Executor reads .context/ + the payload
 5. Executor implements each task in order
 6. Executor updates .context/ with results
+7. Run `tocket diff` to verify compliance
 ```
 
-The payload XML is the contract. It includes what files to touch, what to do, and how to verify the result.
+The payload XML is the contract. It includes what files to touch, what to do, and how to verify the result. After the Executor finishes, `tocket diff` compares the payload targets against actual git changes — matched files, missing files, and unexpected changes.
 
 ### Generating payloads
 
@@ -161,6 +162,7 @@ This interactive command:
 - Walks you through intent, priority, and tasks
 - Generates valid payload XML
 - Copies it to your clipboard (or outputs to `--to` target)
+- Saves a copy to `.tocket/last-payload.xml` (used by `tocket diff`)
 
 ### Updating focus
 
@@ -171,6 +173,42 @@ npx @pedrocivita/tocket focus "Migrating auth to OAuth2"
 ```
 
 This updates the "Current Focus" section in `activeContext.md` so the next AI session knows what you're working on.
+
+### Verifying payload execution
+
+After the Executor finishes:
+
+```bash
+npx @pedrocivita/tocket diff
+
+# Against a specific ref
+npx @pedrocivita/tocket diff --since HEAD~3
+
+# Machine-readable output
+npx @pedrocivita/tocket diff --json
+
+# Custom payload path
+npx @pedrocivita/tocket diff path/to/payload.xml
+```
+
+This reads `.tocket/last-payload.xml` (saved by `tocket generate`), compares the payload's target files against actual git changes, and produces a report showing matched, missing, and extra files — plus a checklist of done criteria and validation checks.
+
+### Handing off context
+
+Starting a new session or switching agents:
+
+```bash
+npx @pedrocivita/tocket handoff
+
+# Output to stdout or file
+npx @pedrocivita/tocket handoff --to stdout
+npx @pedrocivita/tocket handoff --to handoff.md
+
+# Include more history
+npx @pedrocivita/tocket handoff --commits 10 --since 1d
+```
+
+This generates a condensed markdown summary with the current focus, branch, recent commits, modified files, and open decisions — then copies it to your clipboard. Paste it into the new conversation to give the agent full context.
 
 ### Syncing progress
 

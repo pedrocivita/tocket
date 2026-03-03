@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**v2.5.0 releasing.** Two new commands: `tocket diff` (payload vs git changes verification) and `tocket handoff` (clipboard-ready context summary). New XML parser utility. Generate now persists payload to `.tocket/last-payload.xml`. Doctor checks last payload staleness. 248 tests, 60 suites.
+**v2.5.0 released.** Two new commands: `tocket diff` (payload vs git changes verification) and `tocket handoff` (clipboard-ready context summary). New XML parser utility. Generate now persists payload to `.tocket/last-payload.xml`. Doctor checks last payload staleness. 248 tests, 60 suites. Published to npm, tagged on GitHub.
 
 ## Recent Changes
 

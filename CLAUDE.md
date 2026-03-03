@@ -16,7 +16,7 @@ Your job is to **implement precisely**, following the Architect's plans. Read th
 ```bash
 npm install          # Install dependencies
 npm run build        # Compile TypeScript (tsc → dist/)
-npm test             # Run test suite (node:test, 84 tests, 26 suites)
+npm test             # Run test suite (node:test, 248 tests, 60 suites)
 node dist/index.js   # Run CLI locally
 ```
 
@@ -41,12 +41,14 @@ Commands follow the registration pattern:
 
 ```
 src/index.ts                    # Entry: registers commands + dashboard detection
-src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, eject)
+src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, diff, handoff, doctor, lint, eject)
 src/commands/dashboard.ts       # Interactive menu (no-args entry point)
 src/templates/memory-bank.ts    # Template generators for tocket init
 src/utils/theme.ts              # Purple theme, banner, semantic helpers (chalk)
-src/utils/git.ts                # Git wrappers (staged, modified, commits, branch)
+src/utils/git.ts                # Git wrappers (staged, modified, commits, branch, diff, recently modified)
 src/utils/config.ts             # Global config read/write (~/.tocketrc.json)
+src/utils/xml.ts                # Payload XML parser (for tocket diff)
+src/utils/context.ts            # Shared constants and helpers
 ```
 
 Each command exports `register*Command(program: Command): void`.

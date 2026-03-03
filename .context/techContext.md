@@ -46,10 +46,28 @@ tocket/
       init.cmd.ts         # tocket init — scaffold workspace
       generate.cmd.ts     # tocket generate — build payload XML
       sync.cmd.ts         # tocket sync — update Memory Bank
+      validate.cmd.ts     # tocket validate — health check
+      config.cmd.ts       # tocket config — global settings TUI
+      focus.cmd.ts        # tocket focus — update Current Focus
+      status.cmd.ts       # tocket status — quick overview
+      doctor.cmd.ts       # tocket doctor — deep diagnostics
+      lint.cmd.ts         # tocket lint — context quality audit
+      diff.cmd.ts         # tocket diff — payload vs git changes
+      handoff.cmd.ts      # tocket handoff — session context summary
+      eject.cmd.ts        # tocket eject — remove scaffolding
+      dashboard.ts        # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts      # Template functions for scaffolded files
+    utils/
+      theme.ts            # Purple theme, banner, semantic helpers
+      git.ts              # Git wrappers (staged, modified, commits, diff)
+      config.ts           # Global config (~/.tocketrc.json)
+      context.ts          # Shared constants and helpers
+      xml.ts              # Payload XML parser (for tocket diff)
+    tests/                # Test suite (248 tests, 60 suites)
   dist/                   # Compiled output (gitignored)
   .context/               # Memory Bank (committed)
+  .tocket/                # CLI artifacts like last-payload.xml (gitignored)
   CLAUDE.md               # Executor agent instructions
   GEMINI.md               # Architect agent instructions
 ```

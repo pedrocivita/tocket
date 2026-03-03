@@ -65,9 +65,11 @@ The `.context/` directory follows a fixed schema. Files have defined owners and 
 Human → Architect: "I need feature X"
 Architect → Executor: <payload> XML
 Executor → Human: Status report + updated .context/
+Human → CLI: `tocket diff` (verify compliance)
+Human → CLI: `tocket handoff` (transfer context to next session)
 ```
 
-The Architect and Executor do not talk to each other directly. The payload is the contract. The human mediates if needed.
+The Architect and Executor do not talk to each other directly. The payload is the contract. The human mediates if needed. After execution, `tocket diff` verifies that the Executor touched the expected files. `tocket handoff` generates a clipboard-ready summary for the next agent conversation.
 
 ---
 
@@ -168,3 +170,5 @@ When an agent starts a session, it should read files in this order:
 | 8 | Always include validation in payloads | Architect |
 | 9 | Don't improvise architecture — ask if unclear | Executor |
 | 10 | Don't write code — produce specs | Architect |
+| 11 | Run `tocket diff` after payload execution to verify compliance | Human |
+| 12 | Use `tocket handoff` when transferring context to a new session | Human |

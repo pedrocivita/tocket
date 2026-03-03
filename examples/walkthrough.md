@@ -113,7 +113,42 @@ npm test                               # 38+ tests pass
 
 ---
 
-## Phase 3: Human Review
+## Phase 3: Verification with `tocket diff`
+
+After the Executor finishes, verify compliance:
+
+```bash
+npx @pedrocivita/tocket diff
+```
+
+Output:
+
+```
+  Tocket Diff Report
+  Payload v2.0 — "Add --dry-run flag to tocket init for previewing file creation"
+
+  File Coverage
+  ✓ src/commands/init.cmd.ts
+
+  1/1 expected files changed, 0 extra file(s)
+
+  Done Criteria
+  [ ] tocket init --dry-run lists all 9 files without creating them
+  [ ] tocket init without flag creates files normally
+  [ ] tocket init --help shows the --dry-run option
+
+  Validation Checks
+  [ ] npm run build succeeds
+  [ ] tocket init --help shows --dry-run option
+  [ ] tocket init --dry-run in empty dir creates no files
+  [ ] npm test passes (38+ tests)
+```
+
+All expected files were changed, no files were missed. The done criteria and validation checks are listed as a manual checklist.
+
+---
+
+## Phase 4: Human Review
 
 Pedro reviews the changes:
 
@@ -135,10 +170,24 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 ---
 
+## Phase 5: Handoff to next session
+
+Starting a new conversation the next day:
+
+```bash
+npx @pedrocivita/tocket handoff
+```
+
+This copies a condensed summary to your clipboard — current focus, branch, recent commits, modified files, and open decisions. Paste it into the new agent conversation to give it full context without re-explaining everything.
+
+---
+
 ## Key Takeaways
 
 1. **Architect thinks, Executor implements** — clear separation of concerns
 2. **Payload XML is precise** — no ambiguity, includes definition of done
-3. **Memory Bank informs both** — shared source of truth across agents
-4. **Validation built in** — Architect specifies how to verify
-5. **Atomic commits** — one logical change per commit
+3. **`tocket diff` closes the loop** — verify the Executor followed the payload
+4. **`tocket handoff` preserves context** — seamless transitions between sessions
+5. **Memory Bank informs both** — shared source of truth across agents
+6. **Validation built in** — Architect specifies how to verify
+7. **Atomic commits** — one logical change per commit

@@ -16,6 +16,8 @@
 │     ├── status.cmd.ts     (quick workspace overview)  │
 │     ├── doctor.cmd.ts     (deep diagnostics)          │
 │     ├── lint.cmd.ts       (context quality audit)     │
+│     ├── diff.cmd.ts       (payload vs git changes)    │
+│     ├── handoff.cmd.ts    (session context summary)   │
 │     ├── eject.cmd.ts      (remove scaffolding)        │
 │     └── dashboard.ts      (interactive menu, no-args) │
 │                                                       │
@@ -24,9 +26,10 @@
 │                                                       │
 │  utils/                                               │
 │     ├── theme.ts          (purple theme, banner)      │
-│     ├── git.ts            (git wrappers)              │
+│     ├── git.ts            (git wrappers + diff/mtime) │
 │     ├── config.ts         (~/.tocketrc.json)          │
-│     └── context.ts        (shared constants/helpers)  │
+│     ├── context.ts        (shared constants/helpers)  │
+│     └── xml.ts            (payload XML parser)        │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -71,6 +74,9 @@ Architect (Gemini)          Executor (Claude)
      │                           │  5. Execute tasks
      │                           │  6. Update .context/
      │◄── Status report ─────────│
+     │                           │
+     │  tocket diff ────────────►│  (verify compliance)
+     │  tocket handoff ─────────►│  (next session context)
 ```
 
 ### Memory Bank Protocol
@@ -102,3 +108,7 @@ Files in `.context/` follow a fixed schema:
 | `.context/` committed to git | Shared context must survive across clones | 2026-02-24 |
 | Payload XML as handoff format | Structured, parseable, version-tagged | 2026-02-24 |
 | Clipboard output for `generate` | Fastest path from CLI to Architect IDE panel | 2026-02-24 |
+| `.tocket/` for CLI artifacts | Separate from `.context/` (shared memory); gitignored | 2026-03-02 |
+| Regex-based XML parsing | No new runtime deps; payload XML is self-generated | 2026-03-02 |
+| `tocket diff` for compliance verification | Closes the triangulation loop after Executor finishes | 2026-03-02 |
+| `tocket handoff` for session transfer | Clipboard-ready context summary for new agent conversations | 2026-03-02 |

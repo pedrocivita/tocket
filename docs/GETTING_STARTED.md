@@ -122,6 +122,7 @@ These are optional. The `TOCKET.md` spec alone is enough for any agent to follow
 3. **Executor** reads `.context/` + the payload
 4. **Executor** implements each task in order
 5. **Executor** updates `.context/` with results
+6. Run `tocket diff` to verify the Executor followed the payload
 
 ### Generating payloads
 
@@ -140,6 +141,32 @@ npx @pedrocivita/tocket config
 ```
 
 This saves to `~/.tocketrc.json` and pre-fills author, priority, and skills in future commands.
+
+### Verifying payload execution
+
+After the Executor finishes implementing a payload:
+
+```bash
+npx @pedrocivita/tocket diff
+```
+
+This compares the payload targets against actual git changes and shows which files were matched, missing, or extra. Use `--json` for machine-readable output.
+
+### Handing off to a new session
+
+Starting a new chat or switching agents? Generate a context summary:
+
+```bash
+npx @pedrocivita/tocket handoff
+```
+
+This copies a condensed markdown summary to your clipboard — current focus, recent commits, modified files, and open decisions. Paste it into the new conversation.
+
+```bash
+# Or output to stdout/file instead
+npx @pedrocivita/tocket handoff --to stdout
+npx @pedrocivita/tocket handoff --commits 10 --since 1d
+```
 
 ### Syncing progress
 

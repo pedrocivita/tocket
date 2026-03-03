@@ -85,8 +85,10 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | --- | --- |
 | `tocket` | Interactive dashboard with guided menu |
 | `tocket init` | Scaffold `.context/`, `TOCKET.md`, and agent configs (auto-detects stack + agents) |
-| `tocket generate` | Build structured payload XML (auto-fills scope from git) |
+| `tocket generate` | Build structured payload XML (auto-fills scope from git, saves to `.tocket/`) |
+| `tocket diff` | Compare payload targets against actual git changes (verify executor compliance) |
 | `tocket sync` | Append session summary + git log to `.context/progress.md` |
+| `tocket handoff` | Generate clipboard-ready context summary for a new agent conversation |
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
 | `tocket focus` | Update the Current Focus in `activeContext.md` |
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
@@ -109,6 +111,13 @@ tocket sync --summary "Fixed auth bug and added tests"
 # Generate to stdout or file instead of clipboard
 tocket generate --to stdout
 tocket generate --to payload.xml
+
+# Verify executor followed the payload
+tocket diff
+tocket diff --json
+
+# Handoff context to a new session
+tocket handoff --to stdout
 ```
 
 ## How it works
@@ -139,10 +148,25 @@ Architect (any planning AI)         Executor (any coding AI)
      |                                   |  4. Reads .context/ + payload
      |                                   |  5. Implements tasks
      |                                   |  6. Updates .context/
-     |<-------- status report -----------|
+     |<-------- tocket diff report ------|
 ```
 
-The Architect doesn't write code. The Executor doesn't make architecture decisions. The payload XML is the contract between them. For simple tasks, a single agent can fill both roles.
+The Architect doesn't write code. The Executor doesn't make architecture decisions. The payload XML is the contract between them. After execution, `tocket diff` verifies compliance — did the Executor touch the right files? Are done criteria met? For simple tasks, a single agent can fill both roles.
+
+### Closing the loop
+
+```bash
+# After the Executor finishes work:
+tocket diff                    # compare payload targets vs actual git changes
+tocket diff --json             # machine-readable output
+tocket diff --since HEAD~3     # diff against a specific ref
+
+# Starting a new session (next day, new chat):
+tocket handoff                 # copies context summary to clipboard
+tocket handoff --to stdout     # print instead
+tocket handoff --commits 10    # include more history
+tocket handoff --since 1d      # files modified in last day
+```
 
 ## Who is this for?
 
