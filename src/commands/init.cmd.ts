@@ -24,6 +24,7 @@ import {
   techContextMd,
   progressMd,
   cursorrulesMd,
+  agentsMd,
 } from "../templates/memory-bank.js";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -151,9 +152,10 @@ export function registerInitCommand(program: Command): void {
     .description("Scaffold an agentic workspace with Memory Bank and triangulation config")
     .option("-f, --force", "Overwrite existing files without prompting")
     .option("--minimal", "Scaffold only essential files (.context/ + TOCKET.md)")
+    .option("--agents-md", "Also generate AGENTS.md for cross-tool compatibility")
     .option("--name <name>", "Project name (skip prompt)")
     .option("--description <desc>", "Project description (skip prompt)")
-    .action(async (options: { force?: boolean; minimal?: boolean; name?: string; description?: string }) => {
+    .action(async (options: { force?: boolean; minimal?: boolean; agentsMd?: boolean; name?: string; description?: string }) => {
       const force = options.force ?? false;
       const minimal = options.minimal ?? false;
       const cwd = process.cwd();
@@ -213,6 +215,10 @@ export function registerInitCommand(program: Command): void {
         ],
         [join(".context", "progress.md"), progressMd(projectName)],
       ];
+
+      if (options.agentsMd) {
+        files.push(["AGENTS.md", agentsMd(projectName, description, executorName, architectName)]);
+      }
 
       const minimalPaths = new Set([
         "TOCKET.md",

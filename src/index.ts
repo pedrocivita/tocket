@@ -15,6 +15,8 @@ import { registerDoctorCommand } from "./commands/doctor.cmd.js";
 import { registerLintCommand } from "./commands/lint.cmd.js";
 import { registerDiffCommand } from "./commands/diff.cmd.js";
 import { registerHandoffCommand } from "./commands/handoff.cmd.js";
+import { registerAgentsMdCommand } from "./commands/agents-md.cmd.js";
+import { registerScaffoldCommand } from "./commands/scaffold.cmd.js";
 
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "..", "package.json"), "utf-8"),
@@ -39,6 +41,8 @@ registerDoctorCommand(program);
 registerLintCommand(program);
 registerDiffCommand(program);
 registerHandoffCommand(program);
+registerAgentsMdCommand(program);
+registerScaffoldCommand(program);
 
 // No-args: show interactive dashboard (TTY) or help (non-TTY)
 const args = process.argv.slice(2);

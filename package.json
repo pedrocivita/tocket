@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "tocket": "dist/index.js"
+    "tocket": "dist/index.js",
+    "tocket-mcp": "dist/mcp/index.js"
   },
   "files": [
     "dist"
@@ -38,6 +39,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.3.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "chalk": "^5.6.2",
     "clipboardy": "^5.3.0",
     "commander": "^14.0.3"

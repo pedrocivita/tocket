@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**v2.5.0 released.** Two new commands: `tocket diff` (payload vs git changes verification) and `tocket handoff` (clipboard-ready context summary). New XML parser utility. Generate now persists payload to `.tocket/last-payload.xml`. Doctor checks last payload staleness. 248 tests, 60 suites. Published to npm, tagged on GitHub.
+**v2.5.0 released and documented.** Two new commands: `tocket diff` and `tocket handoff`. All documentation updated (README, Getting Started, Developer Guide, Tocket Rules, walkthrough, CLAUDE.md, Memory Bank). tocket-site landing page updated with v2.5.0 badge, 4-step How It Works, and new feature descriptions. 248 tests, 60 suites.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-03-02 | v2.5.0 docs: all guides, README, walkthrough, site updated       | Claude (Executor) |
 | 2026-03-02 | v2.5.0: tocket diff, tocket handoff, XML parser, payload persist | Claude (Executor) |
 | 2026-02-26 | v2.4.0: configurable agent roles, smart file mapping, TUI revamp | Claude (Executor) |
 | 2026-02-25 | v2.3.0: global templates, OG image, npm publish                  | Claude (Executor) |
@@ -51,3 +52,5 @@ All CLI items resolved in v2.2.2. No remaining debt.
 
 - Mobile particle count reduction (currently same as desktop)
 - Add `npm run test` with Vitest if site grows beyond single page
+- Hardcoded brand hex values in GradientText, StepNumber, StarField — extract to token helpers
+- Add section heading above Features grid
