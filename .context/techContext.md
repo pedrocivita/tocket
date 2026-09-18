@@ -55,6 +55,7 @@ tocket/
       diff.cmd.ts         # tocket diff — payload vs git changes
       handoff.cmd.ts      # tocket handoff — session context summary
       eject.cmd.ts        # tocket eject — remove scaffolding
+      suite.cmd.ts        # tocket suite — AppMap last-run index
       dashboard.ts        # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts      # Template functions for scaffolded files
@@ -64,7 +65,8 @@ tocket/
       config.ts           # Global config (~/.tocketrc.json)
       context.ts          # Shared constants and helpers
       xml.ts              # Payload XML parser (for tocket diff)
-    tests/                # Test suite (248 tests, 60 suites)
+      appmaps.ts          # last-run v0 schema + last-run.md
+    tests/                # Test suite (node:test)
   dist/                   # Compiled output (gitignored)
   .context/               # Memory Bank (committed)
   .tocket/                # CLI artifacts like last-payload.xml (gitignored)

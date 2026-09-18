@@ -19,6 +19,7 @@
 │     ├── diff.cmd.ts       (payload vs git changes)    │
 │     ├── handoff.cmd.ts    (session context summary)   │
 │     ├── eject.cmd.ts      (remove scaffolding)        │
+│     ├── suite.cmd.ts      (AppMap last-run index)     │
 │     └── dashboard.ts      (interactive menu, no-args) │
 │                                                       │
 │  templates/                                           │
@@ -29,7 +30,8 @@
 │     ├── git.ts            (git wrappers + diff/mtime) │
 │     ├── config.ts         (~/.tocketrc.json)          │
 │     ├── context.ts        (shared constants/helpers)  │
-│     └── xml.ts            (payload XML parser)        │
+│     ├── xml.ts            (payload XML parser)        │
+│     └── appmaps.ts        (last-run v0 schema/md)     │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -90,6 +92,7 @@ Files in `.context/` follow a fixed schema:
 | `techContext.md` | Architect | When stack changes |
 | `systemPatterns.md` | Architect | When patterns change |
 | `progress.md` | Executor / `tocket sync` | Per milestone |
+| `appmaps/` | `tocket suite` (index + last-run only) | After an external runner writes last-run.json |
 
 ## Conventions
 
@@ -112,3 +115,4 @@ Files in `.context/` follow a fixed schema:
 | Regex-based XML parsing | No new runtime deps; payload XML is self-generated | 2026-03-02 |
 | `tocket diff` for compliance verification | Closes the triangulation loop after Executor finishes | 2026-03-02 |
 | `tocket handoff` for session transfer | Clipboard-ready context summary for new agent conversations | 2026-03-02 |
+| `.context/appmaps/` is index + history | Executable maps stay elsewhere; CLI never runs Playwright/Jev | 2026-09-18 |
