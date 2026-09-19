@@ -10,6 +10,7 @@
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-19 | Fix getCurrentBranch for detached HEAD (CI pull_request checkout)| Claude (Executor) |
 | 2026-09-19 | POC C: `tocket suite triage` + fixtures/eval vs human labels     | Claude (Executor) |
 | 2026-09-18 | `tocket suite` status/sync/init for AppMap last-run convention   | Claude (Executor) |
 | 2026-03-02 | v2.5.0 docs: all guides, README, walkthrough, site updated       | Claude (Executor) |
