@@ -50,6 +50,9 @@ src/utils/config.ts             # Global config read/write (~/.tocketrc.json)
 src/utils/xml.ts                # Payload XML parser (for tocket diff)
 src/utils/context.ts            # Shared constants and helpers
 src/utils/appmaps.ts            # AppMap last-run schema (tocket.appmaps.last-run/v0)
+src/utils/triage.ts             # Suite triage (heuristic stub + Jev Choice)
+src/utils/jev.ts                # TypeSafe System One client (Choice + Noul)
+src/eval/triage-eval.ts         # POC C agreement / stability eval
 ```
 
 Each command exports `register*Command(program: Command): void`.

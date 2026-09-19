@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import {
   APPMAPS_DIR,
   APPMAPS_GOALS,
@@ -17,6 +17,7 @@ import {
   writeLastRunMd,
   type LastRun,
 } from "../utils/appmaps.js";
+import { TRIAGE_SCHEMA, runTriage, type TriageReport } from "../utils/triage.js";
 import {
   dim,
   error as themeError,
@@ -196,6 +197,85 @@ function runInit(cwd: string): void {
   console.log();
 }
 
+function defaultLastRunPath(cwd: string): string {
+  return lastRunJsonPath(cwd);
+}
+
+function printTriage(report: TriageReport, outPath: string, cwd: string): void {
+  const rel = outPath.startsWith(cwd) ? relative(cwd, outPath) : outPath;
+  console.log(heading("\n  AppMap triage\n"));
+  console.log("  " + info(`app: ${report.app || "(empty)"}`));
+  console.log("  " + info(`mode: ${report.mode}  model: ${report.model}`));
+  console.log("  " + dim(`  schema: ${TRIAGE_SCHEMA}`));
+  console.log("  " + dim(`  source: ${report.source}`));
+  console.log("  " + success(`wrote ${rel}`));
+  console.log();
+
+  if (report.cases.length === 0) {
+    console.log("  " + dim("  (no failed or low-confidence goals)"));
+    console.log();
+    return;
+  }
+
+  for (const item of report.cases) {
+    const line = `${item.id}  ${item.name}  ${item.choice}  conf=${item.confidence.toFixed(2)}  loc=${item.locator_drift.toFixed(2)}`;
+    const paint =
+      item.choice === "escalate"
+        ? themeError
+        : item.choice === "rewrite-locator"
+          ? warn
+          : item.choice === "retry"
+            ? info
+            : success;
+    console.log("  " + paint(line));
+    console.log("  " + dim(`    ${item.rationale}`));
+  }
+  console.log();
+}
+
+async function runTriageCommand(
+  cwd: string,
+  options: {
+    from?: string;
+    map?: string;
+    notes?: string;
+    includeLowConfidence?: boolean;
+    dryRun?: boolean;
+    out?: string;
+  },
+): Promise<void> {
+  const fromPath = options.from
+    ? resolveFromPath(cwd, options.from)
+    : defaultLastRunPath(cwd);
+
+  if (!existsSync(fromPath)) {
+    console.error(
+      themeError(
+        `last-run.json not found: ${options.from ?? `${APPMAPS_DIR}/${LAST_RUN_JSON}`}. Pass --from <path.json>.`,
+      ),
+    );
+    process.exitCode = 2;
+    return;
+  }
+
+  try {
+    const { report, outPath } = await runTriage({
+      fromPath,
+      cwd,
+      mapPath: options.map ? resolveFromPath(cwd, options.map) : undefined,
+      notes: options.notes,
+      includeLowConfidence: options.includeLowConfidence === true,
+      dryRun: options.dryRun === true,
+      outPath: options.out ? resolveFromPath(cwd, options.out) : undefined,
+    });
+    printTriage(report, outPath, cwd);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(themeError(`Triage failed: ${message}`));
+    process.exitCode = 1;
+  }
+}
+
 export function registerSuiteCommand(program: Command): void {
   const suite = program
     .command("suite")
@@ -222,4 +302,26 @@ export function registerSuiteCommand(program: Command): void {
     .action(() => {
       runInit(process.cwd());
     });
+
+  suite
+    .command("triage")
+    .description("Triage failed AppMap goals (Jev Choice, or heuristic without TYPESAFE_API_KEY)")
+    .option("--from <path.json>", "last-run.json to triage (default .context/appmaps/last-run.json)")
+    .option("--map <path>", "Optional map file excerpt included in the Jev state")
+    .option("--notes <text>", "Optional failure notes included in the judge state")
+    .option("--include-low-confidence", "Also triage passing goals with jev_confidence < 0.6")
+    .option("--dry-run", "Force the deterministic heuristic stub and still write output")
+    .option("--out <path.json>", "Override output path (default .context/appmaps/<app>.triage.json)")
+    .action(
+      async (options: {
+        from?: string;
+        map?: string;
+        notes?: string;
+        includeLowConfidence?: boolean;
+        dryRun?: boolean;
+        out?: string;
+      }) => {
+        await runTriageCommand(process.cwd(), options);
+      },
+    );
 }

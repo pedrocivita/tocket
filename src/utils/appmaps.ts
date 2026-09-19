@@ -15,7 +15,8 @@ export interface LastRunResult {
   ms: number;
   jev_choice?: string | null;
   jev_confidence?: number | null;
-  evidence?: string | null;
+  /** Real last-run snapshots use objects; older fixtures may use a string. */
+  evidence?: unknown;
   error?: string | null;
 }
 
@@ -101,8 +102,7 @@ function parseResult(value: unknown, index: number): LastRunResult {
   const jevConfidence = optionalNumber(value.jev_confidence, `results[${index}].jev_confidence`);
   if (jevConfidence !== undefined) result.jev_confidence = jevConfidence;
 
-  const evidence = optionalString(value.evidence, `results[${index}].evidence`);
-  if (evidence !== undefined) result.evidence = evidence;
+  if (value.evidence !== undefined) result.evidence = value.evidence;
 
   const error = optionalString(value.error, `results[${index}].error`);
   if (error !== undefined) result.error = error;
@@ -153,7 +153,9 @@ export function parseLastRun(raw: string): LastRun {
 
 function mdCell(value: unknown): string {
   if (value === null || value === undefined || value === "") return "";
-  return String(value).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+  const text =
+    typeof value === "object" ? JSON.stringify(value) : String(value);
+  return text.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 }
 
 function formatOk(ok: boolean): string {
@@ -224,6 +226,7 @@ Executable maps live outside this directory (for example \`appmaps/*.json\`).
 | \`goals.md\` | Suite goals and coverage intent |
 | \`last-run.json\` | Last run (\`schema\`: \`${LAST_RUN_SCHEMA}\`) |
 | \`last-run.md\` | Human-readable last-run table |
+| \`<app>.triage.json\` | Optional Jev/heuristic triage (\`tocket.appmaps.triage/v0\`) |
 `;
 }
 

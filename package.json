@@ -16,7 +16,8 @@
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",
     "test": "npm run build && node --test dist/tests/*.test.js",
-    "test:coverage": "npm run build && c8 node --test dist/tests/*.test.js"
+    "test:coverage": "npm run build && c8 node --test dist/tests/*.test.js",
+    "eval:triage": "npm run build && node dist/eval/triage-eval.js"
   },
   "repository": {
     "type": "git",

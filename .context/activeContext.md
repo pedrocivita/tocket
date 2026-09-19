@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**`tocket suite` AppMap Memory Bank commands.** File-first index + last-run history under `.context/appmaps/` (`status`, `sync --from`, `init`). No Playwright/Jev/runtime deps and no suite execution. Executable maps stay outside this directory.
+**POC C: `tocket suite triage`.** File-first AppMap last-run triage under `.context/appmaps/`. Jev Choice among retry | escalate | ignore | rewrite-locator, plus optional Noul for locator drift. Missing `TYPESAFE_API_KEY` or `--dry-run` uses a deterministic heuristic stub and still writes `<app>.triage.json`. Not a product bot; does not execute maps.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-19 | POC C: `tocket suite triage` + fixtures/eval vs human labels     | Claude (Executor) |
 | 2026-09-18 | `tocket suite` status/sync/init for AppMap last-run convention   | Claude (Executor) |
 | 2026-03-02 | v2.5.0 docs: all guides, README, walkthrough, site updated       | Claude (Executor) |
 | 2026-03-02 | v2.5.0: tocket diff, tocket handoff, XML parser, payload persist | Claude (Executor) |

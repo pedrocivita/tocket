@@ -98,6 +98,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite status` | Print last AppMap run from `.context/appmaps/last-run.json` (exit 1 if failed, 2 if missing) |
 | `tocket suite sync --from <path.json>` | Validate and copy a last-run.json into `.context/appmaps/`, regenerate `last-run.md` |
 | `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
+| `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -126,6 +127,7 @@ tocket handoff --to stdout
 tocket suite status
 tocket suite sync --from path/to/last-run.json
 tocket suite init
+tocket suite triage --from path/to/last-run.json --dry-run
 ```
 
 ## How it works

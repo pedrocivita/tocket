@@ -1,0 +1,175 @@
+{
+  "schema": "tocket.appmaps.last-run/v0",
+  "app": "tempestivita",
+  "map": "appmaps/tempestivita.suite.v0.json",
+  "runner": "oficina-box-smoke-suite",
+  "model": "jev-1.13.0",
+  "mode": "jev+playwright",
+  "started_at": null,
+  "finished_at": "2026-09-18T23:11:49.936687+00:00",
+  "all_ok": false,
+  "passed": 2,
+  "total": 16,
+  "results": [
+    {
+      "id": "T-nav-timeout",
+      "name": "Boot mapa e radar",
+      "ok": false,
+      "ms": 30122,
+      "jev_choice": "ok",
+      "jev_confidence": 0.31,
+      "evidence": { "earth": 0, "stamp": null },
+      "error": "TimeoutError: Navigation timeout of 30000 ms exceeded"
+    },
+    {
+      "id": "T-flake-reset",
+      "name": "Abrir São Paulo no sheet",
+      "ok": false,
+      "ms": 8120,
+      "jev_choice": "search",
+      "jev_confidence": 0.22,
+      "evidence": { "chips": 0 },
+      "error": "Error: flaky: net::ERR_CONNECTION_RESET after 2 retries"
+    },
+    {
+      "id": "T-http-503",
+      "name": "Outlook e SPC ameaças",
+      "ok": false,
+      "ms": 2401,
+      "jev_choice": "spc_threats",
+      "jev_confidence": 0.18,
+      "evidence": { "src": "/api/astorp?f=18&p=hazard" },
+      "error": "Error: 503 Service Unavailable"
+    },
+    {
+      "id": "T-locator-missing",
+      "name": "Chip dia e meteograma",
+      "ok": false,
+      "ms": 1904,
+      "jev_choice": "day1",
+      "jev_confidence": 0.4,
+      "evidence": { "on": false },
+      "error": "LocatorError: locator('[data-testid=radar-chip]') not found"
+    },
+    {
+      "id": "T-no-such-element",
+      "name": "Ligar Risco PREVOTS",
+      "ok": false,
+      "ms": 1660,
+      "jev_choice": "risco",
+      "jev_confidence": 0.33,
+      "evidence": { "pressed": "false" },
+      "error": "No such element: Unable to locate element: //button[@id='risco']"
+    },
+    {
+      "id": "T-strict-mode",
+      "name": "Chip overflow",
+      "ok": false,
+      "ms": 980,
+      "jev_choice": "day1",
+      "jev_confidence": 0.28,
+      "evidence": { "chips": 18 },
+      "error": "strict mode violation: getByRole('button') resolved to 18 elements"
+    },
+    {
+      "id": "T-stale",
+      "name": "Limpar o mapa",
+      "ok": false,
+      "ms": 1440,
+      "jev_choice": "clear",
+      "jev_confidence": 0.41,
+      "evidence": { "risco": "true" },
+      "error": "Element is not attached to the DOM (stale locator)"
+    },
+    {
+      "id": "T-wait-locator",
+      "name": "Filtrar ecos fixos",
+      "ok": false,
+      "ms": 5120,
+      "jev_choice": "ok",
+      "jev_confidence": 0.36,
+      "evidence": { "stamp": null },
+      "error": "Timeout 5000ms exceeded while waiting for getByText('Filtrando ecos')"
+    },
+    {
+      "id": "T-assert-text",
+      "name": "Ligar Risco PREVOTS stamp",
+      "ok": false,
+      "ms": 2210,
+      "jev_choice": "risco",
+      "jev_confidence": 0.91,
+      "evidence": { "stamp": "Risco de hoje" },
+      "error": "AssertionError: expected 'Risco de hoje' to be 'Risco de ontem'"
+    },
+    {
+      "id": "T-assert-count",
+      "name": "Chip dia count",
+      "ok": false,
+      "ms": 1888,
+      "jev_choice": "day1",
+      "jev_confidence": 0.87,
+      "evidence": { "chips": 3 },
+      "error": "expect(chips).toHaveCount(18) received 3"
+    },
+    {
+      "id": "T-assert-visible",
+      "name": "Sheet visível",
+      "ok": false,
+      "ms": 2011,
+      "jev_choice": "search",
+      "jev_confidence": 0.77,
+      "evidence": { "visible": false },
+      "error": "expect(locator('.sheet')).toBeVisible() failed"
+    },
+    {
+      "id": "T-empty-error",
+      "name": "CAPE × cis.",
+      "ok": false,
+      "ms": 900,
+      "jev_choice": "scp",
+      "jev_confidence": 0.2,
+      "evidence": { "picker_open": false },
+      "error": null
+    },
+    {
+      "id": "T-unknown",
+      "name": "Ajustes Painel de outlook",
+      "ok": false,
+      "ms": 640,
+      "jev_choice": "ajustes",
+      "jev_confidence": 0.15,
+      "evidence": { "open": false },
+      "error": "Error: protocol error (Target.detachedFromTarget)"
+    },
+    {
+      "id": "T-resize-noise",
+      "name": "Radar resize",
+      "ok": false,
+      "ms": 410,
+      "jev_choice": "ok",
+      "jev_confidence": 0.6,
+      "evidence": { "legend": 1 },
+      "error": "console warning: ResizeObserver loop (known warning, benign)"
+    },
+    {
+      "id": "T-lowconf-pass",
+      "name": "Limpar o mapa (pass)",
+      "ok": true,
+      "ms": 4346,
+      "jev_choice": "clear",
+      "jev_confidence": 0.52,
+      "evidence": { "risco": "false", "eco": "true" },
+      "error": null
+    },
+    {
+      "id": "T-highconf-pass",
+      "name": "Abrir São Paulo no sheet (pass)",
+      "ok": true,
+      "ms": 4863,
+      "jev_choice": "search",
+      "jev_confidence": 1,
+      "evidence": { "chips": 18, "meteo": 1 },
+      "error": null
+    }
+  ]
+}

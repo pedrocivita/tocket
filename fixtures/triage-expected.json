@@ -1,0 +1,98 @@
+{
+  "schema": "tocket.appmaps.triage-expected/v0",
+  "notes": "Human labels on error flavor, not fixture ids. Synthesized from a Tempestivita last-run/v0 snapshot (8/8 pass) by mutating results.",
+  "include_low_confidence": true,
+  "source": "fixtures/triage/last-run.json",
+  "cases": [
+    {
+      "id": "T-nav-timeout",
+      "expected": "retry",
+      "flavor": "timeout",
+      "why": "Navigation timeout with no locator signal. Transient; re-run."
+    },
+    {
+      "id": "T-flake-reset",
+      "expected": "retry",
+      "flavor": "flake",
+      "why": "Connection reset marked flaky. Transient; re-run."
+    },
+    {
+      "id": "T-http-503",
+      "expected": "retry",
+      "flavor": "timeout",
+      "why": "HTTP 503 is infrastructure, not a map bug."
+    },
+    {
+      "id": "T-locator-missing",
+      "expected": "rewrite-locator",
+      "flavor": "missing locator",
+      "why": "Explicit locator() not found. Map selector drifted."
+    },
+    {
+      "id": "T-no-such-element",
+      "expected": "rewrite-locator",
+      "flavor": "missing locator",
+      "why": "XPath cannot locate the button. Rewrite the locator."
+    },
+    {
+      "id": "T-strict-mode",
+      "expected": "rewrite-locator",
+      "flavor": "missing locator",
+      "why": "Playwright strict-mode: locator too loose."
+    },
+    {
+      "id": "T-stale",
+      "expected": "rewrite-locator",
+      "flavor": "missing locator",
+      "why": "Stale/detached node is locator/DOM drift."
+    },
+    {
+      "id": "T-wait-locator",
+      "expected": "rewrite-locator",
+      "flavor": "missing locator",
+      "why": "Timeout waiting for getByText is locator drift disguised as timeout."
+    },
+    {
+      "id": "T-assert-text",
+      "expected": "escalate",
+      "flavor": "assertion",
+      "why": "Copy/value mismatch. Product or fixture expectation, not a locator."
+    },
+    {
+      "id": "T-assert-count",
+      "expected": "escalate",
+      "flavor": "assertion",
+      "why": "Count assertion failed. Product state, not a missing selector."
+    },
+    {
+      "id": "T-assert-visible",
+      "expected": "escalate",
+      "flavor": "assertion",
+      "why": "toBeVisible failed on a found locator. Treat as product assertion."
+    },
+    {
+      "id": "T-empty-error",
+      "expected": "escalate",
+      "flavor": "assertion",
+      "why": "Failed with no error text. Needs a human."
+    },
+    {
+      "id": "T-unknown",
+      "expected": "escalate",
+      "flavor": "flake",
+      "why": "Unknown protocol error. Do not silently retry or ignore."
+    },
+    {
+      "id": "T-resize-noise",
+      "expected": "ignore",
+      "flavor": "flake",
+      "why": "Known benign ResizeObserver warning."
+    },
+    {
+      "id": "T-lowconf-pass",
+      "expected": "ignore",
+      "flavor": "low-confidence pass",
+      "why": "Passed. Low Jev confidence is not a failure."
+    }
+  ]
+}

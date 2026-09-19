@@ -1,0 +1,171 @@
+{
+  "schema": "tocket.appmaps.last-run/v0",
+  "app": "tempestivita",
+  "map": "appmaps/tempestivita.suite.v0.json",
+  "runner": "oficina-box-smoke-suite",
+  "model": "jev-1.13.0",
+  "mode": "jev+playwright",
+  "started_at": null,
+  "finished_at": "2026-09-18T23:11:49.936687+00:00",
+  "all_ok": true,
+  "passed": 8,
+  "total": 8,
+  "results": [
+    {
+      "id": "P0-1",
+      "name": "Boot mapa e radar",
+      "ok": true,
+      "ms": 3122,
+      "jev_choice": "ok",
+      "jev_confidence": 0.54,
+      "evidence": {
+        "earth": 1,
+        "stamp": "Filtrando ecos fixos…",
+        "legend": 1,
+        "jev": {
+          "choice": "ok",
+          "confidence": 0.54,
+          "done": 0.4,
+          "model": "jev-1.13.0"
+        }
+      },
+      "error": null
+    },
+    {
+      "id": "P0-2",
+      "name": "Abrir São Paulo no sheet",
+      "ok": true,
+      "ms": 4863,
+      "jev_choice": "search",
+      "jev_confidence": 1,
+      "evidence": {
+        "jev": {
+          "choice": "search",
+          "confidence": 1,
+          "done": 0.13,
+          "model": "jev-1.13.0"
+        },
+        "sheet_snip": "\n      Sua região São Paulo\n        Limpar local\n      O queAviso de Tempestade severa agora em São ",
+        "chips": 18,
+        "meteo": 1
+      },
+      "error": null
+    },
+    {
+      "id": "P0-3",
+      "name": "Chip dia e meteograma",
+      "ok": true,
+      "ms": 5797,
+      "jev_choice": "day1",
+      "jev_confidence": 1,
+      "evidence": {
+        "jev": {
+          "choice": "day1",
+          "confidence": 1,
+          "done": 0.13,
+          "model": "jev-1.13.0"
+        },
+        "on": true,
+        "visible": true,
+        "overflow": true
+      },
+      "error": null
+    },
+    {
+      "id": "P0-4",
+      "name": "Ligar Risco PREVOTS",
+      "ok": true,
+      "ms": 3716,
+      "jev_choice": "risco",
+      "jev_confidence": 1,
+      "evidence": {
+        "jev": {
+          "choice": "risco",
+          "confidence": 1,
+          "done": 0.11,
+          "model": "jev-1.13.0"
+        },
+        "pressed": "true",
+        "stamp": "Risco de ontem"
+      },
+      "error": null
+    },
+    {
+      "id": "P0-5",
+      "name": "Outlook e SPC ameaças",
+      "ok": true,
+      "ms": 4478,
+      "jev_choice": "spc_threats",
+      "jev_confidence": 1,
+      "evidence": {
+        "jev": {
+          "choice": "spc_threats",
+          "confidence": 1,
+          "done": 0.2,
+          "model": "jev-1.13.0"
+        },
+        "on": true,
+        "src": "/api/astorp?f=18&p=hazard",
+        "sub": "4 painéis: probabilidade de tempestade, granizo, vento e tornado"
+      },
+      "error": null
+    },
+    {
+      "id": "P1-6",
+      "name": "CAPE × cis.",
+      "ok": true,
+      "ms": 5390,
+      "jev_choice": "scp",
+      "jev_confidence": 0.99,
+      "evidence": {
+        "jev": {
+          "choice": "scp",
+          "confidence": 0.99,
+          "done": 0.48,
+          "model": "jev-1.13.0"
+        },
+        "picker_open": true,
+        "tl": "CAPE × cis. 2h"
+      },
+      "error": null
+    },
+    {
+      "id": "P1-7",
+      "name": "Ajustes Painel de outlook",
+      "ok": true,
+      "ms": 4109,
+      "jev_choice": "ajustes",
+      "jev_confidence": 0.99,
+      "evidence": {
+        "jev": {
+          "choice": "ajustes",
+          "confidence": 0.99,
+          "done": 0.1,
+          "model": "jev-1.13.0"
+        },
+        "open": true,
+        "title": "Outlook convectivo"
+      },
+      "error": null
+    },
+    {
+      "id": "P1-8",
+      "name": "Limpar o mapa",
+      "ok": true,
+      "ms": 4346,
+      "jev_choice": "clear",
+      "jev_confidence": 0.52,
+      "evidence": {
+        "jev": {
+          "choice": "clear",
+          "confidence": 0.52,
+          "done": 0.12,
+          "model": "jev-1.13.0"
+        },
+        "risco": "false",
+        "eco": "true"
+      },
+      "error": null
+    }
+  ]
+}
