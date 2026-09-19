@@ -4,12 +4,15 @@
 
 ## Current Focus
 
-**v2.5.0 released and documented.** Two new commands: `tocket diff` and `tocket handoff`. All documentation updated (README, Getting Started, Developer Guide, Tocket Rules, walkthrough, CLAUDE.md, Memory Bank). tocket-site landing page updated with v2.5.0 badge, 4-step How It Works, and new feature descriptions. 248 tests, 60 suites.
+**POC C: `tocket suite triage`.** File-first AppMap last-run triage under `.context/appmaps/`. Jev Choice among retry | escalate | ignore | rewrite-locator, plus optional Noul for locator drift. Missing `TYPESAFE_API_KEY` or `--dry-run` uses a deterministic heuristic stub and still writes `<app>.triage.json`. Not a product bot; does not execute maps.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-19 | Fix getCurrentBranch for detached HEAD (CI pull_request checkout)| Claude (Executor) |
+| 2026-09-19 | POC C: `tocket suite triage` + fixtures/eval vs human labels     | Claude (Executor) |
+| 2026-09-18 | `tocket suite` status/sync/init for AppMap last-run convention   | Claude (Executor) |
 | 2026-03-02 | v2.5.0 docs: all guides, README, walkthrough, site updated       | Claude (Executor) |
 | 2026-03-02 | v2.5.0: tocket diff, tocket handoff, XML parser, payload persist | Claude (Executor) |
 | 2026-02-26 | v2.4.0: configurable agent roles, smart file mapping, TUI revamp | Claude (Executor) |

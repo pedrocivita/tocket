@@ -101,7 +101,13 @@ export function getLastCommitMessage(cwd: string = process.cwd()): string {
 export function getCurrentBranch(cwd: string = process.cwd()): string {
   if (!isGitRepo(cwd)) return "";
   try {
-    return execSync("git branch --show-current", {
+    const current = execSync("git branch --show-current", {
+      cwd,
+      encoding: "utf-8",
+    }).trim();
+    if (current) return current;
+    // Detached HEAD (GitHub Actions pull_request checkouts).
+    return execSync("git rev-parse --abbrev-ref HEAD", {
       cwd,
       encoding: "utf-8",
     }).trim();

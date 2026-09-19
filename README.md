@@ -95,6 +95,10 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket doctor` | Deep workspace diagnostics (content health, git tracking, staleness) |
 | `tocket lint` | Audit `.context/` content quality and suggest improvements |
 | `tocket config` | Manage global settings: agent roles, author, priority (`~/.tocketrc.json`) |
+| `tocket suite status` | Print last AppMap run from `.context/appmaps/last-run.json` (exit 1 if failed, 2 if missing) |
+| `tocket suite sync --from <path.json>` | Validate and copy a last-run.json into `.context/appmaps/`, regenerate `last-run.md` |
+| `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
+| `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -118,6 +122,12 @@ tocket diff --json
 
 # Handoff context to a new session
 tocket handoff --to stdout
+
+# AppMap last-run (file-first; does not execute maps)
+tocket suite status
+tocket suite sync --from path/to/last-run.json
+tocket suite init
+tocket suite triage --from path/to/last-run.json --dry-run
 ```
 
 ## How it works
@@ -133,6 +143,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `techContext.md` | Stack, build tools, critical rules | When stack changes |
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
+| `appmaps/` | Optional AppMap index + last-run history (not executable maps) | `tocket suite sync` |
 
 ### Triangulation
 

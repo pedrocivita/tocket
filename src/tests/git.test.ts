@@ -43,6 +43,24 @@ describe("git - in a git repository", () => {
     assert.ok(branch.length > 0);
   });
 
+  it("getCurrentBranch returns HEAD when the checkout is detached", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "tocket-git-detached-"));
+    try {
+      execSync("git init", { cwd: tempDir });
+      execSync('git config user.email "ci@example.com"', { cwd: tempDir });
+      execSync('git config user.name "CI"', { cwd: tempDir });
+      writeFileSync(join(tempDir, "readme.txt"), "ok\n", "utf-8");
+      execSync("git add readme.txt", { cwd: tempDir });
+      execSync('git commit -m "init"', { cwd: tempDir });
+      execSync("git checkout --detach", { cwd: tempDir });
+
+      const branch = getCurrentBranch(tempDir);
+      assert.equal(branch, "HEAD");
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it("getStagedFiles returns an array", () => {
     const files = getStagedFiles(tocketRoot);
     assert.ok(Array.isArray(files));
