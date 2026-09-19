@@ -1,5 +1,8 @@
 /** AppMap Memory Bank convention — file-first index and last-run history. */
 
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+
 export const LAST_RUN_SCHEMA = "tocket.appmaps.last-run/v0";
 
 export const APPMAPS_DIR = ".context/appmaps";
@@ -7,6 +10,7 @@ export const LAST_RUN_JSON = "last-run.json";
 export const LAST_RUN_MD = "last-run.md";
 export const APPMAPS_README = "README.md";
 export const APPMAPS_GOALS = "goals.md";
+export const APPMAP_SUFFIX = ".appmap.json";
 
 export interface LastRunResult {
   id: string;
@@ -212,21 +216,115 @@ ${resultRows}
 `;
 }
 
+/** Slug used for bank filenames (\`<app>.appmap.json\`, triage). */
+export function appSlug(app: string): string {
+  return app.trim() ? app.trim().replace(/[^a-zA-Z0-9._-]+/g, "-") : "suite";
+}
+
+/** Bank filename for a copied mapper AppMap. */
+export function appmapBankFile(app: string): string {
+  return `${appSlug(app)}${APPMAP_SUFFIX}`;
+}
+
+/** Repo-relative path for the bank map copy. */
+export function appmapBankRel(app: string): string {
+  return `${APPMAPS_DIR}/${appmapBankFile(app)}`;
+}
+
+export class AppmapDiscoveryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AppmapDiscoveryError";
+  }
+}
+
+/** Parse mapper (or hand) AppMap JSON. Object only; no full schema vendoring. */
+export function parseAppmapJson(raw: string): unknown {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("AppMap is not valid JSON");
+  }
+  if (!isRecord(parsed)) {
+    throw new Error("AppMap must be a JSON object");
+  }
+  return parsed;
+}
+
+/**
+ * Find `*.appmap.json` in a mapper `--out` directory.
+ * Prefers `<app>.appmap.json` when several files exist.
+ */
+export function discoverAppmapJson(dir: string, app?: string): string {
+  if (!existsSync(dir)) {
+    throw new AppmapDiscoveryError(`mapper-out directory not found: ${dir}`);
+  }
+  if (!statSync(dir).isDirectory()) {
+    throw new AppmapDiscoveryError(`mapper-out is not a directory: ${dir}`);
+  }
+
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith(APPMAP_SUFFIX))
+    .sort();
+
+  if (files.length === 0) {
+    throw new AppmapDiscoveryError(`No *${APPMAP_SUFFIX} found in ${dir}`);
+  }
+
+  if (app) {
+    const preferred = appmapBankFile(app);
+    if (files.includes(preferred)) {
+      return join(dir, preferred);
+    }
+  }
+
+  if (files.length === 1) {
+    return join(dir, files[0]);
+  }
+
+  throw new AppmapDiscoveryError(
+    `Multiple *${APPMAP_SUFFIX} in ${dir} (${files.join(", ")}). Pass --map <file>.`,
+  );
+}
+
+/** Point last-run.map at the bank copy; fill empty app from --app. */
+export function normalizeLastRunRaw(
+  raw: unknown,
+  mapRel: string,
+  app?: string,
+): unknown {
+  if (!isRecord(raw)) return raw;
+  const next: Record<string, unknown> = { ...raw, map: mapRel };
+  if (app && (typeof next.app !== "string" || next.app.trim() === "")) {
+    next.app = app;
+  }
+  return next;
+}
+
 /** Minimal README stub written when `.context/appmaps/` is created. */
 export function appmapsReadmeStub(): string {
   return `# AppMaps
 
-Index and last-run history for AppMap suites.
+Index, last-run history, and a Memory Bank copy of the mapper AppMap.
 
-Executable maps live outside this directory (for example \`appmaps/*.json\`).
-\`.context/appmaps/\` is file-first: \`tocket suite\` reads and writes these files and does not execute maps.
+\`tocket suite loop\` copies \`<app>.appmap.json\` here so status and triage
+can read what Oficina wrote. Runners stay outside this directory.
+\`.context/appmaps/\` is file-first: \`tocket suite\` does not execute maps.
 
 | File | Purpose |
 | --- | --- |
 | \`goals.md\` | Suite goals and coverage intent |
+| \`<app>.appmap.json\` | Mapper (or hand) map copy |
 | \`last-run.json\` | Last run (\`schema\`: \`${LAST_RUN_SCHEMA}\`) |
 | \`last-run.md\` | Human-readable last-run table |
 | \`<app>.triage.json\` | Optional Jev/heuristic triage (\`tocket.appmaps.triage/v0\`) |
+
+## Tempestivita loop (Oficina)
+
+1. Mapper (sibling, not vendored): \`npx tsx src/cli.ts all --url https://tempestivita.civita.dev --smoke\`
+2. \`tocket suite loop --app tempestivita --mapper-out <mapper>/out --last-run <last-run.json> [--dry-run]\`
+3. \`tocket suite status\`
 `;
 }
 
@@ -235,7 +333,8 @@ export function appmapsGoalsStub(): string {
 
 Record suite goals and coverage intent here.
 
-Executable maps stay outside \`.context/appmaps/\`. This file is the Memory Bank index, not a runner.
+\`tocket suite loop\` copies \`<app>.appmap.json\` into this directory for the Memory Bank.
+This file is the index, not a runner.
 `;
 }
 

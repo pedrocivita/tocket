@@ -9,11 +9,18 @@ import {
   LAST_RUN_MD,
   LAST_RUN_SCHEMA,
   LastRunValidationError,
+  AppmapDiscoveryError,
+  appmapBankFile,
+  appmapBankRel,
   appmapsGoalsStub,
   appmapsReadmeStub,
+  discoverAppmapJson,
   emptyLastRun,
+  normalizeLastRunRaw,
+  parseAppmapJson,
   parseLastRun,
   prettyLastRunJson,
+  validateLastRun,
   writeLastRunMd,
   type LastRun,
 } from "../utils/appmaps.js";
@@ -61,6 +68,152 @@ function writeLastRunFiles(cwd: string, raw: unknown, run: LastRun): void {
   ensureReadmeStub(dir);
   writeFileSync(lastRunJsonPath(cwd), prettyLastRunJson(raw), "utf-8");
   writeFileSync(lastRunMdPath(cwd), writeLastRunMd(run), "utf-8");
+}
+
+function writeMapFile(cwd: string, app: string, sourcePath: string): string {
+  const dir = ensureAppmapsDir(cwd);
+  ensureReadmeStub(dir);
+  const dest = join(dir, appmapBankFile(app));
+  const parsed = parseAppmapJson(readFileSync(sourcePath, "utf-8"));
+  writeFileSync(dest, prettyLastRunJson(parsed), "utf-8");
+  return dest;
+}
+
+function resolveMapSource(
+  cwd: string,
+  options: { map?: string; mapperOut?: string; app: string },
+): string {
+  if (options.map) {
+    const path = resolveFromPath(cwd, options.map);
+    if (!existsSync(path)) {
+      throw new AppmapDiscoveryError(`AppMap not found: ${options.map}`);
+    }
+    return path;
+  }
+  if (options.mapperOut) {
+    return discoverAppmapJson(resolveFromPath(cwd, options.mapperOut), options.app);
+  }
+  throw new AppmapDiscoveryError("Pass --map <appmap.json> or --mapper-out <dir>");
+}
+
+function triageChoiceCounts(report: { cases: Array<{ choice: string }> }): string {
+  const counts: Record<string, number> = {
+    retry: 0,
+    escalate: 0,
+    ignore: 0,
+    "rewrite-locator": 0,
+  };
+  for (const item of report.cases) {
+    counts[item.choice] = (counts[item.choice] ?? 0) + 1;
+  }
+  return `${report.cases.length} cases  retry=${counts.retry}  escalate=${counts.escalate}  ignore=${counts.ignore}  rewrite-locator=${counts["rewrite-locator"]}`;
+}
+
+async function runLoop(
+  cwd: string,
+  options: {
+    app: string;
+    map?: string;
+    mapperOut?: string;
+    lastRun?: string;
+    triage?: boolean;
+    dryRun?: boolean;
+  },
+): Promise<void> {
+  const app = options.app.trim() || "tempestivita";
+  const triageEnabled = options.triage !== false;
+  const written: string[] = [];
+
+  let mapSource: string;
+  try {
+    mapSource = resolveMapSource(cwd, { map: options.map, mapperOut: options.mapperOut, app });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(themeError(message));
+    process.exitCode = 2;
+    return;
+  }
+
+  let mapDest: string;
+  try {
+    mapDest = writeMapFile(cwd, app, mapSource);
+    written.push(`${APPMAPS_DIR}/${appmapBankFile(app)}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(themeError(`Invalid AppMap: ${message}`));
+    process.exitCode = 1;
+    return;
+  }
+
+  let run: LastRun | undefined;
+  if (options.lastRun) {
+    const sourcePath = resolveFromPath(cwd, options.lastRun);
+    if (!existsSync(sourcePath)) {
+      console.error(themeError(`Incoming last-run.json not found: ${options.lastRun}`));
+      process.exitCode = 1;
+      return;
+    }
+
+    try {
+      const text = readFileSync(sourcePath, "utf-8");
+      const raw = JSON.parse(text) as unknown;
+      const normalized = normalizeLastRunRaw(raw, appmapBankRel(app), app);
+      run = validateLastRun(normalized);
+      writeLastRunFiles(cwd, normalized, run);
+      written.push(`${APPMAPS_DIR}/${LAST_RUN_JSON}`);
+      written.push(`${APPMAPS_DIR}/${LAST_RUN_MD}`);
+    } catch (err) {
+      if (err instanceof LastRunValidationError || err instanceof SyntaxError) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(themeError(`Invalid last-run.json: ${message}`));
+        process.exitCode = 1;
+        return;
+      }
+      throw err;
+    }
+  }
+
+  let report: TriageReport | undefined;
+  let triageRel: string | undefined;
+  if (run && triageEnabled) {
+    try {
+      const result = await runTriage({
+        fromPath: lastRunJsonPath(cwd),
+        cwd,
+        mapPath: mapDest,
+        includeLowConfidence: true,
+        dryRun: options.dryRun === true,
+      });
+      report = result.report;
+      triageRel = result.outPath.startsWith(cwd) ? relative(cwd, result.outPath) : result.outPath;
+      written.push(triageRel);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(themeError(`Triage failed: ${message}`));
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  console.log(heading("\n  AppMap loop\n"));
+  console.log("  " + info(`app: ${app}`));
+  console.log("  " + info(`map source: ${relative(cwd, mapSource) || mapSource}`));
+  for (const path of written) {
+    console.log(success(`  wrote ${path}`));
+  }
+  if (run) {
+    console.log(info(`  last-run: ${run.passed}/${run.total} passed  all_ok: ${run.all_ok}`));
+  } else {
+    console.log(dim("  last-run: (not provided)"));
+  }
+  if (report) {
+    console.log(info(`  triage: ${triageChoiceCounts(report)}  mode: ${report.mode}`));
+  } else if (!options.lastRun) {
+    console.log(dim("  triage: skipped (no --last-run)"));
+  } else if (!triageEnabled) {
+    console.log(dim("  triage: skipped (--no-triage)"));
+  }
+  console.log();
 }
 
 function printStatus(run: LastRun): void {
@@ -322,6 +475,29 @@ export function registerSuiteCommand(program: Command): void {
         out?: string;
       }) => {
         await runTriageCommand(process.cwd(), options);
+      },
+    );
+
+  suite
+    .command("loop")
+    .alias("refresh")
+    .description("Copy mapper AppMap + optional last-run into .context/appmaps/ and triage")
+    .option("--app <name>", "App slug for the bank map filename", "tempestivita")
+    .option("--map <appmap.json>", "AppMap JSON to copy into the Memory Bank")
+    .option("--mapper-out <dir>", "Directory to discover *.appmap.json from")
+    .option("--last-run <json>", "Optional last-run.json to sync (same schema as suite sync)")
+    .option("--no-triage", "Skip triage even when last-run is present")
+    .option("--dry-run", "Force heuristic triage (no API key) and still write output")
+    .action(
+      async (options: {
+        app: string;
+        map?: string;
+        mapperOut?: string;
+        lastRun?: string;
+        triage?: boolean;
+        dryRun?: boolean;
+      }) => {
+        await runLoop(process.cwd(), options);
       },
     );
 }

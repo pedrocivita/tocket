@@ -1,0 +1,45 @@
+{
+  "schema": "tocket.appmaps.last-run/v0",
+  "app": "tempestivita",
+  "map": "out/tempestivita.appmap.json",
+  "runner": "oficina-loop-fixture",
+  "model": "jev-1.13.0",
+  "mode": "jev+playwright",
+  "started_at": null,
+  "finished_at": "2026-09-19T16:00:00.000Z",
+  "all_ok": false,
+  "passed": 1,
+  "total": 3,
+  "results": [
+    {
+      "id": "P0-1",
+      "name": "Boot mapa e radar",
+      "ok": true,
+      "ms": 3122,
+      "jev_choice": "ok",
+      "jev_confidence": 0.9,
+      "evidence": { "earth": 1 },
+      "error": null
+    },
+    {
+      "id": "P0-4",
+      "name": "Ligar Risco PREVOTS",
+      "ok": false,
+      "ms": 2104,
+      "jev_choice": "risco",
+      "jev_confidence": 0.4,
+      "evidence": { "pressed": "false" },
+      "error": "LocatorError: locator('[data-testid=risco]') not found"
+    },
+    {
+      "id": "P1-8",
+      "name": "Limpar o mapa",
+      "ok": false,
+      "ms": 30122,
+      "jev_choice": "clear",
+      "jev_confidence": 0.22,
+      "evidence": { "risco": "true" },
+      "error": "TimeoutError: Navigation timeout of 30000 ms exceeded"
+    }
+  ]
+}

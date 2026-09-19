@@ -19,7 +19,7 @@
 │     ├── diff.cmd.ts       (payload vs git changes)    │
 │     ├── handoff.cmd.ts    (session context summary)   │
 │     ├── eject.cmd.ts      (remove scaffolding)        │
-│     ├── suite.cmd.ts      (AppMap last-run + triage)  │
+│     ├── suite.cmd.ts      (AppMap last-run + triage + loop) │
 │     └── dashboard.ts      (interactive menu, no-args) │
 │                                                       │
 │  templates/                                           │
@@ -94,7 +94,7 @@ Files in `.context/` follow a fixed schema:
 | `techContext.md` | Architect | When stack changes |
 | `systemPatterns.md` | Architect | When patterns change |
 | `progress.md` | Executor / `tocket sync` | Per milestone |
-| `appmaps/` | `tocket suite` (index + last-run only) | After an external runner writes last-run.json |
+| `appmaps/` | `tocket suite` (map copy + last-run + triage) | After mapper/suite runner, via `suite loop` or `sync` |
 
 ## Conventions
 
@@ -117,5 +117,6 @@ Files in `.context/` follow a fixed schema:
 | Regex-based XML parsing | No new runtime deps; payload XML is self-generated | 2026-03-02 |
 | `tocket diff` for compliance verification | Closes the triangulation loop after Executor finishes | 2026-03-02 |
 | `tocket handoff` for session transfer | Clipboard-ready context summary for new agent conversations | 2026-03-02 |
-| `.context/appmaps/` is index + history | Executable maps stay elsewhere; CLI never runs Playwright/Jev | 2026-09-18 |
+| `.context/appmaps/` is index + history | Bank may hold a map copy; runners stay elsewhere; CLI never runs Playwright/Jev | 2026-09-18 |
 | `tocket suite triage` is a judge, not a bot | Writes `<app>.triage.json`; Jev Choice or heuristic stub; no suite execution | 2026-09-19 |
+| `tocket suite loop` is glue, not a runner | Copies `<app>.appmap.json` + last-run into `.context/appmaps/`, then triage | 2026-09-19 |
