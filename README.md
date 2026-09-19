@@ -99,6 +99,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite sync --from <path.json>` | Validate and copy a last-run.json into `.context/appmaps/`, regenerate `last-run.md` |
 | `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
 | `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
+| `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -128,7 +129,40 @@ tocket suite status
 tocket suite sync --from path/to/last-run.json
 tocket suite init
 tocket suite triage --from path/to/last-run.json --dry-run
+tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-run last-run.json --dry-run
 ```
+
+### Tempestivita loop (Oficina)
+
+Three steps. Mapper is a sibling tool ([pedrocivita/appmap-mapper](https://github.com/pedrocivita/appmap-mapper)); Tocket does not vendor it.
+
+```bash
+# 1. Mapper — emit out/tempestivita.appmap.json (and optional smoke)
+cd ../appmap-mapper
+npx tsx src/cli.ts all --url https://tempestivita.civita.dev --smoke
+
+# 2. Close the Memory Bank (map + last-run + triage stay under .context/)
+cd ../tocket
+tocket suite loop --app tempestivita \
+  --mapper-out ../appmap-mapper/out \
+  --last-run path/to/last-run.json \
+  --dry-run
+
+# 3. Read what loop wrote
+tocket suite status
+```
+
+`--mapper-out` discovers `*.appmap.json` (prefers `<app>.appmap.json`). `--dry-run` uses the heuristic stub when `TYPESAFE_API_KEY` is missing. `--no-triage` copies files only.
+
+What lands in `.context/appmaps/`:
+
+| File | Source |
+| --- | --- |
+| `tempestivita.appmap.json` | Mapper (or `--map`) copy |
+| `last-run.json` / `last-run.md` | `--last-run` via the same v0 schema as `suite sync` |
+| `tempestivita.triage.json` | Failed + low-confidence goals (unless `--no-triage`) |
+
+Thin wrapper: `scripts/tempestivita-loop.sh` (sets `--app tempestivita` and `--mapper-out`).
 
 ## How it works
 
@@ -143,7 +177,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `techContext.md` | Stack, build tools, critical rules | When stack changes |
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
-| `appmaps/` | Optional AppMap index + last-run history (not executable maps) | `tocket suite sync` |
+| `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
 
 ### Triangulation
 

@@ -55,7 +55,7 @@ tocket/
       diff.cmd.ts         # tocket diff — payload vs git changes
       handoff.cmd.ts      # tocket handoff — session context summary
       eject.cmd.ts        # tocket eject — remove scaffolding
-      suite.cmd.ts        # tocket suite — AppMap last-run index + triage
+      suite.cmd.ts        # tocket suite — AppMap last-run index + triage + loop
       dashboard.ts        # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts      # Template functions for scaffolded files

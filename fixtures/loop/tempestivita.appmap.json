@@ -1,0 +1,46 @@
+{
+  "version": "0",
+  "app": {
+    "id": "tempestivita",
+    "name": "TempesTivita",
+    "base_url": "https://tempestivita.civita.dev"
+  },
+  "state_schema": {
+    "properties": {},
+    "observers": []
+  },
+  "screens": [
+    {
+      "id": "radar",
+      "label": "Radar",
+      "priority": 1,
+      "match": {}
+    }
+  ],
+  "actions": [
+    {
+      "id": "risco",
+      "kind": "click",
+      "choice_label": "Risco PREVOTS",
+      "from_screens": ["radar"]
+    }
+  ],
+  "edges": [],
+  "goals": [
+    {
+      "id": "P0-1",
+      "description": "Boot mapa e radar",
+      "success": {}
+    },
+    {
+      "id": "P0-4",
+      "description": "Ligar Risco PREVOTS",
+      "success": {}
+    },
+    {
+      "id": "P1-8",
+      "description": "Limpar o mapa",
+      "success": {}
+    }
+  ]
+}

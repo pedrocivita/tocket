@@ -4,12 +4,13 @@
 
 ## Current Focus
 
-**POC C: `tocket suite triage`.** File-first AppMap last-run triage under `.context/appmaps/`. Jev Choice among retry | escalate | ignore | rewrite-locator, plus optional Noul for locator drift. Missing `TYPESAFE_API_KEY` or `--dry-run` uses a deterministic heuristic stub and still writes `<app>.triage.json`. Not a product bot; does not execute maps.
+**Oficina loop: `tocket suite loop`.** One CLI flow copies mapper AppMap JSON (+ optional last-run) into `.context/appmaps/` and runs triage. Status reads the bank afterward. Glue only; does not execute maps or vendor appmap-mapper.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-19 | `tocket suite loop` closes Mapper → Memory Bank → triage         | Claude (Executor) |
 | 2026-09-19 | Fix getCurrentBranch for detached HEAD (CI pull_request checkout)| Claude (Executor) |
 | 2026-09-19 | POC C: `tocket suite triage` + fixtures/eval vs human labels     | Claude (Executor) |
 | 2026-09-18 | `tocket suite` status/sync/init for AppMap last-run convention   | Claude (Executor) |
