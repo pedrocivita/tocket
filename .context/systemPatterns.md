@@ -21,6 +21,7 @@
 │     ├── eject.cmd.ts      (remove scaffolding)        │
 │     ├── suite.cmd.ts      (AppMap last-run + triage + loop) │
 │     ├── decide.cmd.ts     (generic Choice/Noul → decisions/)│
+│     ├── work.cmd.ts       (read Choice, stamp receipt)│
 │     └── dashboard.ts      (interactive menu, no-args) │
 │                                                       │
 │  templates/                                           │
@@ -35,6 +36,7 @@
 │     ├── appmaps.ts        (last-run v0 schema/md)     │
 │     ├── triage.ts         (suite triage report)       │
 │     ├── decide.ts         (generic decide record)     │
+│     ├── work.ts           (reference worker, no Jev)  │
 │     └── jev.ts            (System One Choice/Noul)    │
 └───────────────────────────────────────────────────────┘
 ```
@@ -97,7 +99,7 @@ Files in `.context/` follow a fixed schema:
 | `systemPatterns.md` | Architect | When patterns change |
 | `progress.md` | Executor / `tocket sync` | Per milestone |
 | `appmaps/` | `tocket suite` (map copy + last-run + triage) | After mapper/suite runner, via `suite loop` or `sync` |
-| `decisions/` | `tocket decide` (handoff queues: research/write/review) | On each `tocket decide` |
+| `decisions/` | `tocket decide` (handoff queues) + `tocket work` receipts | On each decide / work apply |
 
 ## Conventions
 
@@ -130,3 +132,4 @@ Files in `.context/` follow a fixed schema:
 | Skill catalog is `skills/tocket/SKILL.md` | YAML `name`+`description` for `npx skills add pedrocivita/tocket --skill tocket` | 2026-09-20 |
 | No laya-mlx in this PR | Local↔`.context` file harness still unproven on X | 2026-09-20 |
 | Tocket is the notebook, not the worker | Agents work · Tocket remembers · Jev only chooses the next step | 2026-09-20 |
+| `tocket work` is the reference consumer | Reads a Choice; dry-run plan by default; `--apply` stamps notebook only; never calls Jev | 2026-09-20 |

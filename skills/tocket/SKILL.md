@@ -13,6 +13,7 @@ Tocket is the shared project notebook (`.context/`). Agents read and write those
 
 - Before an expensive tool or long run: `tocket decide --dry-run …` or read the latest file under `.context/decisions/`.
 - Honor the latest decision (`choice`, `destination`, `gated`). If `semantics` is `log-only` or `mode` is `shadow`/`dry-run`, treat it as advice.
+- Consume a handoff without re-deciding: `tocket work` (plan) or `tocket work --apply` (notebook receipt).
 - After work: update `.context/activeContext.md`.
 
 ## Setup

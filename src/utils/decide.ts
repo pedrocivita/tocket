@@ -601,6 +601,9 @@ subfolder when the Choice maps cleanly). No app hooks, no runtime pollution.
 | File | Purpose |
 | --- | --- |
 | \`<destination>/<timestamp>-<id>.json\` | Handoff record (\`schema\`: \`${DECIDE_SCHEMA}\`) |
+| \`<destination>/<timestamp>-<id>.applied.json\` | Receipt from \`tocket work --apply\` |
+
+\`tocket work\` is the first-party consumer (plan by default; never calls Jev).
 
 Research/write route only when confidence >= ${DEFAULT_CONFIDENCE_THRESHOLD}
 (configurable). Below that, \`destination\` is \`review\` (\`gated: true\`).

@@ -1,0 +1,42 @@
+{
+  "schema": "tocket.decide/v0",
+  "id": "next",
+  "generated_at": "2026-09-20T15:01:30.000Z",
+  "mode": "active",
+  "source": "stub",
+  "model": "stub-v0",
+  "choice": "write",
+  "confidence": 0.91,
+  "destination": "write",
+  "gated": false,
+  "confidence_threshold": 0.85,
+  "semantics": "handoff",
+  "status": "queued",
+  "executes": false,
+  "loop": "state-questions-action-verify",
+  "fork": "action",
+  "primitives": ["choice"],
+  "batched": false,
+  "rank_wide": false,
+  "narrow": "write",
+  "state_summary": "{\"goal\":\"docs\"}",
+  "state": { "goal": "docs" },
+  "questions": {
+    "next": {
+      "type": "choice",
+      "criteria": {
+        "research": "Collect evidence still needed for the goal.",
+        "write": "Draft from sufficient evidence.",
+        "review": "Goal unclear, outside scope, or work complete."
+      }
+    }
+  },
+  "answers": {
+    "next": {
+      "type": "choice",
+      "choice": "write",
+      "confidence": 0.91,
+      "rationale": "Fixture handoff for tocket work."
+    }
+  }
+}

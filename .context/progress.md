@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-20 (work)
+
+**Summary**: v2.6.1. `tocket work` is the first-party reference worker. It reads a Choice from `.context/decisions/` and prints a plan (default) or `--apply` a notebook receipt (`*.applied.json` + `worker applied:` line in `progress.md`). Never calls Jev. Shadow / log-only apply needs `--force` (exit 2 otherwise). Missing/invalid decision exits 1.
+
+---
+
 ## Session: 2026-09-20 (decide)
 
 **Summary**: v2.6.0. README thesis: Tocket is the project notebook (not a chat). Jev only picks among options. Tagline: Agents work · Tocket remembers · Jev only chooses the next step. Commands: decide, light doctor, official skill (`npx skills add`). 5-min: init → doctor → decide --dry-run → agents read `.context/decisions/`. No Laya / laya-mlx.
