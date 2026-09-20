@@ -16,6 +16,11 @@ subfolder when the Choice maps cleanly). No app hooks, no runtime pollution.
 | File | Purpose |
 | --- | --- |
 | `<destination>/<timestamp>-<id>.json` | Handoff record (`schema`: `tocket.decide/v0`) |
+| `<destination>/<timestamp>-<id>.applied.json` | Receipt from `tocket work --apply` (`schema`: `tocket.work.applied/v0`) |
+
+`tocket work` is the first-party consumer. Default is a dry-run plan. `--apply`
+stamps the receipt and a `worker applied:` line in `.context/progress.md`.
+It never calls Jev. Shadow / log-only apply requires `--force`.
 
 Research/write route only when confidence >= 0.85 (configurable).
 Below that, `destination` is `review` (`gated: true`).

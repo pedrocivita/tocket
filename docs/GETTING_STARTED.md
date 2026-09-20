@@ -31,7 +31,7 @@ your-project/
   GEMINI.md               # Architect instructions (for Gemini)
 ```
 
-Phrase for any agent: `Before expensive tools: tocket decide --dry-run, or read .context/decisions/.`
+Phrase for any agent: `Before expensive tools: tocket decide --dry-run, or read .context/decisions/.` Consume a handoff with `tocket work` (plan) or `tocket work --apply` (notebook receipt; never calls Jev).
 
 One-shot skill install: `npx skills add pedrocivita/tocket --skill tocket`. Then `tocket doctor` lists the same files.
 

@@ -129,7 +129,11 @@ function walkJsonFiles(dir: string, acc: string[] = []): string[] {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
       walkJsonFiles(full, acc);
-    } else if (entry.isFile() && entry.name.endsWith(".json")) {
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith(".json") &&
+      !entry.name.endsWith(".applied.json")
+    ) {
       acc.push(full);
     }
   }

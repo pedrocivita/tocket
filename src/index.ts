@@ -19,6 +19,7 @@ import { registerAgentsMdCommand } from "./commands/agents-md.cmd.js";
 import { registerScaffoldCommand } from "./commands/scaffold.cmd.js";
 import { registerSuiteCommand } from "./commands/suite.cmd.js";
 import { registerDecideCommand } from "./commands/decide.cmd.js";
+import { registerWorkCommand } from "./commands/work.cmd.js";
 
 const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, "..", "package.json"), "utf-8"),
@@ -47,6 +48,7 @@ registerAgentsMdCommand(program);
 registerScaffoldCommand(program);
 registerSuiteCommand(program);
 registerDecideCommand(program);
+registerWorkCommand(program);
 
 // No-args: show interactive dashboard (TTY) or help (non-TTY)
 const args = process.argv.slice(2);

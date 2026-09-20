@@ -19,19 +19,24 @@ The Context Engineering Framework for Multi-Agent Workspaces. Agents forget ever
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
 
+## What's new in 2.6.1
+
+- `tocket work`: first-party reference worker. Reads a Choice from `.context/decisions/` and prints a plan (default) or `--apply` a notebook receipt. Never calls Jev. Shadow / log-only apply requires `--force`.
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## What's new in 2.6.0
 
 - `tocket decide`: cheap typed Choice into `.context/decisions/`
 - Light `tocket doctor`: notebook checks (`.context/`, skill, key yes/no, last decision)
 - Official skill: `npx skills add pedrocivita/tocket --skill tocket`
 
-See [CHANGELOG.md](CHANGELOG.md).
-
 ## What you get
 
 | Piece | Role |
 | --- | --- |
 | `tocket decide` | Writes the next move as JSON under `.context/decisions/`. Does not run workers. |
+| `tocket work` | Reads that Choice and plans (default) or `--apply` a notebook receipt. Does not call Jev. |
 | `tocket doctor` | Green/yellow/red checks for the notebook, skill file, and `TYPESAFE_API_KEY` yes/no. |
 | `tocket suite loop` | Copies AppMap + last-run into `.context/appmaps/` and triages. Suite-specific. |
 | Official skill | One-shot install. Phrase: before expensive tools, `tocket decide --dry-run` or read `.context/decisions/`. |
@@ -86,6 +91,9 @@ tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,r
 
 # 4. Agents read the choice
 #    .context/decisions/<research|write|review>/*.json
+
+# 5. Reference worker (plan only; never calls Jev)
+tocket work --from .context/decisions/review/<file>.json
 ```
 
 Optional one-shot skill: `npx skills add pedrocivita/tocket --skill tocket`.
@@ -144,6 +152,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
 | `tocket decide` | State + Choice handoff into `.context/decisions/` (Codila-style queues; does not run workers) |
+| `tocket work` | Read a decision and print a plan (default) or `--apply` a notebook receipt. Never calls Jev. |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -179,6 +188,12 @@ tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-r
 tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dry-run
 tocket decide --from path/to/state.json --noul needs_human_review --score relevance --shadow
 tocket decide --from path/to/state.json --choice next:research,write,review --fork action --confidence-threshold 0.85
+
+# Reference worker (no Jev). Default is plan/dry-run.
+tocket work --from path/to/decision.json
+tocket work --apply
+tocket work --from path/to/decision.json --apply
+tocket work --from path/to/shadow.json --apply --force
 ```
 
 ### Tempestivita loop (Oficina)
@@ -228,10 +243,16 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 6. **Bounded forks only:** agent, model, tool, action, or human escalate. Not an open-ended graph.
 7. **Whole-loop benchmark is out of scope** for this command (do that later, separately).
 8. **Rank wide / read narrow.** Choice may list many options; the handoff stores the single `narrow` route (not every option).
-9. **Reuse the loop:** State → Questions → Action (file) → Verify (consumer). Tocket is not the consumer.
+9. **Reuse the loop:** State → Questions → Action (file) → Verify (consumer). `tocket work` is the reference consumer.
 10. **Keep Jev out of math, writing, and irreversible execution.** This CLI writes a file. It does not compute, draft, publish, or apply.
 
 `executes` is always `false`. Workers (or humans) read the JSON. Tocket does not run them.
+
+### `tocket work` (reference worker)
+
+`tocket decide` writes. `tocket work` is the first-party consumer: it reads a Choice and acts on the notebook only. It does not call Jev, open a browser, or edit application code.
+
+Default is a dry-run plan (choice, destination, confidence, gated). `--apply` writes `<id>.applied.json` next to the decision and a `worker applied: next=…` line into `.context/progress.md`. Shadow / `semantics: log-only` decisions refuse `--apply` with exit 2 unless `--force` (receipt then has `applied_from_shadow: true`). Missing or invalid JSON exits 1.
 
 A later `--backend laya` (local Apple Silicon) is not implemented. Today: stub, or live Jev with `TYPESAFE_API_KEY`.
 
@@ -259,7 +280,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
-| `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) | `tocket decide` |
+| `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) plus `*.applied.json` receipts | `tocket decide` / `tocket work` |
 
 ### Triangulation
 

@@ -327,7 +327,7 @@ Project context lives in \`.context/\`, not in chat history. **Read it before do
 - **Write before leaving** — Update \`activeContext.md\` with what changed after completing significant work.
 - **Trust the files** — If \`.context/\` says the project uses ESM, it uses ESM. Don't second-guess documented decisions.
 - **Don't duplicate** — Context belongs in \`.context/\`, not scattered in code comments or chat summaries.
-- **Decide is a file** — \`tocket decide\` writes the next move into \`.context/decisions/\`. Before expensive tools, run it or read the latest decision. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
+- **Decide is a file** — \`tocket decide\` writes the next move into \`.context/decisions/\`. Before expensive tools, run it or read the latest decision. Consume it with \`tocket work\` (plan) or \`tocket work --apply\` (notebook receipt). Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not re-decide.
 
 ---
 
@@ -478,6 +478,7 @@ Tocket is the shared project notebook (\`.context/\`). Agents read and write tho
 
 - Before an expensive tool or long run: \`tocket decide --dry-run …\` or read the latest file under \`.context/decisions/\`.
 - Honor the latest decision (\`choice\`, \`destination\`, \`gated\`). If \`semantics\` is \`log-only\` or \`mode\` is \`shadow\`/\`dry-run\`, treat it as advice.
+- Consume a handoff without re-deciding: \`tocket work\` (plan) or \`tocket work --apply\` (notebook receipt).
 - After work: update \`.context/activeContext.md\`.
 
 ## Setup

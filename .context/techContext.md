@@ -57,6 +57,7 @@ tocket/
       eject.cmd.ts        # tocket eject — remove scaffolding
       suite.cmd.ts        # tocket suite — AppMap last-run index + triage + loop
       decide.cmd.ts       # tocket decide — generic Choice/Noul → .context/decisions/
+      work.cmd.ts         # tocket work — read Choice, stamp notebook receipt (no Jev)
       doctor.cmd.ts       # light notebook checks + deep diagnostics
       dashboard.ts        # Interactive menu (no-args entry point)
     templates/
@@ -70,6 +71,7 @@ tocket/
       appmaps.ts          # last-run v0 schema + last-run.md
       triage.ts           # suite triage report (heuristic or Jev)
       decide.ts           # generic decide record (stub or Jev)
+      work.ts             # reference worker (read Choice, notebook receipt)
       jev.ts              # TypeSafe System One client
     eval/
       triage-eval.ts      # POC C agreement / stability
