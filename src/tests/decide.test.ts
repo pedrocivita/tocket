@@ -21,7 +21,9 @@ import {
   isInsideContext,
   parseChoiceSpec,
   parseDecideRecord,
+  parseConfidenceThreshold,
   resolveDecideMode,
+  resolveDestination,
   runDecide,
   stubChoice,
   stubNoul,
@@ -71,10 +73,21 @@ describe("decide parsers", () => {
 
   it("keeps writes under .context/", () => {
     const cwd = "/tmp/tocket-decide-root";
-    const inside = decisionOutputPath(cwd, "2026-09-20T14:52:00.000Z", "next");
+    const inside = decisionOutputPath(cwd, "2026-09-20T14:52:00.000Z", "next", "write");
     assert.equal(isInsideContext(cwd, inside), true);
-    assert.match(inside, /\.context\/decisions\/20260920T145200Z-next\.json$/);
+    assert.match(inside, /\.context\/decisions\/write\/20260920T145200Z-next\.json$/);
     assert.equal(isInsideContext(cwd, join(cwd, "tmp", "out.json")), false);
+  });
+
+  it("gates research/write below the Codila 0.85 threshold to review", () => {
+    assert.deepEqual(resolveDestination("write", 0.78), { destination: "review", gated: true });
+    assert.deepEqual(resolveDestination("research", 0.9), { destination: "research", gated: false });
+    assert.deepEqual(resolveDestination("write", 0.85), { destination: "write", gated: false });
+    assert.deepEqual(resolveDestination("review", 0.99), { destination: "review", gated: false });
+    assert.deepEqual(resolveDestination("retry", 0.99), { destination: "review", gated: false });
+    assert.equal(parseConfidenceThreshold(), 0.85);
+    assert.equal(parseConfidenceThreshold("0.7"), 0.7);
+    assert.throws(() => parseConfidenceThreshold("2"), /0 and 1/);
   });
 });
 
@@ -177,11 +190,13 @@ describe("tocket decide", () => {
     );
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /decide next=write/);
+    assert.match(result.stdout, /dest=review/);
+    assert.match(result.stdout, /gated/);
     assert.match(result.stdout, /source=stub/);
     assert.match(result.stdout, /mode=dry-run/);
-    assert.match(result.stdout, /\.context\/decisions\/.+\-next\.json/);
+    assert.match(result.stdout, /\.context\/decisions\/review\/.+\-next\.json/);
 
-    const dir = join(tempDir, ".context", "decisions");
+    const dir = join(tempDir, ".context", "decisions", "review");
     assert.ok(existsSync(dir));
     const files = readdirSync(dir).filter((name) => name.endsWith(".json"));
     assert.equal(files.length, 1);
@@ -190,11 +205,17 @@ describe("tocket decide", () => {
     assert.equal(record.source, "stub");
     assert.equal(record.mode, "dry-run");
     assert.equal(record.model, STUB_MODEL);
+    assert.equal(record.choice, "write");
+    assert.equal(record.destination, "review");
+    assert.equal(record.gated, true);
+    assert.equal(record.semantics, "log-only");
+    assert.equal(record.status, "logged");
+    assert.ok(record.state && typeof record.state === "object");
     assert.equal(record.answers.next.type, "choice");
     if (record.answers.next.type === "choice") {
       assert.equal(record.answers.next.choice, "write");
     }
-    assert.ok(files[0].startsWith("") && !files[0].includes(".."));
+    assert.ok(!files[0].includes(".."));
     assert.ok(isInsideContext(tempDir, join(dir, files[0])));
     assert.ok(!existsSync(join(tempDir, "tmp", "decision.json")));
   });
@@ -217,7 +238,10 @@ describe("tocket decide", () => {
     });
     assert.equal(record.source, "stub");
     assert.equal(record.mode, "shadow");
-    assert.ok(outPath.includes(DECISIONS_DIR));
+    assert.equal(record.semantics, "log-only");
+    assert.equal(record.destination, "review");
+    assert.equal(record.gated, true);
+    assert.ok(outPath.includes(`${DECISIONS_DIR}/review`));
     assert.ok(isInsideContext(cwd, outPath));
   });
 
@@ -249,10 +273,64 @@ describe("tocket decide", () => {
     assert.equal(called, true);
     assert.equal(record.source, "jev");
     assert.equal(record.mode, "shadow");
+    assert.equal(record.semantics, "log-only");
     assert.equal(record.model, "jev-latest");
+    assert.equal(record.choice, "review");
+    assert.equal(record.destination, "review");
     if (record.answers.next.type === "choice") {
       assert.equal(record.answers.next.choice, "review");
     }
+  });
+
+  it("high-confidence write routes to the write handoff folder", async () => {
+    const cwd = join(tempDir, "high-conf-write");
+    mkdirSync(cwd, { recursive: true });
+    const { record, outPath } = await runDecide({
+      cwd,
+      state: '{"task":"write docs"}',
+      choices: ["next:research,write,review"],
+      apiKey: "test-key",
+      now: () => "2026-09-20T15:01:30.000Z",
+      id: "next",
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            model: "jev-1.13.0",
+            answers: {
+              next: { type: "choice", choice: "write", confidence: 0.91 },
+            },
+          }),
+          { status: 200 },
+        ),
+    });
+    assert.equal(record.mode, "active");
+    assert.equal(record.semantics, "handoff");
+    assert.equal(record.status, "queued");
+    assert.equal(record.choice, "write");
+    assert.equal(record.confidence, 0.91);
+    assert.equal(record.destination, "write");
+    assert.equal(record.gated, false);
+    assert.ok(outPath.includes(`${DECISIONS_DIR}/write`));
+    assert.ok(isInsideContext(cwd, outPath));
+  });
+
+  it("confidence-threshold override can ungate a stub write", async () => {
+    const cwd = join(tempDir, "threshold");
+    mkdirSync(cwd, { recursive: true });
+    const { record, outPath } = await runDecide({
+      cwd,
+      fromPath: stateFixture,
+      choices: ["next:research,write,review"],
+      dryRun: true,
+      confidenceThreshold: 0.7,
+      now: () => "2026-09-20T15:03:00.000Z",
+      id: "next",
+    });
+    assert.equal(record.choice, "write");
+    assert.ok(record.confidence >= 0.7);
+    assert.equal(record.destination, "write");
+    assert.equal(record.gated, false);
+    assert.ok(outPath.includes(`${DECISIONS_DIR}/write`));
   });
 
   it("dry-run ignores TYPESAFE_API_KEY and does not call Jev", async () => {

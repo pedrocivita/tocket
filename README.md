@@ -100,7 +100,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
 | `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
-| `tocket decide` | Generic Choice/Noul over any state (writes `.context/decisions/`; stub without `TYPESAFE_API_KEY`) |
+| `tocket decide` | State + Choice handoff into `.context/decisions/` (Codila-style queues; does not run workers) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -135,6 +135,7 @@ tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-r
 # Generic decision (Choice/Noul). Always file-first; never hooks the app.
 tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dry-run
 tocket decide --from path/to/state.json --noul needs_human_review --shadow
+tocket decide --from path/to/state.json --choice next:research,write,review --confidence-threshold 0.85
 ```
 
 ### Tempestivita loop (Oficina)
@@ -159,7 +160,18 @@ tocket suite status
 
 `--mapper-out` discovers `*.appmap.json` (prefers `<app>.appmap.json`). `--dry-run` uses the heuristic stub when `TYPESAFE_API_KEY` is missing. `--no-triage` copies files only.
 
-`tocket decide` is the generic Choice/Noul CLI (any state → `.context/decisions/`). `tocket suite triage` is suite-specific (last-run failures → `.context/appmaps/<app>.triage.json`). Suite loop still calls triage, not decide.
+### `tocket decide` (Codila-style file handoff)
+
+`tocket decide` is Tocket's file-handoff cousin of [Codila's `chief.py` queues](https://x.com/0xCodila/status/2100984487802708306). State + Choice (optional Noul) go to TypeSafe; the CLI writes a JSON that agents or other CLIs consume later. Tocket does not run the workers.
+
+```
+state + Choice  →  .context/decisions/<research|write|review>/<timestamp>-<id>.json
+```
+
+- Payload includes `choice`, `confidence`, `destination`, and a `state` snapshot (same idea as the chief.py handoff).
+- Research/write route only when confidence >= 0.85 (override with `--confidence-threshold`). Below that, `destination` is `review` and `gated` is true.
+- `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only` (do not claim execution).
+- `tocket suite triage` is suite-specific (last-run failures). Suite loop still calls triage, not decide.
 
 What lands in `.context/appmaps/`:
 
@@ -185,7 +197,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
-| `decisions/` | Optional generic Choice/Noul records (`tocket.decide/v0`) | `tocket decide` |
+| `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) | `tocket decide` |
 
 ### Triangulation
 

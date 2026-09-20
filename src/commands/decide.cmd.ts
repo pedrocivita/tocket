@@ -3,6 +3,7 @@ import { isAbsolute, resolve } from "node:path";
 import {
   DecideError,
   formatDecideSummary,
+  parseConfidenceThreshold,
   runDecide,
   toRepoRelative,
 } from "../utils/decide.js";
@@ -19,7 +20,7 @@ function resolveFromPath(cwd: string, from: string): string {
 export function registerDecideCommand(program: Command): void {
   program
     .command("decide")
-    .description("Generic Choice/Noul over state (writes .context/decisions/; no app hooks)")
+    .description("State + Choice handoff into .context/decisions/ (does not run workers)")
     .option("--state <json|text>", "Inline state (JSON object/array or plain text)")
     .option("--from <path.json>", "Load state from a JSON (or text) file")
     .option(
@@ -29,8 +30,9 @@ export function registerDecideCommand(program: Command): void {
       [] as string[],
     )
     .option("--noul <name>", "Noul question name (repeatable)", collect, [] as string[])
-    .option("--dry-run", "Force the deterministic stub and mark mode=dry-run")
-    .option("--shadow", "Call Jev if TYPESAFE_API_KEY is set, but mark mode=shadow")
+    .option("--dry-run", "Force the deterministic stub and mark mode=dry-run (log-only)")
+    .option("--shadow", "Call Jev if TYPESAFE_API_KEY is set, but mark log-only (do not claim execution)")
+    .option("--confidence-threshold <n>", "Route research/write only at or above this confidence (default 0.85)")
     .option("--id <id>", "Decision id used in the output filename")
     .action(
       async (options: {
@@ -40,6 +42,7 @@ export function registerDecideCommand(program: Command): void {
         noul: string[];
         dryRun?: boolean;
         shadow?: boolean;
+        confidenceThreshold?: string;
         id?: string;
       }) => {
         const cwd = process.cwd();
@@ -52,6 +55,7 @@ export function registerDecideCommand(program: Command): void {
             nouls: options.noul,
             dryRun: options.dryRun === true,
             shadow: options.shadow === true,
+            confidenceThreshold: parseConfidenceThreshold(options.confidenceThreshold),
             id: options.id,
           });
           const rel = toRepoRelative(cwd, outPath);

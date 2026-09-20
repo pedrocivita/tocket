@@ -159,7 +159,7 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ## Session: 2026-09-20 (decide)
 
-**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI. Writes `.context/decisions/<timestamp>-<id>.json` (`tocket.decide/v0`). `--dry-run` or a missing `TYPESAFE_API_KEY` uses a deterministic stub; `--shadow` may call Jev but never claims execution. `decide` is generic; `suite triage` stays suite-specific and `suite loop` still calls triage. No app hooks.
+**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI aligned with Codila's chief.py queues (https://x.com/0xCodila/status/2100984487802708306). State + Choice via TypeSafe; writes a handoff under `.context/decisions/<research|write|review>/` (`tocket.decide/v0`) with choice, confidence, destination, and a state snapshot. Research/write route only at confidence >= 0.85 (configurable); otherwise `destination=review`. `--dry-run` or a missing key uses a stub; `--shadow` is live + log-only. Tocket does not run workers. Suite loop still calls triage.
 
 ---
 

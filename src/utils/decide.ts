@@ -14,9 +14,16 @@ export const DECIDE_SCHEMA = "tocket.decide/v0";
 export const DECISIONS_DIR = ".context/decisions";
 export const DECISIONS_README = "README.md";
 export const STUB_MODEL = "stub-v0";
+/** Codila chief.py default: only route research/write at or above this confidence. */
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.85;
+export const QUEUE_DESTINATIONS = ["research", "write", "review"] as const;
+export const HIGH_CONFIDENCE_ROUTES = ["research", "write"] as const;
 
+export type QueueDestination = (typeof QUEUE_DESTINATIONS)[number];
 export type DecideMode = "active" | "shadow" | "dry-run";
 export type DecideSource = "jev" | "stub";
+export type DecideSemantics = "handoff" | "log-only";
+export type DecideHandoffStatus = "queued" | "logged";
 
 export interface DecideChoiceSpec {
   name: string;
@@ -51,6 +58,16 @@ export interface DecideRecord {
   mode: DecideMode;
   source: DecideSource;
   model: string;
+  /** Codila-style router: selected option (first Choice). */
+  choice: string | null;
+  confidence: number;
+  /** Queue hint: research | write | review. Low-confidence research/write becomes review. */
+  destination: QueueDestination;
+  gated: boolean;
+  confidence_threshold: number;
+  /** handoff = workers may consume; log-only = shadow/dry-run (Tocket does not run workers). */
+  semantics: DecideSemantics;
+  status: DecideHandoffStatus;
   state_summary: string;
   state: unknown;
   questions: Record<string, JevQuestion>;
@@ -66,6 +83,7 @@ export interface RunDecideOptions {
   dryRun?: boolean;
   shadow?: boolean;
   id?: string;
+  confidenceThreshold?: number;
   apiKey?: string | null;
   now?: () => string;
   fetchImpl?: typeof fetch;
@@ -106,6 +124,73 @@ export function parseNoulSpec(spec: string): DecideNoulSpec {
     throw new DecideError(`Invalid --noul name "${spec}".`);
   }
   return { name };
+}
+
+const CODILA_CRITERIA: Record<string, string> = {
+  research: "Collect evidence still needed for the goal.",
+  write: "Draft from sufficient evidence.",
+  review: "Goal unclear, outside scope, or work complete.",
+};
+
+export function choiceCriterion(option: string): string {
+  return CODILA_CRITERIA[option] ?? `Prefer ${option} when the state indicates ${option}.`;
+}
+
+export function isQueueDestination(value: string): value is QueueDestination {
+  return (QUEUE_DESTINATIONS as readonly string[]).includes(value);
+}
+
+export function isHighConfidenceRoute(value: string): boolean {
+  return (HIGH_CONFIDENCE_ROUTES as readonly string[]).includes(value);
+}
+
+export function parseConfidenceThreshold(raw?: string | number): number {
+  if (raw === undefined || raw === "") return DEFAULT_CONFIDENCE_THRESHOLD;
+  const value = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new DecideError("--confidence-threshold must be a number between 0 and 1.");
+  }
+  return value;
+}
+
+export function primaryChoice(answers: Record<string, DecideAnswer>): {
+  choice: string | null;
+  confidence: number;
+} {
+  for (const answer of Object.values(answers)) {
+    if (answer.type === "choice") {
+      return { choice: answer.choice, confidence: answer.confidence };
+    }
+  }
+  for (const answer of Object.values(answers)) {
+    if (answer.type === "noul") {
+      return { choice: null, confidence: answer.confidence };
+    }
+  }
+  return { choice: null, confidence: 0 };
+}
+
+/** Codila gate: research/write only when confidence >= threshold; otherwise review. */
+export function resolveDestination(
+  choice: string | null,
+  confidence: number,
+  threshold: number = DEFAULT_CONFIDENCE_THRESHOLD,
+): { destination: QueueDestination; gated: boolean } {
+  if (choice && isHighConfidenceRoute(choice) && confidence >= threshold) {
+    return { destination: choice as QueueDestination, gated: false };
+  }
+  const gated = Boolean(choice && isHighConfidenceRoute(choice) && confidence < threshold);
+  return { destination: "review", gated };
+}
+
+export function resolveSemantics(mode: DecideMode): {
+  semantics: DecideSemantics;
+  status: DecideHandoffStatus;
+} {
+  if (mode === "active") {
+    return { semantics: "handoff", status: "queued" };
+  }
+  return { semantics: "log-only", status: "logged" };
 }
 
 export function slugId(value: string): string {
@@ -202,10 +287,7 @@ export function buildQuestions(
       type: "choice",
       instructions: `Pick one value for "${choice.name}".`,
       criteria: Object.fromEntries(
-        choice.options.map((option) => [
-          option,
-          `Prefer ${option} when the state indicates ${option}.`,
-        ]),
+        choice.options.map((option) => [option, choiceCriterion(option)]),
       ),
     };
   }
@@ -341,9 +423,16 @@ export function isInsideContext(cwd: string, targetPath: string): boolean {
   return resolved === root || resolved.startsWith(root + sep);
 }
 
-export function decisionOutputPath(cwd: string, generatedAt: string, id: string): string {
+export function decisionOutputPath(
+  cwd: string,
+  generatedAt: string,
+  id: string,
+  destination?: QueueDestination,
+): string {
   const file = `${fileTimestamp(generatedAt)}-${slugId(id)}.json`;
-  const outPath = resolve(cwd, DECISIONS_DIR, file);
+  const outPath = destination
+    ? resolve(cwd, DECISIONS_DIR, destination, file)
+    : resolve(cwd, DECISIONS_DIR, file);
   if (!isInsideContext(cwd, outPath)) {
     throw new DecideError("decide writes only under .context/");
   }
@@ -378,19 +467,28 @@ export function prettyDecideJson(value: unknown): string {
 export function decisionsReadmeStub(): string {
   return `# Decisions
 
-Generic Choice/Noul records from \`tocket decide\`.
+Generic Choice/Noul handoff records from \`tocket decide\`.
+
+This is Tocket's file-handoff cousin of Codila's \`chief.py\` queues
+(https://x.com/0xCodila/status/2100984487802708306). State + Choice
+(optional Noul) via TypeSafe; the CLI writes a JSON the worker reads later.
+Tocket does not run the workers.
 
 \`decide\` is generic (any state). \`tocket suite triage\` is suite-specific
 (last-run failures). Suite loop still calls triage, not decide.
 
-Writes stay under \`.context/decisions/\`. No app hooks, no runtime pollution.
+Writes stay under \`.context/decisions/\` (optional \`research|write|review\`
+subfolder when the Choice maps cleanly). No app hooks, no runtime pollution.
 
 | File | Purpose |
 | --- | --- |
-| \`<timestamp>-<id>.json\` | Decision record (\`schema\`: \`${DECIDE_SCHEMA}\`) |
+| \`<destination>/<timestamp>-<id>.json\` | Handoff record (\`schema\`: \`${DECIDE_SCHEMA}\`) |
+
+Research/write route only when confidence >= ${DEFAULT_CONFIDENCE_THRESHOLD}
+(configurable). Below that, \`destination\` is \`review\` (\`gated: true\`).
 
 \`--dry-run\` uses the deterministic stub. \`--shadow\` may call Jev when
-\`TYPESAFE_API_KEY\` is set but marks \`mode: shadow\` (does not claim execution).
+\`TYPESAFE_API_KEY\` is set but marks \`semantics: log-only\` (does not claim execution).
 `;
 }
 
@@ -411,7 +509,8 @@ export function formatDecideSummary(record: DecideRecord, relPath: string): stri
       bits.push(`${name}=${answer.noul.toFixed(2)}`);
     }
   }
-  return `decide ${bits.join("  ")}  source=${record.source}  mode=${record.mode}  ${relPath}`;
+  const gate = record.gated ? "gated" : "route";
+  return `decide ${bits.join("  ")}  dest=${record.destination}  ${gate}  source=${record.source}  mode=${record.mode}  ${relPath}`;
 }
 
 function ensureDecisionsDir(cwd: string): string {
@@ -438,6 +537,7 @@ export async function runDecide(options: RunDecideOptions): Promise<{
   const generatedAt = options.now ? options.now() : new Date().toISOString();
   const id = slugId(options.id ?? defaultDecisionId(choices, nouls));
   const dryRun = options.dryRun === true;
+  const threshold = parseConfidenceThreshold(options.confidenceThreshold);
   const apiKey = dryRun
     ? undefined
     : options.apiKey === null
@@ -448,6 +548,7 @@ export async function runDecide(options: RunDecideOptions): Promise<{
     shadow: options.shadow === true,
     apiKey,
   });
+  const { semantics, status } = resolveSemantics(mode);
 
   let source: DecideSource = "stub";
   let model = STUB_MODEL;
@@ -471,6 +572,9 @@ export async function runDecide(options: RunDecideOptions): Promise<{
     }
   }
 
+  const primary = primaryChoice(answers);
+  const { destination, gated } = resolveDestination(primary.choice, primary.confidence, threshold);
+
   const record: DecideRecord = {
     schema: DECIDE_SCHEMA,
     id,
@@ -478,13 +582,20 @@ export async function runDecide(options: RunDecideOptions): Promise<{
     mode,
     source,
     model,
+    choice: primary.choice,
+    confidence: primary.confidence,
+    destination,
+    gated,
+    confidence_threshold: threshold,
+    semantics,
+    status,
     state_summary: summarizeState(state),
     state,
     questions,
     answers,
   };
 
-  const outPath = decisionOutputPath(options.cwd, generatedAt, id);
+  const outPath = decisionOutputPath(options.cwd, generatedAt, id, destination);
   ensureDecisionsDir(options.cwd);
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, prettyDecideJson(record), "utf-8");

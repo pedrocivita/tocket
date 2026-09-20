@@ -97,7 +97,7 @@ Files in `.context/` follow a fixed schema:
 | `systemPatterns.md` | Architect | When patterns change |
 | `progress.md` | Executor / `tocket sync` | Per milestone |
 | `appmaps/` | `tocket suite` (map copy + last-run + triage) | After mapper/suite runner, via `suite loop` or `sync` |
-| `decisions/` | `tocket decide` (generic Choice/Noul records) | On each `tocket decide` |
+| `decisions/` | `tocket decide` (handoff queues: research/write/review) | On each `tocket decide` |
 
 ## Conventions
 
@@ -124,3 +124,4 @@ Files in `.context/` follow a fixed schema:
 | `tocket suite triage` is a judge, not a bot | Writes `<app>.triage.json`; Jev Choice or heuristic stub; no suite execution | 2026-09-19 |
 | `tocket suite loop` is glue, not a runner | Copies `<app>.appmap.json` + last-run into `.context/appmaps/`, then triage | 2026-09-19 |
 | `tocket decide` is generic; triage is suite-specific | Choice/Noul over any state → `.context/decisions/`; loop still uses triage | 2026-09-20 |
+| `decide` mirrors Codila chief.py, not a worker runner | Handoff JSON + destination queues; gate research/write at 0.85; Tocket does not execute | 2026-09-20 |

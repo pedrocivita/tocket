@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**`tocket decide`.** Shadow-first generic Choice/Noul CLI. Writes `.context/decisions/<timestamp>-<id>.json`. Live Jev is optional (`TYPESAFE_API_KEY`); `--dry-run` / missing key use a deterministic stub. No app hooks.
+**`tocket decide` aligned with Codila's chief.py queues.** State + Choice (optional Noul) via TypeSafe. Writes a handoff JSON under `.context/decisions/<research|write|review>/`. Confidence gate 0.85 (configurable): low-confidence research/write becomes `destination=review`. Tocket does not run workers.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 
