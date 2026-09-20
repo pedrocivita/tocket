@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**Ship decide + light doctor + official skill.** Doctor: `.context/`, decisions/appmaps, key yes/no, last decision, npm/bin. Skill: `.agents/skills/tocket/SKILL.md`. No Laya, no product bot.
+**Ship decide + light doctor + official skill.** Skill is one-shot installable (`npx skills add pedrocivita/tocket --skill tocket`) via catalog `skills/tocket/SKILL.md` and local `.agents/skills/tocket/SKILL.md`. Init/doctor print disk conventions in ≤5 min. No Laya / laya-mlx.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 
@@ -12,6 +12,7 @@
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-20 | Skill catalog + `npx skills add`; init/doctor print disk conventions | Claude (Executor) |
 | 2026-09-20 | `tocket decide` writes Choice/Noul records under `.context/decisions/` | Claude (Executor) |
 | 2026-09-19 | `tocket suite loop` closes Mapper → Memory Bank → triage         | Claude (Executor) |
 | 2026-09-19 | Fix getCurrentBranch for detached HEAD (CI pull_request checkout)| Claude (Executor) |

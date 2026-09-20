@@ -193,6 +193,8 @@ describe("tocket decide help", () => {
     assert.match(result.stdout, /5-minute setup/);
     assert.match(result.stdout, /TYPESAFE_API_KEY/);
     assert.match(result.stdout, /--backend laya/);
+    assert.match(result.stdout, /npx skills add pedrocivita\/tocket --skill tocket/);
+    assert.match(result.stdout, /Before expensive tools: tocket decide --dry-run, or read \.context\/decisions\./);
   });
 });
 

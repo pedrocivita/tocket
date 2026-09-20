@@ -51,14 +51,15 @@ npx @pedrocivita/tocket init
 # Or just the essentials (3 files)
 npx @pedrocivita/tocket init --minimal
 
-# 2. Init ensures .context/ (the shared notebook) and .agents/skills/tocket/SKILL.md
+# 2. One-shot skill (catalog: skills/tocket/SKILL.md)
+npx skills add pedrocivita/tocket --skill tocket
 
-# 3. Check the notebook, then write a dry-run decision (no API key required)
+# 3. Init also writes .context/ and .agents/skills/tocket/SKILL.md
+#    Phrase: Before expensive tools: tocket decide --dry-run, or read .context/decisions/.
+
+# 4. Check the notebook, then write a dry-run decision (no API key required)
 tocket doctor
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
-
-# 4. Point any agent skill (Cursor, Claude, GrokBot, CI) at .agents/skills/tocket/SKILL.md:
-#    "Before an expensive tool, run tocket decide or read the latest file in .context/decisions/."
 
 # 5. Optional: live Jev
 #    export TYPESAFE_API_KEY=…   # else decide stays on the deterministic stub

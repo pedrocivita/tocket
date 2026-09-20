@@ -1,6 +1,6 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
@@ -45,7 +45,7 @@ describe("init --name --description (non-interactive)", () => {
   });
 
   it("creates full workspace without interactive prompts", () => {
-    execSync(
+    const stdout = execSync(
       `node "${cliPath}" init --name flagproject --description "Flag desc" --force`,
       { cwd: tempDir, encoding: "utf-8" },
     );
@@ -59,9 +59,14 @@ describe("init --name --description (non-interactive)", () => {
     assert.ok(existsSync(join(tempDir, "TOCKET.md")));
     assert.ok(existsSync(join(tempDir, "CLAUDE.md")));
     assert.ok(existsSync(join(tempDir, "GEMINI.md")));
-    assert.ok(existsSync(join(tempDir, ".agents", "skills", "tocket", "SKILL.md")));
+    const skill = readFileSync(join(tempDir, ".agents", "skills", "tocket", "SKILL.md"), "utf-8");
+    assert.match(skill, /^---\nname: tocket\n/);
+    assert.match(skill, /npx skills add pedrocivita\/tocket --skill tocket/);
     // .cursorrules is only generated when executor is Cursor
     assert.ok(!existsSync(join(tempDir, ".cursorrules")));
+    assert.match(stdout, /npx skills add pedrocivita\/tocket --skill tocket/);
+    assert.match(stdout, /Before expensive tools: tocket decide --dry-run/);
+    assert.match(stdout, /\.agents\/skills\/tocket\/SKILL\.md/);
   });
 });
 

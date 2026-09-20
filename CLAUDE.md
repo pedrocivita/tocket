@@ -16,7 +16,7 @@ Your job is to **implement precisely**, following the Architect's plans. Read th
 ```bash
 npm install          # Install dependencies
 npm run build        # Compile TypeScript (tsc → dist/)
-npm test             # Run test suite (node:test, 292 tests, 78 suites)
+npm test             # Run test suite (node:test, 297 tests, 81 suites)
 node dist/index.js   # Run CLI locally
 ```
 

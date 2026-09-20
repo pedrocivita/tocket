@@ -24,10 +24,16 @@ your-project/
   .context/
     activeContext.md      # Current session focus
     systemPatterns.md     # Architecture decisions
+    decisions/            # Next move from `tocket decide`
+  .agents/skills/tocket/SKILL.md
   TOCKET.md               # Protocol spec (for any AI)
   CLAUDE.md               # Executor instructions (for Claude Code)
   GEMINI.md               # Architect instructions (for Gemini)
 ```
+
+Phrase for any agent: `Before expensive tools: tocket decide --dry-run, or read .context/decisions/.`
+
+One-shot skill install: `npx skills add pedrocivita/tocket --skill tocket`. Then `tocket doctor` lists the same files.
 
 ## Option A: Using the CLI (recommended)
 

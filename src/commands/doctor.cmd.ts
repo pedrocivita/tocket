@@ -8,6 +8,11 @@ import { STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
 import { APPMAPS_DIR } from "../utils/appmaps.js";
 import { DECISIONS_DIR } from "../utils/decide.js";
 import { readTypesafeApiKey } from "../utils/jev.js";
+import {
+  TOCKET_SKILL_REL,
+  TOCKET_SKILLS_ADD,
+  tocketConventionsHint,
+} from "../templates/memory-bank.js";
 
 const PASS = themePass("");
 const WARN = themeWarn("");
@@ -196,6 +201,16 @@ export function checkNotebookLight(cwd: string, env: NodeJS.ProcessEnv = process
 
   results.push(checkTypesafeKeyPresent(env));
 
+  const skillPath = join(cwd, TOCKET_SKILL_REL);
+  if (existsSync(skillPath)) {
+    results.push({ icon: PASS, message: `${TOCKET_SKILL_REL} found` });
+  } else {
+    results.push({
+      icon: WARN,
+      message: `${TOCKET_SKILL_REL} missing (${TOCKET_SKILLS_ADD})`,
+    });
+  }
+
   const latest = findLatestDecision(cwd);
   if (latest) {
     results.push({
@@ -331,5 +346,10 @@ export function registerDoctorCommand(program: Command): void {
       } else {
         console.log(themePass("Workspace is in great shape."));
       }
+      console.log("");
+      for (const line of tocketConventionsHint().split("\n")) {
+        console.log(dim(`  ${line}`));
+      }
+      console.log("");
     });
 }

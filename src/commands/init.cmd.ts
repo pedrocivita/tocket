@@ -27,6 +27,7 @@ import {
   agentsMd,
   tocketSkillMd,
   TOCKET_SKILL_REL,
+  tocketConventionsHint,
 } from "../templates/memory-bank.js";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -274,11 +275,14 @@ export function registerInitCommand(program: Command): void {
       console.log(
         "\n" + success(`Workspace initialized for ${projectName}!`) +
         (hasDetection ? dim(" Stack pre-populated from package.json.") : "") +
-        "\n" + dim("  .context/ is the shared notebook. Agents read and write files.") +
         "\n" + dim("  Next: tocket decide --dry-run --state '{\"goal\":\"docs\"}' --choice next:research,write,review") +
-        "\n" + dim("  Point any agent: before an expensive tool, run tocket decide or read .context/decisions/.") +
         "\n" + dim("  Optional TYPESAFE_API_KEY for live Jev; else decide uses the stub.") +
-        "\n" + dim("  Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.\n")
+        "\n" + dim("  Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.\n") +
+        tocketConventionsHint()
+          .split("\n")
+          .map((line) => dim(`  ${line}`))
+          .join("\n") +
+        "\n"
       );
     });
 }

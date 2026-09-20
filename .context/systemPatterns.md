@@ -127,3 +127,5 @@ Files in `.context/` follow a fixed schema:
 | `decide` mirrors Codila chief.py, not a worker runner | Handoff JSON + destination queues; gate research/write at 0.85; Tocket does not execute | 2026-09-20 |
 | Jev is a swapped decision node | Choice/Noul/optional Score, batched; bounded forks; no math/write/execute | 2026-09-20 |
 | Official skill is `.agents/skills/tocket/SKILL.md` | Short Cursor/Claude/Codex skill; `tocket init` writes it | 2026-09-20 |
+| Skill catalog is `skills/tocket/SKILL.md` | YAML `name`+`description` for `npx skills add pedrocivita/tocket --skill tocket` | 2026-09-20 |
+| No laya-mlx in this PR | Local↔`.context` file harness still unproven on X | 2026-09-20 |

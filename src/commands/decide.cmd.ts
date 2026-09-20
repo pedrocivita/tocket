@@ -8,6 +8,7 @@ import {
   toRepoRelative,
 } from "../utils/decide.js";
 import { error as themeError, success } from "../utils/theme.js";
+import { TOCKET_AGENT_PHRASE, TOCKET_SKILLS_ADD } from "../templates/memory-bank.js";
 
 function collect(value: string, previous: string[]): string[] {
   return previous.concat(value);
@@ -28,10 +29,12 @@ Tocket is the shared project notebook (.context/). decide writes the next move.
 Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
 
 5-minute setup:
-  1. npx @pedrocivita/tocket init          # ensures .context/
-  2. tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
-  3. Tell any agent: before an expensive tool, run tocket decide or read .context/decisions/
-  4. Optional TYPESAFE_API_KEY for live Jev; otherwise the stub
+  1. npx @pedrocivita/tocket init
+  2. ${TOCKET_SKILLS_ADD}
+  3. tocket doctor
+  4. tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
+  Phrase: ${TOCKET_AGENT_PHRASE}
+  Optional TYPESAFE_API_KEY for live Jev; otherwise the stub
 
 A future --backend laya (local Apple Silicon) is not implemented yet.
 `,

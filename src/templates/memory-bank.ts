@@ -446,10 +446,33 @@ _Generated from .context/systemPatterns.md. Run \`tocket agents-md\` to update._
 
 /** Official portable skill for Cursor / Claude / Codex. Written by `tocket init`. */
 export const TOCKET_SKILL_REL = ".agents/skills/tocket/SKILL.md";
+/** Catalog path so `npx skills add pedrocivita/tocket --skill tocket` can discover it. */
+export const TOCKET_SKILL_CATALOG_REL = "skills/tocket/SKILL.md";
+export const TOCKET_SKILLS_ADD = "npx skills add pedrocivita/tocket --skill tocket";
+export const TOCKET_AGENT_PHRASE =
+  "Before expensive tools: tocket decide --dry-run, or read .context/decisions/.";
 
-export const tocketSkillMd = () => `# Tocket
+export function tocketConventionsHint(): string {
+  return [
+    "On disk (agents already read these):",
+    "  .context/                      shared notebook",
+    "  .context/decisions/            next move (tocket decide)",
+    `  ${TOCKET_SKILL_REL}  official skill`,
+    `One-shot: ${TOCKET_SKILLS_ADD}`,
+    `Phrase: ${TOCKET_AGENT_PHRASE}`,
+  ].join("\n");
+}
+
+export const tocketSkillMd = () => `---
+name: tocket
+description: Shared .context/ notebook. Before expensive tools, run tocket decide --dry-run or read .context/decisions/. Workers execute; Tocket does not.
+---
+
+# Tocket
 
 Tocket is the shared project notebook (\`.context/\`). Agents read and write those files. \`tocket decide\` writes the next move as JSON. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
+
+**${TOCKET_AGENT_PHRASE}**
 
 ## When to use
 
@@ -461,6 +484,7 @@ Tocket is the shared project notebook (\`.context/\`). Agents read and write tho
 
 \`\`\`bash
 npx @pedrocivita/tocket init
+${TOCKET_SKILLS_ADD}
 tocket doctor
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
 \`\`\`

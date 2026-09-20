@@ -159,7 +159,7 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ## Session: 2026-09-20 (decide)
 
-**Summary**: `tocket decide` plus light companions: `tocket doctor` (notebook checks, key yes/no, last decision, npm/bin; exit 1 only when `.context/` is missing) and the official skill at `.agents/skills/tocket/SKILL.md` (init writes it). Workers execute. Tocket does not. No Laya backend.
+**Summary**: `tocket decide` plus light companions: `tocket doctor` (notebook checks, key yes/no, last decision, npm/bin, skill path; exit 1 only when `.context/` is missing) and the official skill (YAML frontmatter, catalog `skills/tocket/SKILL.md`, init writes `.agents/skills/tocket/SKILL.md`). One-shot: `npx skills add pedrocivita/tocket --skill tocket`. Phrase: Before expensive tools: tocket decide --dry-run, or read .context/decisions/. Init/doctor print the disk map. Workers execute. Tocket does not. No Laya / laya-mlx.
 
 ---
 

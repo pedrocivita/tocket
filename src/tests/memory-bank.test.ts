@@ -1,5 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   executorMd,
   claudeMd,
@@ -13,7 +15,11 @@ import {
   progressMd,
   cursorrulesMd,
   tocketSkillMd,
+  tocketConventionsHint,
   TOCKET_SKILL_REL,
+  TOCKET_SKILL_CATALOG_REL,
+  TOCKET_SKILLS_ADD,
+  TOCKET_AGENT_PHRASE,
 } from "../templates/memory-bank.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 
@@ -297,6 +303,32 @@ describe("tocketSkillMd", () => {
     assert.ok(output.includes("Never paste API keys"));
     assert.ok(output.split("\n").length < 40);
     assert.equal(TOCKET_SKILL_REL, ".agents/skills/tocket/SKILL.md");
+  });
+
+  it("has skills-cli YAML frontmatter and a one-shot add line", () => {
+    assert.match(output, /^---\nname: tocket\n/);
+    assert.match(output, /description: Shared \.context\/ notebook\./);
+    assert.ok(output.includes(TOCKET_SKILLS_ADD));
+    assert.ok(output.includes(TOCKET_AGENT_PHRASE));
+    assert.equal(TOCKET_SKILL_CATALOG_REL, "skills/tocket/SKILL.md");
+    assert.equal(TOCKET_SKILLS_ADD, "npx skills add pedrocivita/tocket --skill tocket");
+  });
+
+  it("keeps the committed catalog copy in sync", () => {
+    const repoRoot = join(import.meta.dirname, "..", "..");
+    const catalog = readFileSync(join(repoRoot, TOCKET_SKILL_CATALOG_REL), "utf-8");
+    const local = readFileSync(join(repoRoot, TOCKET_SKILL_REL), "utf-8");
+    assert.equal(catalog, output);
+    assert.equal(local, output);
+  });
+
+  it("prints disk conventions for init and doctor", () => {
+    const hint = tocketConventionsHint();
+    assert.ok(hint.includes(".context/"));
+    assert.ok(hint.includes(".context/decisions/"));
+    assert.ok(hint.includes(TOCKET_SKILL_REL));
+    assert.ok(hint.includes(TOCKET_SKILLS_ADD));
+    assert.ok(hint.includes(TOCKET_AGENT_PHRASE));
   });
 });
 
