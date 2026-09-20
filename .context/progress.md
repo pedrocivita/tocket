@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-20 (decide)
+
+**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI. Writes `.context/decisions/<timestamp>-<id>.json` (`tocket.decide/v0`). `--dry-run` or a missing `TYPESAFE_API_KEY` uses a deterministic stub; `--shadow` may call Jev but never claims execution. `decide` is generic; `suite triage` stays suite-specific and `suite loop` still calls triage. No app hooks.
+
+---
+
 ## Session: 2026-09-19 (loop)
 
 **Summary**: `tocket suite loop` closes Mapper → Tocket → triage for Tempestivita. Copies `<app>.appmap.json` + optional last-run into `.context/appmaps/` (same last-run v0 schema as `suite sync`), then triages failed/low-confidence goals. Fixture proof: status reads what loop wrote. Mapper stays a sibling (`pedrocivita/appmap-mapper`).

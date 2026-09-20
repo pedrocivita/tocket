@@ -24,3 +24,5 @@ Mapper lives in the sibling repo [pedrocivita/appmap-mapper](https://github.com/
 3. `tocket suite status` (then open `<app>.triage.json` if the run had failures)
 
 `--dry-run` uses the heuristic stub when `TYPESAFE_API_KEY` is missing. Writes stay under `.context/appmaps/`.
+
+Generic decisions (any state, not last-run) use `tocket decide` → `.context/decisions/`. Loop does not call decide.

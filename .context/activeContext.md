@@ -4,12 +4,15 @@
 
 ## Current Focus
 
-**Oficina loop: `tocket suite loop`.** One CLI flow copies mapper AppMap JSON (+ optional last-run) into `.context/appmaps/` and runs triage. Status reads the bank afterward. Glue only; does not execute maps or vendor appmap-mapper.
+**`tocket decide`.** Shadow-first generic Choice/Noul CLI. Writes `.context/decisions/<timestamp>-<id>.json`. Live Jev is optional (`TYPESAFE_API_KEY`); `--dry-run` / missing key use a deterministic stub. No app hooks.
+
+`decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 
 ## Recent Changes
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-20 | `tocket decide` writes Choice/Noul records under `.context/decisions/` | Claude (Executor) |
 | 2026-09-19 | `tocket suite loop` closes Mapper → Memory Bank → triage         | Claude (Executor) |
 | 2026-09-19 | Fix getCurrentBranch for detached HEAD (CI pull_request checkout)| Claude (Executor) |
 | 2026-09-19 | POC C: `tocket suite triage` + fixtures/eval vs human labels     | Claude (Executor) |

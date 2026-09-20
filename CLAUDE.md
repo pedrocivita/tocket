@@ -41,7 +41,7 @@ Commands follow the registration pattern:
 
 ```
 src/index.ts                    # Entry: registers commands + dashboard detection
-src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, diff, handoff, doctor, lint, eject, suite/loop)
+src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, diff, handoff, doctor, lint, eject, suite/loop, decide)
 src/commands/dashboard.ts       # Interactive menu (no-args entry point)
 src/templates/memory-bank.ts    # Template generators for tocket init
 src/utils/theme.ts              # Purple theme, banner, semantic helpers (chalk)
@@ -51,8 +51,10 @@ src/utils/xml.ts                # Payload XML parser (for tocket diff)
 src/utils/context.ts            # Shared constants and helpers
 src/utils/appmaps.ts            # AppMap last-run schema (tocket.appmaps.last-run/v0)
 src/utils/triage.ts             # Suite triage (heuristic stub + Jev Choice)
+src/utils/decide.ts             # Generic decide record (stub or Jev)
 src/utils/jev.ts                # TypeSafe System One client (Choice + Noul)
 src/eval/triage-eval.ts         # POC C agreement / stability eval
+src/eval/decide-eval.ts         # Optional decide stub vs fixture label
 ```
 
 Each command exports `register*Command(program: Command): void`.

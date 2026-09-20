@@ -20,6 +20,7 @@
 │     ├── handoff.cmd.ts    (session context summary)   │
 │     ├── eject.cmd.ts      (remove scaffolding)        │
 │     ├── suite.cmd.ts      (AppMap last-run + triage + loop) │
+│     ├── decide.cmd.ts     (generic Choice/Noul → decisions/)│
 │     └── dashboard.ts      (interactive menu, no-args) │
 │                                                       │
 │  templates/                                           │
@@ -33,6 +34,7 @@
 │     ├── xml.ts            (payload XML parser)        │
 │     ├── appmaps.ts        (last-run v0 schema/md)     │
 │     ├── triage.ts         (suite triage report)       │
+│     ├── decide.ts         (generic decide record)     │
 │     └── jev.ts            (System One Choice/Noul)    │
 └───────────────────────────────────────────────────────┘
 ```
@@ -95,6 +97,7 @@ Files in `.context/` follow a fixed schema:
 | `systemPatterns.md` | Architect | When patterns change |
 | `progress.md` | Executor / `tocket sync` | Per milestone |
 | `appmaps/` | `tocket suite` (map copy + last-run + triage) | After mapper/suite runner, via `suite loop` or `sync` |
+| `decisions/` | `tocket decide` (generic Choice/Noul records) | On each `tocket decide` |
 
 ## Conventions
 
@@ -120,3 +123,4 @@ Files in `.context/` follow a fixed schema:
 | `.context/appmaps/` is index + history | Bank may hold a map copy; runners stay elsewhere; CLI never runs Playwright/Jev | 2026-09-18 |
 | `tocket suite triage` is a judge, not a bot | Writes `<app>.triage.json`; Jev Choice or heuristic stub; no suite execution | 2026-09-19 |
 | `tocket suite loop` is glue, not a runner | Copies `<app>.appmap.json` + last-run into `.context/appmaps/`, then triage | 2026-09-19 |
+| `tocket decide` is generic; triage is suite-specific | Choice/Noul over any state → `.context/decisions/`; loop still uses triage | 2026-09-20 |

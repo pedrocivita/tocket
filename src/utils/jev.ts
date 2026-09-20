@@ -38,6 +38,50 @@ export interface JevAskOptions {
   timeoutMs?: number;
 }
 
+export interface JevChoiceQuestion {
+  type: "choice";
+  instructions?: string;
+  criteria: Record<string, string>;
+}
+
+export interface JevNoulQuestion {
+  type: "noul";
+  instructions?: string;
+  criteria?: Record<string, string>;
+}
+
+export type JevQuestion = JevChoiceQuestion | JevNoulQuestion;
+
+export interface JevChoiceAnswer {
+  type: "choice";
+  choice: string;
+  confidence: number;
+  probabilities?: Record<string, number>;
+}
+
+export interface JevNoulAnswer {
+  type: "noul";
+  noul: number;
+  confidence: number;
+}
+
+export type JevAnswer = JevChoiceAnswer | JevNoulAnswer;
+
+export interface PostJevOptions {
+  apiKey: string;
+  state: unknown;
+  questions: Record<string, unknown>;
+  fetchImpl?: typeof fetch;
+  timeoutMs?: number;
+  model?: string;
+}
+
+export interface JevResponse {
+  model: string;
+  answers: Record<string, unknown>;
+  raw: Record<string, unknown>;
+}
+
 export class JevRequestError extends Error {
   constructor(message: string) {
     super(message);
@@ -53,12 +97,15 @@ function isTriageChoice(value: unknown): value is TriageChoice {
   return typeof value === "string" && (TRIAGE_CHOICES as readonly string[]).includes(value);
 }
 
-function parseChoiceAnswer(value: unknown): { choice: TriageChoice; confidence: number; probabilities?: Record<string, number> } {
+function parseNamedChoice(
+  value: unknown,
+  allowed: readonly string[],
+): { choice: string; confidence: number; probabilities?: Record<string, number> } {
   if (!isRecord(value)) {
     throw new JevRequestError("Jev action answer is not an object");
   }
   const choice = value.choice;
-  if (!isTriageChoice(choice)) {
+  if (typeof choice !== "string" || !allowed.includes(choice)) {
     throw new JevRequestError(`Jev returned unknown choice: ${String(choice)}`);
   }
   const confidence =
@@ -71,6 +118,14 @@ function parseChoiceAnswer(value: unknown): { choice: TriageChoice; confidence: 
       )
     : undefined;
   return { choice, confidence, probabilities };
+}
+
+function parseChoiceAnswer(value: unknown): { choice: TriageChoice; confidence: number; probabilities?: Record<string, number> } {
+  const parsed = parseNamedChoice(value, TRIAGE_CHOICES);
+  if (!isTriageChoice(parsed.choice)) {
+    throw new JevRequestError(`Jev returned unknown choice: ${parsed.choice}`);
+  }
+  return { choice: parsed.choice, confidence: parsed.confidence, probabilities: parsed.probabilities };
 }
 
 function parseNoulAnswer(value: unknown): number {
@@ -101,12 +156,13 @@ export function buildTriageQuestions(): Record<string, unknown> {
   };
 }
 
-/** Call Jev Choice + optional Noul for one triage case. */
-export async function askJevTriage(options: JevAskOptions): Promise<JevTriageAnswers> {
+/** POST state + questions to TypeSafe System One. */
+export async function postJev(options: PostJevOptions): Promise<JevResponse> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? 20_000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const model = options.model ?? JEV_MODEL;
 
   let response: Response;
   try {
@@ -117,9 +173,9 @@ export async function askJevTriage(options: JevAskOptions): Promise<JevTriageAns
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: JEV_MODEL,
+        model,
         state: options.state,
-        questions: buildTriageQuestions(),
+        questions: options.questions,
       }),
       signal: controller.signal,
     });
@@ -141,15 +197,61 @@ export async function askJevTriage(options: JevAskOptions): Promise<JevTriageAns
   }
 
   const answers = isRecord(payload.answers) ? payload.answers : payload;
-  const parsed = parseChoiceAnswer(answers.action);
-  const locatorDrift = parseNoulAnswer(answers.locator_drift);
-  const model = typeof payload.model === "string" ? payload.model : JEV_MODEL;
+  const resolvedModel = typeof payload.model === "string" ? payload.model : model;
+
+  return { model: resolvedModel, answers, raw: payload };
+}
+
+/** Call Jev with arbitrary Choice / Noul questions. */
+export async function askJev(
+  options: PostJevOptions & { questions: Record<string, JevQuestion> },
+): Promise<{ model: string; answers: Record<string, JevAnswer> }> {
+  const payload = await postJev(options);
+  const answers: Record<string, JevAnswer> = {};
+
+  for (const [name, question] of Object.entries(options.questions)) {
+    const raw = payload.answers[name];
+    if (raw === undefined) {
+      throw new JevRequestError(`Jev response missing answer for "${name}"`);
+    }
+    if (question.type === "choice") {
+      const parsed = parseNamedChoice(raw, Object.keys(question.criteria));
+      answers[name] = {
+        type: "choice",
+        choice: parsed.choice,
+        confidence: parsed.confidence,
+        probabilities: parsed.probabilities,
+      };
+    } else {
+      const noul = parseNoulAnswer(raw);
+      const confidence =
+        isRecord(raw) && typeof raw.confidence === "number" && Number.isFinite(raw.confidence)
+          ? raw.confidence
+          : 0.7;
+      answers[name] = { type: "noul", noul, confidence };
+    }
+  }
+
+  return { model: payload.model, answers };
+}
+
+/** Call Jev Choice + optional Noul for one triage case. */
+export async function askJevTriage(options: JevAskOptions): Promise<JevTriageAnswers> {
+  const payload = await postJev({
+    apiKey: options.apiKey,
+    state: options.state,
+    questions: buildTriageQuestions(),
+    fetchImpl: options.fetchImpl,
+    timeoutMs: options.timeoutMs,
+  });
+  const parsed = parseChoiceAnswer(payload.answers.action);
+  const locatorDrift = parseNoulAnswer(payload.answers.locator_drift);
 
   return {
     choice: parsed.choice,
     confidence: parsed.confidence,
     locatorDrift,
-    model,
+    model: payload.model,
     probabilities: parsed.probabilities,
   };
 }

@@ -100,6 +100,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
 | `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
+| `tocket decide` | Generic Choice/Noul over any state (writes `.context/decisions/`; stub without `TYPESAFE_API_KEY`) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -130,6 +131,10 @@ tocket suite sync --from path/to/last-run.json
 tocket suite init
 tocket suite triage --from path/to/last-run.json --dry-run
 tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-run last-run.json --dry-run
+
+# Generic decision (Choice/Noul). Always file-first; never hooks the app.
+tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dry-run
+tocket decide --from path/to/state.json --noul needs_human_review --shadow
 ```
 
 ### Tempestivita loop (Oficina)
@@ -153,6 +158,8 @@ tocket suite status
 ```
 
 `--mapper-out` discovers `*.appmap.json` (prefers `<app>.appmap.json`). `--dry-run` uses the heuristic stub when `TYPESAFE_API_KEY` is missing. `--no-triage` copies files only.
+
+`tocket decide` is the generic Choice/Noul CLI (any state → `.context/decisions/`). `tocket suite triage` is suite-specific (last-run failures → `.context/appmaps/<app>.triage.json`). Suite loop still calls triage, not decide.
 
 What lands in `.context/appmaps/`:
 
@@ -178,6 +185,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
+| `decisions/` | Optional generic Choice/Noul records (`tocket.decide/v0`) | `tocket decide` |
 
 ### Triangulation
 
