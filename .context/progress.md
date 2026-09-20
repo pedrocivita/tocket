@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-20 (decide)
+
+**Summary**: v2.6.0. README thesis: Tocket is the project notebook (not a chat). Jev only picks among options. Tagline: Agents work · Tocket remembers · Jev only chooses the next step. Commands: decide, light doctor, official skill (`npx skills add`). 5-min: init → doctor → decide --dry-run → agents read `.context/decisions/`. No Laya / laya-mlx.
+
+---
+
 ## Session: 2026-09-19 (loop)
 
 **Summary**: `tocket suite loop` closes Mapper → Tocket → triage for Tempestivita. Copies `<app>.appmap.json` + optional last-run into `.context/appmaps/` (same last-run v0 schema as `suite sync`), then triages failed/low-confidence goals. Fixture proof: status reads what loop wrote. Mapper stays a sibling (`pedrocivita/appmap-mapper`).

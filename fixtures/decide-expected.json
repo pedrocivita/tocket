@@ -1,0 +1,13 @@
+{
+  "schema": "tocket.decide-expected/v0",
+  "source": "fixtures/decide/state.json",
+  "notes": "Stub should pick write (keyword in state) and a low human-review noul (ready/clear).",
+  "choice": {
+    "spec": "next:research,write,review",
+    "expected": "write"
+  },
+  "noul": {
+    "name": "needs_human_review",
+    "expected_max": 0.4
+  }
+}

@@ -3,7 +3,18 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkContentHealth, checkGitTracking, checkStaleness } from "../commands/doctor.cmd.js";
+import { execFileSync } from "node:child_process";
+import {
+  checkContentHealth,
+  checkGitTracking,
+  checkNotebookLight,
+  checkStaleness,
+  checkTypesafeKeyPresent,
+  findLatestDecision,
+  formatAge,
+} from "../commands/doctor.cmd.js";
+
+const cliPath = join(import.meta.dirname, "..", "index.js");
 
 describe("checkContentHealth", () => {
   const tempDir = mkdtempSync(join(tmpdir(), "tocket-doctor-content-"));
@@ -121,6 +132,82 @@ describe("checkGitTracking", () => {
       assert.ok(results.some((r) => r.message.includes("Not a git repository")));
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("checkNotebookLight", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "tocket-doctor-light-"));
+
+  after(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("hard-fails when .context/ is missing and suggests init", () => {
+    const empty = join(tempDir, "empty");
+    mkdirSync(empty, { recursive: true });
+    const { results, hardFail } = checkNotebookLight(empty, { TYPESAFE_API_KEY: "" });
+    assert.equal(hardFail, true);
+    assert.ok(results.some((r) => r.message.includes(".context/ missing")));
+    assert.ok(results.some((r) => r.message.includes("tocket init")));
+  });
+
+  it("reports dirs, stub key, and latest decision without printing the key", () => {
+    const cwd = join(tempDir, "bank");
+    mkdirSync(join(cwd, ".context", "decisions", "review"), { recursive: true });
+    mkdirSync(join(cwd, ".context", "appmaps"), { recursive: true });
+    const decision = join(cwd, ".context", "decisions", "review", "20260920T150000Z-next.json");
+    writeFileSync(decision, "{\"schema\":\"tocket.decide/v0\"}\n", "utf-8");
+
+    const { results, hardFail } = checkNotebookLight(cwd, { TYPESAFE_API_KEY: "" });
+    assert.equal(hardFail, false);
+    assert.ok(results.some((r) => r.message.includes(".context/decisions/ found")));
+    assert.ok(results.some((r) => r.message.includes(".context/appmaps/ found")));
+    assert.ok(results.some((r) => r.message.includes("TYPESAFE_API_KEY: no")));
+    assert.ok(results.some((r) => r.message.includes(".agents/skills/tocket/SKILL.md missing")));
+    assert.ok(results.some((r) => r.message.includes("npx skills add pedrocivita/tocket --skill tocket")));
+    assert.ok(!results.some((r) => /sk-|typesafe_[A-Za-z0-9]{8,}/.test(r.message)));
+    const latest = findLatestDecision(cwd);
+    assert.ok(latest);
+    assert.ok(latest!.rel.includes("20260920T150000Z-next.json"));
+    assert.match(formatAge(Date.now() - 90_000, Date.now()), /1m ago|2m ago/);
+  });
+
+  it("reports the official skill when it exists on disk", () => {
+    const cwd = join(tempDir, "with-skill");
+    mkdirSync(join(cwd, ".context", "decisions"), { recursive: true });
+    mkdirSync(join(cwd, ".agents", "skills", "tocket"), { recursive: true });
+    writeFileSync(join(cwd, ".agents", "skills", "tocket", "SKILL.md"), "---\nname: tocket\n---\n", "utf-8");
+    const { results, hardFail } = checkNotebookLight(cwd, { TYPESAFE_API_KEY: "" });
+    assert.equal(hardFail, false);
+    assert.ok(results.some((r) => r.message.includes(".agents/skills/tocket/SKILL.md found")));
+  });
+
+  it("says yes when a key is present without echoing it", () => {
+    const result = checkTypesafeKeyPresent({ TYPESAFE_API_KEY: "super-secret-key-value" });
+    assert.equal(result.message, "TYPESAFE_API_KEY: yes");
+    assert.ok(!result.message.includes("super-secret"));
+  });
+});
+
+describe("tocket doctor CLI", () => {
+  it("exits non-zero only when .context/ is missing", () => {
+    const empty = mkdtempSync(join(tmpdir(), "tocket-doctor-cli-"));
+    try {
+      execFileSync(process.execPath, [cliPath, "doctor"], {
+        cwd: empty,
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      assert.fail("expected doctor to exit non-zero");
+    } catch (err) {
+      const failed = err as { status?: number | null; stdout?: string };
+      assert.equal(failed.status, 1);
+      assert.match(failed.stdout ?? "", /Not a Tocket project/);
+      assert.match(failed.stdout ?? "", /npx skills add pedrocivita\/tocket --skill tocket/);
+      assert.match(failed.stdout ?? "", /Before expensive tools: tocket decide --dry-run/);
+    } finally {
+      rmSync(empty, { recursive: true, force: true });
     }
   });
 });

@@ -56,6 +56,8 @@ tocket/
       handoff.cmd.ts      # tocket handoff — session context summary
       eject.cmd.ts        # tocket eject — remove scaffolding
       suite.cmd.ts        # tocket suite — AppMap last-run index + triage + loop
+      decide.cmd.ts       # tocket decide — generic Choice/Noul → .context/decisions/
+      doctor.cmd.ts       # light notebook checks + deep diagnostics
       dashboard.ts        # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts      # Template functions for scaffolded files
@@ -67,9 +69,11 @@ tocket/
       xml.ts              # Payload XML parser (for tocket diff)
       appmaps.ts          # last-run v0 schema + last-run.md
       triage.ts           # suite triage report (heuristic or Jev)
+      decide.ts           # generic decide record (stub or Jev)
       jev.ts              # TypeSafe System One client
     eval/
       triage-eval.ts      # POC C agreement / stability
+      decide-eval.ts      # optional decide stub vs fixture label
     tests/                # Test suite (node:test)
   dist/                   # Compiled output (gitignored)
   .context/               # Memory Bank (committed)

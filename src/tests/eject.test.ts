@@ -18,6 +18,7 @@ describe("eject - constants", () => {
     assert.ok(EJECT_FILES.includes("CLAUDE.md"));
     assert.ok(EJECT_FILES.includes("GEMINI.md"));
     assert.ok(EJECT_FILES.includes(".cursorrules"));
+    assert.ok(EJECT_FILES.includes(".agents/skills/tocket/SKILL.md"));
   });
 
   it("EJECT_DIRS contains .context", () => {
@@ -50,6 +51,7 @@ describe("eject - removal logic", () => {
   it("removes individual eject files", async () => {
     for (const file of EJECT_FILES) {
       const fullPath = join(tempDir, file);
+      mkdirSync(join(fullPath, ".."), { recursive: true });
       writeFileSync(fullPath, "test content", "utf-8");
       assert.ok(existsSync(fullPath));
       await rm(fullPath, { force: true });

@@ -32,6 +32,7 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
+6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
 
 ---
 
@@ -277,6 +278,7 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
+6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
 
 ## Memory Bank
 
@@ -325,6 +327,7 @@ Project context lives in \`.context/\`, not in chat history. **Read it before do
 - **Write before leaving** — Update \`activeContext.md\` with what changed after completing significant work.
 - **Trust the files** — If \`.context/\` says the project uses ESM, it uses ESM. Don't second-guess documented decisions.
 - **Don't duplicate** — Context belongs in \`.context/\`, not scattered in code comments or chat summaries.
+- **Decide is a file** — \`tocket decide\` writes the next move into \`.context/decisions/\`. Before expensive tools, run it or read the latest decision. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
 
 ---
 
@@ -439,4 +442,59 @@ _Generated from .context/systemPatterns.md. Run \`tocket agents-md\` to update._
 - Do not improvise architecture — follow documented decisions
 - Context belongs in \`.context/\`, not in code comments or chat
 - Triangulation: ${architectName} (Architect) + ${executorName} (Executor)
+`;
+
+/** Official portable skill for Cursor / Claude / Codex. Written by `tocket init`. */
+export const TOCKET_SKILL_REL = ".agents/skills/tocket/SKILL.md";
+/** Catalog path so `npx skills add pedrocivita/tocket --skill tocket` can discover it. */
+export const TOCKET_SKILL_CATALOG_REL = "skills/tocket/SKILL.md";
+export const TOCKET_SKILLS_ADD = "npx skills add pedrocivita/tocket --skill tocket";
+export const TOCKET_AGENT_PHRASE =
+  "Before expensive tools: tocket decide --dry-run, or read .context/decisions/.";
+
+export function tocketConventionsHint(): string {
+  return [
+    "On disk (agents already read these):",
+    "  .context/                      shared notebook",
+    "  .context/decisions/            next move (tocket decide)",
+    `  ${TOCKET_SKILL_REL}  official skill`,
+    `One-shot: ${TOCKET_SKILLS_ADD}`,
+    `Phrase: ${TOCKET_AGENT_PHRASE}`,
+  ].join("\n");
+}
+
+export const tocketSkillMd = () => `---
+name: tocket
+description: Shared .context/ notebook. Before expensive tools, run tocket decide --dry-run or read .context/decisions/. Workers execute; Tocket does not.
+---
+
+# Tocket
+
+Tocket is the shared project notebook (\`.context/\`). Agents read and write those files. \`tocket decide\` writes the next move as JSON. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
+
+**${TOCKET_AGENT_PHRASE}**
+
+## When to use
+
+- Before an expensive tool or long run: \`tocket decide --dry-run …\` or read the latest file under \`.context/decisions/\`.
+- Honor the latest decision (\`choice\`, \`destination\`, \`gated\`). If \`semantics\` is \`log-only\` or \`mode\` is \`shadow\`/\`dry-run\`, treat it as advice.
+- After work: update \`.context/activeContext.md\`.
+
+## Setup
+
+\`\`\`bash
+npx @pedrocivita/tocket init
+${TOCKET_SKILLS_ADD}
+tocket doctor
+tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
+\`\`\`
+
+- Optional \`TYPESAFE_API_KEY\` for live Jev. Never paste API keys into chat.
+- Prefer \`--dry-run\` or \`--shadow\` first.
+- Run \`tocket doctor\` for green/yellow/red setup checks.
+
+## Do not
+
+- Do not ask Tocket to write prose, do math, or run workers.
+- Do not rebuild the app around Jev. Swap this decision node in.
 `;

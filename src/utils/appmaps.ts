@@ -325,6 +325,8 @@ can read what Oficina wrote. Runners stay outside this directory.
 1. Mapper (sibling, not vendored): \`npx tsx src/cli.ts all --url https://tempestivita.civita.dev --smoke\`
 2. \`tocket suite loop --app tempestivita --mapper-out <mapper>/out --last-run <last-run.json> [--dry-run]\`
 3. \`tocket suite status\`
+
+Generic decisions (any state) use \`tocket decide\` → \`.context/decisions/<research|write|review>/\`. Loop does not call decide.
 `;
 }
 

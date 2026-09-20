@@ -5,13 +5,42 @@
 
 # Tocket
 
-**The Context Engineering Framework for Multi-Agent Workspaces**
+Tocket is the **project notebook**: folders/files many AI agents read and write together. It is not a chat and does not do the work alone.
 
-AI agents forget everything between sessions. When multiple agents work on the same codebase, they re-read files, duplicate work, and make conflicting decisions. Tocket fixes this with **shared context files that any agent can read** — no vendor lock-in, no special integrations.
+Jev (and similar) only **picks among options** and **saves that choice in the notebook**. Cursor/Claude/GrokBot/CI still do the work.
+
+**Agents work · Tocket remembers · Jev only chooses the next step.**
+
+Tocket é o caderno do projeto: pastas e arquivos que vários agentes leem e escrevem juntos. Não é um chat e não faz o trabalho sozinho. O Jev só escolhe entre opções e grava essa escolha no caderno.
+
+The Context Engineering Framework for Multi-Agent Workspaces. Agents forget everything between sessions. Tocket keeps shared context in files any agent can read: no vendor lock-in, no special integrations.
 
 <p align="center">
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
+
+## What's new in 2.6.0
+
+- `tocket decide`: cheap typed Choice into `.context/decisions/`
+- Light `tocket doctor`: notebook checks (`.context/`, skill, key yes/no, last decision)
+- Official skill: `npx skills add pedrocivita/tocket --skill tocket`
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## What you get
+
+| Piece | Role |
+| --- | --- |
+| `tocket decide` | Writes the next move as JSON under `.context/decisions/`. Does not run workers. |
+| `tocket doctor` | Green/yellow/red checks for the notebook, skill file, and `TYPESAFE_API_KEY` yes/no. |
+| `tocket suite loop` | Copies AppMap + last-run into `.context/appmaps/` and triages. Suite-specific. |
+| Official skill | One-shot install. Phrase: before expensive tools, `tocket decide --dry-run` or read `.context/decisions/`. |
+
+## What Tocket is not
+
+- **Not a chatbot.** Context lives in files, not in a conversation.
+- **Not a computer-use runtime.** It does not drive a browser or click the OS.
+- **Not codegen.** It does not write application code. Workers (Cursor, Claude, GrokBot, CI) do.
 
 ## The idea in 30 seconds
 
@@ -42,23 +71,37 @@ The protocol is just files. You can adopt it manually:
 
 The CLI automates the scaffolding, provides smart defaults, and adds quality-of-life tooling around the protocol.
 
-## Quick Start
+## Quick Start (5 minutes)
 
 ```bash
-# Scaffold a new workspace
+# 1. Notebook on disk (agents already know how to read these files)
 npx @pedrocivita/tocket init
+#    or: npx @pedrocivita/tocket init --minimal
 
-# Or just the essentials (3 files)
-npx @pedrocivita/tocket init --minimal
+# 2. Conventions check
+tocket doctor
 
-# Configure your agents (optional — defaults to Claude Code + Gemini)
+# 3. Next move (no API key; stub)
+tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
+
+# 4. Agents read the choice
+#    .context/decisions/<research|write|review>/*.json
+```
+
+Optional one-shot skill: `npx skills add pedrocivita/tocket --skill tocket`.
+
+Optional live Jev: `export TYPESAFE_API_KEY=…` (never print the value). Without it, decide stays on the stub.
+
+Workers execute the chosen move. Tocket only writes the notebook.
+
+Configure roles if you want (defaults are Claude Code + Gemini):
+
+```bash
 npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
-
-# Or open the interactive dashboard
 npx @pedrocivita/tocket
 ```
 
-That's it. Your repo now has a Memory Bank. Every AI session starts by reading `.context/activeContext.md`.
+Every AI session starts by reading `.context/activeContext.md`.
 
 ### Safe testing — use a branch
 
@@ -92,7 +135,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
 | `tocket focus` | Update the Current Focus in `activeContext.md` |
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
-| `tocket doctor` | Deep workspace diagnostics (content health, git tracking, staleness) |
+| `tocket doctor` | Light notebook checks (`.context/`, decisions, key yes/no, last decision) plus diagnostics |
 | `tocket lint` | Audit `.context/` content quality and suggest improvements |
 | `tocket config` | Manage global settings: agent roles, author, priority (`~/.tocketrc.json`) |
 | `tocket suite status` | Print last AppMap run from `.context/appmaps/last-run.json` (exit 1 if failed, 2 if missing) |
@@ -100,6 +143,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite init` | Scaffold empty `.context/appmaps/` index templates |
 | `tocket suite triage` | Triage failed goals (Jev Choice, or heuristic stub without `TYPESAFE_API_KEY`) |
 | `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
+| `tocket decide` | State + Choice handoff into `.context/decisions/` (Codila-style queues; does not run workers) |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -130,6 +174,11 @@ tocket suite sync --from path/to/last-run.json
 tocket suite init
 tocket suite triage --from path/to/last-run.json --dry-run
 tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-run last-run.json --dry-run
+
+# Generic decision (Choice + optional Noul/Score). File handoff only.
+tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dry-run
+tocket decide --from path/to/state.json --noul needs_human_review --score relevance --shadow
+tocket decide --from path/to/state.json --choice next:research,write,review --fork action --confidence-threshold 0.85
 ```
 
 ### Tempestivita loop (Oficina)
@@ -153,6 +202,38 @@ tocket suite status
 ```
 
 `--mapper-out` discovers `*.appmap.json` (prefers `<app>.appmap.json`). `--dry-run` uses the heuristic stub when `TYPESAFE_API_KEY` is missing. `--no-triage` copies files only.
+
+### `tocket decide` (Codila-style file handoff)
+
+`tocket decide` is Tocket's file-handoff cousin of [Codila's `chief.py` queues](https://x.com/0xCodila/status/2100984487802708306) (DataChaz 10-step summary). LLMs create, agents act, Jev decides the next move. The CLI writes a JSON that agents or other CLIs consume later.
+
+```
+State → Questions (batched) → Action (this file) → Verify (the consumer)
+```
+
+- Payload includes `choice`, `confidence`, `destination`, `state`, `fork`, and `executes: false`.
+- Primitives: Choice + Noul now; `--score name` or `--score name:min,max` is optional. All flags batch into one System One request.
+- Research/write route only when confidence >= 0.85 (override with `--confidence-threshold`). Below that, `destination` is `review` and `gated` is true.
+- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews.
+- `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only`.
+- `tocket suite triage` is suite-specific (last-run failures). Suite loop still calls triage, not decide.
+
+#### Boundaries (do / do not)
+
+1. **Jev decides the next move.** LLMs create. Agents act. This command is the decision node.
+2. **Primitives are Choice, Score, Noul.** Start with Choice + Noul. Score is optional. Do not send prose generation to Jev.
+3. **Swap the decision node.** Do not rebuild the agent graph around Jev.
+4. **Shared state + parallel questions + risk threshold + file queue.** Writes stay under `.context/decisions/<research|write|review>/`.
+5. **Batch questions in one request.** Repeat `--choice` / `--noul` / `--score`; they share one System One call.
+6. **Bounded forks only:** agent, model, tool, action, or human escalate. Not an open-ended graph.
+7. **Whole-loop benchmark is out of scope** for this command (do that later, separately).
+8. **Rank wide / read narrow.** Choice may list many options; the handoff stores the single `narrow` route (not every option).
+9. **Reuse the loop:** State → Questions → Action (file) → Verify (consumer). Tocket is not the consumer.
+10. **Keep Jev out of math, writing, and irreversible execution.** This CLI writes a file. It does not compute, draft, publish, or apply.
+
+`executes` is always `false`. Workers (or humans) read the JSON. Tocket does not run them.
+
+A later `--backend laya` (local Apple Silicon) is not implemented. Today: stub, or live Jev with `TYPESAFE_API_KEY`.
 
 What lands in `.context/appmaps/`:
 
@@ -178,6 +259,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `productContext.md` | What the product is and why | Rarely |
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
+| `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) | `tocket decide` |
 
 ### Triangulation
 

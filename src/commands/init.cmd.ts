@@ -25,6 +25,9 @@ import {
   progressMd,
   cursorrulesMd,
   agentsMd,
+  tocketSkillMd,
+  TOCKET_SKILL_REL,
+  tocketConventionsHint,
 } from "../templates/memory-bank.js";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -149,7 +152,7 @@ export function checkGitignoreConflict(cwd: string): string | null {
 export function registerInitCommand(program: Command): void {
   program
     .command("init")
-    .description("Scaffold an agentic workspace with Memory Bank and triangulation config")
+    .description("Ensure the shared .context/ notebook (agents read and write files)")
     .option("-f, --force", "Overwrite existing files without prompting")
     .option("--minimal", "Scaffold only essential files (.context/ + TOCKET.md)")
     .option("--agents-md", "Also generate AGENTS.md for cross-tool compatibility")
@@ -214,6 +217,7 @@ export function registerInitCommand(program: Command): void {
           techContextMd(projectName, hasDetection ? stack : undefined),
         ],
         [join(".context", "progress.md"), progressMd(projectName)],
+        [TOCKET_SKILL_REL, tocketSkillMd()],
       ];
 
       if (options.agentsMd) {
@@ -271,7 +275,14 @@ export function registerInitCommand(program: Command): void {
       console.log(
         "\n" + success(`Workspace initialized for ${projectName}!`) +
         (hasDetection ? dim(" Stack pre-populated from package.json.") : "") +
-        "\n" + dim("  Next: run tocket generate to create your first payload.\n")
+        "\n" + dim("  Next: tocket decide --dry-run --state '{\"goal\":\"docs\"}' --choice next:research,write,review") +
+        "\n" + dim("  Optional TYPESAFE_API_KEY for live Jev; else decide uses the stub.") +
+        "\n" + dim("  Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.\n") +
+        tocketConventionsHint()
+          .split("\n")
+          .map((line) => dim(`  ${line}`))
+          .join("\n") +
+        "\n"
       );
     });
 }

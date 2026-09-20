@@ -11,6 +11,7 @@ export const EJECT_FILES = [
   "CLAUDE.md",
   "GEMINI.md",
   ".cursorrules",
+  ".agents/skills/tocket/SKILL.md",
 ] as const;
 
 /** Directories created by `tocket init` that eject should remove. */
