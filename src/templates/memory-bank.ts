@@ -32,6 +32,7 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
+6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
 
 ---
 
@@ -277,6 +278,7 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
+6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
 
 ## Memory Bank
 
@@ -325,6 +327,7 @@ Project context lives in \`.context/\`, not in chat history. **Read it before do
 - **Write before leaving** — Update \`activeContext.md\` with what changed after completing significant work.
 - **Trust the files** — If \`.context/\` says the project uses ESM, it uses ESM. Don't second-guess documented decisions.
 - **Don't duplicate** — Context belongs in \`.context/\`, not scattered in code comments or chat summaries.
+- **Decide is a file** — \`tocket decide\` writes the next move into \`.context/decisions/\`. Before expensive tools, run it or read the latest decision. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
 
 ---
 

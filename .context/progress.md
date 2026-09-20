@@ -159,7 +159,7 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ## Session: 2026-09-20 (decide)
 
-**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI aligned with Codila's chief.py queues and the DataChaz 10-step summary. State + batched Choice/Noul (optional Score) via TypeSafe; writes a handoff under `.context/decisions/<research|write|review>/` with choice, confidence, destination, fork, and `executes: false`. Research/write route only at confidence >= 0.85; `--fork human` always reviews. Jev stays out of math, writing, and irreversible execution. Suite loop still calls triage.
+**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI aligned with Codila's chief.py queues and the DataChaz 10-step summary. Product framing: Tocket is the shared `.context/` notebook; decide writes the next move; workers (Cursor, Claude, GrokBot, CI) execute. 5-min setup is `init` then `decide --dry-run`, then point any agent skill at `.context/decisions/`. Optional `TYPESAFE_API_KEY` for live Jev. `--backend laya` is a future note only.
 
 ---
 

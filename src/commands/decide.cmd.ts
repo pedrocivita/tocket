@@ -20,7 +20,22 @@ function resolveFromPath(cwd: string, from: string): string {
 export function registerDecideCommand(program: Command): void {
   program
     .command("decide")
-    .description("State + Questions handoff (Jev decides; does not write, compute, or run workers)")
+    .description("Cheap typed Choice into .context/decisions/; workers execute, Tocket does not")
+    .addHelpText(
+      "after",
+      `
+Tocket is the shared project notebook (.context/). decide writes the next move.
+Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
+
+5-minute setup:
+  1. npx @pedrocivita/tocket init          # ensures .context/
+  2. tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
+  3. Tell any agent: before an expensive tool, run tocket decide or read .context/decisions/
+  4. Optional TYPESAFE_API_KEY for live Jev; otherwise the stub
+
+A future --backend laya (local Apple Silicon) is not implemented yet.
+`,
+    )
     .option("--state <json|text>", "Inline state (JSON object/array or plain text)")
     .option("--from <path.json>", "Load state from a JSON (or text) file")
     .option(

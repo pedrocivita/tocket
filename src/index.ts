@@ -28,7 +28,7 @@ const program = new Command();
 
 program
   .name("tocket")
-  .description("The Context Engineering Framework for Multi-Agent Workspaces")
+  .description("Shared project notebook (.context/). decide writes the next move; workers execute.")
   .version(pkg.version);
 
 registerInitCommand(program);

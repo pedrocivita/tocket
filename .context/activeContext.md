@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**`tocket decide` aligned with Codila / DataChaz 10-step.** State + batched Choice/Noul (optional Score). File handoff under `.context/decisions/<research|write|review>/`. Confidence gate 0.85. Bounded `--fork`. `executes: false`. Jev stays out of math, writing, and irreversible execution.
+**Ship `tocket decide` with easy-agent setup docs.** Tocket = shared `.context/` notebook. `decide` writes the next move. Workers execute. 5-min story: init, dry-run decide, point any agent skill, optional `TYPESAFE_API_KEY`. No `--backend laya` in this PR.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 

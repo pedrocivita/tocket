@@ -185,6 +185,17 @@ describe("askJev generic Choice + Noul", () => {
   });
 });
 
+describe("tocket decide help", () => {
+  it("frames the notebook and 5-minute setup", () => {
+    const result = runCli(["decide", "--help"], process.cwd());
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /workers execute, Tocket does not/i);
+    assert.match(result.stdout, /5-minute setup/);
+    assert.match(result.stdout, /TYPESAFE_API_KEY/);
+    assert.match(result.stdout, /--backend laya/);
+  });
+});
+
 describe("tocket decide", () => {
   const tempDir = mkdtempSync(join(tmpdir(), "tocket-decide-"));
 

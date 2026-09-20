@@ -5,9 +5,9 @@
 
 # Tocket
 
-**The Context Engineering Framework for Multi-Agent Workspaces**
+**Shared project notebook (`.context/`). Agents read and write files. `tocket decide` is a cheap typed Choice that writes the next move into that notebook. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.**
 
-AI agents forget everything between sessions. When multiple agents work on the same codebase, they re-read files, duplicate work, and make conflicting decisions. Tocket fixes this with **shared context files that any agent can read** — no vendor lock-in, no special integrations.
+The Context Engineering Framework for Multi-Agent Workspaces. Agents forget everything between sessions. Tocket keeps shared context in files any agent can read: no vendor lock-in, no special integrations.
 
 <p align="center">
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
@@ -42,23 +42,37 @@ The protocol is just files. You can adopt it manually:
 
 The CLI automates the scaffolding, provides smart defaults, and adds quality-of-life tooling around the protocol.
 
-## Quick Start
+## Quick Start (5 minutes)
 
 ```bash
-# Scaffold a new workspace
+# 1. Install / run in the repo
 npx @pedrocivita/tocket init
 
 # Or just the essentials (3 files)
 npx @pedrocivita/tocket init --minimal
 
-# Configure your agents (optional — defaults to Claude Code + Gemini)
-npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
+# 2. Init ensures .context/ (the shared notebook)
 
-# Or open the interactive dashboard
+# 3. Write a dry-run decision (no API key required)
+tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
+
+# 4. Point any agent skill (Cursor, Claude, GrokBot, CI):
+#    "Before an expensive tool, run tocket decide or read the latest file in .context/decisions/."
+
+# 5. Optional: live Jev
+#    export TYPESAFE_API_KEY=…   # else decide stays on the deterministic stub
+```
+
+Workers execute the chosen move. Tocket only writes the notebook.
+
+Configure roles if you want (defaults are Claude Code + Gemini):
+
+```bash
+npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
 npx @pedrocivita/tocket
 ```
 
-That's it. Your repo now has a Memory Bank. Every AI session starts by reading `.context/activeContext.md`.
+Every AI session starts by reading `.context/activeContext.md`.
 
 ### Safe testing — use a branch
 
@@ -189,6 +203,8 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 10. **Keep Jev out of math, writing, and irreversible execution.** This CLI writes a file. It does not compute, draft, publish, or apply.
 
 `executes` is always `false`. Workers (or humans) read the JSON. Tocket does not run them.
+
+A later `--backend laya` (local Apple Silicon) is not implemented. Today: stub, or live Jev with `TYPESAFE_API_KEY`.
 
 What lands in `.context/appmaps/`:
 
