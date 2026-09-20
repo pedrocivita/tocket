@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**Ship `tocket decide` with easy-agent setup docs.** Tocket = shared `.context/` notebook. `decide` writes the next move. Workers execute. 5-min story: init, dry-run decide, point any agent skill, optional `TYPESAFE_API_KEY`. No `--backend laya` in this PR.
+**Ship decide + light doctor + official skill.** Doctor: `.context/`, decisions/appmaps, key yes/no, last decision, npm/bin. Skill: `.agents/skills/tocket/SKILL.md`. No Laya, no product bot.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 

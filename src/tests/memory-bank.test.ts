@@ -12,6 +12,8 @@ import {
   techContextMd,
   progressMd,
   cursorrulesMd,
+  tocketSkillMd,
+  TOCKET_SKILL_REL,
 } from "../templates/memory-bank.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 
@@ -281,6 +283,20 @@ describe("progressMd", () => {
 
   it("has a Next Up section", () => {
     assert.ok(output.includes("## Next Up"));
+  });
+});
+
+describe("tocketSkillMd", () => {
+  const output = tocketSkillMd();
+
+  it("is a short official skill, not a novel", () => {
+    assert.ok(output.includes("# Tocket"));
+    assert.ok(output.includes(".context/"));
+    assert.ok(output.includes("tocket decide"));
+    assert.ok(output.includes("tocket doctor"));
+    assert.ok(output.includes("Never paste API keys"));
+    assert.ok(output.split("\n").length < 40);
+    assert.equal(TOCKET_SKILL_REL, ".agents/skills/tocket/SKILL.md");
   });
 });
 

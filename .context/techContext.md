@@ -57,6 +57,7 @@ tocket/
       eject.cmd.ts        # tocket eject — remove scaffolding
       suite.cmd.ts        # tocket suite — AppMap last-run index + triage + loop
       decide.cmd.ts       # tocket decide — generic Choice/Noul → .context/decisions/
+      doctor.cmd.ts       # light notebook checks + deep diagnostics
       dashboard.ts        # Interactive menu (no-args entry point)
     templates/
       memory-bank.ts      # Template functions for scaffolded files

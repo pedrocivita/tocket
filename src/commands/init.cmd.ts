@@ -25,6 +25,8 @@ import {
   progressMd,
   cursorrulesMd,
   agentsMd,
+  tocketSkillMd,
+  TOCKET_SKILL_REL,
 } from "../templates/memory-bank.js";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -214,6 +216,7 @@ export function registerInitCommand(program: Command): void {
           techContextMd(projectName, hasDetection ? stack : undefined),
         ],
         [join(".context", "progress.md"), progressMd(projectName)],
+        [TOCKET_SKILL_REL, tocketSkillMd()],
       ];
 
       if (options.agentsMd) {

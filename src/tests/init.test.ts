@@ -59,6 +59,7 @@ describe("init --name --description (non-interactive)", () => {
     assert.ok(existsSync(join(tempDir, "TOCKET.md")));
     assert.ok(existsSync(join(tempDir, "CLAUDE.md")));
     assert.ok(existsSync(join(tempDir, "GEMINI.md")));
+    assert.ok(existsSync(join(tempDir, ".agents", "skills", "tocket", "SKILL.md")));
     // .cursorrules is only generated when executor is Cursor
     assert.ok(!existsSync(join(tempDir, ".cursorrules")));
   });

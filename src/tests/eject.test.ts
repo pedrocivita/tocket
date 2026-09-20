@@ -18,6 +18,7 @@ describe("eject - constants", () => {
     assert.ok(EJECT_FILES.includes("CLAUDE.md"));
     assert.ok(EJECT_FILES.includes("GEMINI.md"));
     assert.ok(EJECT_FILES.includes(".cursorrules"));
+    assert.ok(EJECT_FILES.includes(".agents/skills/tocket/SKILL.md"));
   });
 
   it("EJECT_DIRS contains .context", () => {

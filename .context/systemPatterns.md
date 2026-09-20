@@ -126,3 +126,4 @@ Files in `.context/` follow a fixed schema:
 | `tocket decide` is generic; triage is suite-specific | Choice/Noul over any state → `.context/decisions/`; loop still uses triage | 2026-09-20 |
 | `decide` mirrors Codila chief.py, not a worker runner | Handoff JSON + destination queues; gate research/write at 0.85; Tocket does not execute | 2026-09-20 |
 | Jev is a swapped decision node | Choice/Noul/optional Score, batched; bounded forks; no math/write/execute | 2026-09-20 |
+| Official skill is `.agents/skills/tocket/SKILL.md` | Short Cursor/Claude/Codex skill; `tocket init` writes it | 2026-09-20 |

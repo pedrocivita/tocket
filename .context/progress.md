@@ -159,7 +159,7 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ## Session: 2026-09-20 (decide)
 
-**Summary**: `tocket decide` is a shadow-first generic Choice/Noul CLI aligned with Codila's chief.py queues and the DataChaz 10-step summary. Product framing: Tocket is the shared `.context/` notebook; decide writes the next move; workers (Cursor, Claude, GrokBot, CI) execute. 5-min setup is `init` then `decide --dry-run`, then point any agent skill at `.context/decisions/`. Optional `TYPESAFE_API_KEY` for live Jev. `--backend laya` is a future note only.
+**Summary**: `tocket decide` plus light companions: `tocket doctor` (notebook checks, key yes/no, last decision, npm/bin; exit 1 only when `.context/` is missing) and the official skill at `.agents/skills/tocket/SKILL.md` (init writes it). Workers execute. Tocket does not. No Laya backend.
 
 ---
 

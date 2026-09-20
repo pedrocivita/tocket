@@ -51,12 +51,13 @@ npx @pedrocivita/tocket init
 # Or just the essentials (3 files)
 npx @pedrocivita/tocket init --minimal
 
-# 2. Init ensures .context/ (the shared notebook)
+# 2. Init ensures .context/ (the shared notebook) and .agents/skills/tocket/SKILL.md
 
-# 3. Write a dry-run decision (no API key required)
+# 3. Check the notebook, then write a dry-run decision (no API key required)
+tocket doctor
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
 
-# 4. Point any agent skill (Cursor, Claude, GrokBot, CI):
+# 4. Point any agent skill (Cursor, Claude, GrokBot, CI) at .agents/skills/tocket/SKILL.md:
 #    "Before an expensive tool, run tocket decide or read the latest file in .context/decisions/."
 
 # 5. Optional: live Jev
@@ -106,7 +107,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
 | `tocket focus` | Update the Current Focus in `activeContext.md` |
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
-| `tocket doctor` | Deep workspace diagnostics (content health, git tracking, staleness) |
+| `tocket doctor` | Light notebook checks (`.context/`, decisions, key yes/no, last decision) plus diagnostics |
 | `tocket lint` | Audit `.context/` content quality and suggest improvements |
 | `tocket config` | Manage global settings: agent roles, author, priority (`~/.tocketrc.json`) |
 | `tocket suite status` | Print last AppMap run from `.context/appmaps/last-run.json` (exit 1 if failed, 2 if missing) |
