@@ -1,7 +1,7 @@
 {
   "name": "@pedrocivita/tocket",
-  "version": "2.5.0",
-  "description": "The Context Engineering Framework for Multi-Agent Workspaces",
+  "version": "2.6.0",
+  "description": "Project notebook for multi-agent workspaces. Agents work. Tocket remembers. Jev only chooses the next step.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {

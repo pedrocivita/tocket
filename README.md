@@ -5,13 +5,42 @@
 
 # Tocket
 
-**Shared project notebook (`.context/`). Agents read and write files. `tocket decide` is a cheap typed Choice that writes the next move into that notebook. Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.**
+Tocket is the **project notebook**: folders/files many AI agents read and write together. It is not a chat and does not do the work alone.
+
+Jev (and similar) only **picks among options** and **saves that choice in the notebook**. Cursor/Claude/GrokBot/CI still do the work.
+
+**Agents work · Tocket remembers · Jev only chooses the next step.**
+
+Tocket é o caderno do projeto: pastas e arquivos que vários agentes leem e escrevem juntos. Não é um chat e não faz o trabalho sozinho. O Jev só escolhe entre opções e grava essa escolha no caderno.
 
 The Context Engineering Framework for Multi-Agent Workspaces. Agents forget everything between sessions. Tocket keeps shared context in files any agent can read: no vendor lock-in, no special integrations.
 
 <p align="center">
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
+
+## What's new in 2.6.0
+
+- `tocket decide`: cheap typed Choice into `.context/decisions/`
+- Light `tocket doctor`: notebook checks (`.context/`, skill, key yes/no, last decision)
+- Official skill: `npx skills add pedrocivita/tocket --skill tocket`
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## What you get
+
+| Piece | Role |
+| --- | --- |
+| `tocket decide` | Writes the next move as JSON under `.context/decisions/`. Does not run workers. |
+| `tocket doctor` | Green/yellow/red checks for the notebook, skill file, and `TYPESAFE_API_KEY` yes/no. |
+| `tocket suite loop` | Copies AppMap + last-run into `.context/appmaps/` and triages. Suite-specific. |
+| Official skill | One-shot install. Phrase: before expensive tools, `tocket decide --dry-run` or read `.context/decisions/`. |
+
+## What Tocket is not
+
+- **Not a chatbot.** Context lives in files, not in a conversation.
+- **Not a computer-use runtime.** It does not drive a browser or click the OS.
+- **Not codegen.** It does not write application code. Workers (Cursor, Claude, GrokBot, CI) do.
 
 ## The idea in 30 seconds
 
@@ -45,25 +74,23 @@ The CLI automates the scaffolding, provides smart defaults, and adds quality-of-
 ## Quick Start (5 minutes)
 
 ```bash
-# 1. Install / run in the repo
+# 1. Notebook on disk (agents already know how to read these files)
 npx @pedrocivita/tocket init
+#    or: npx @pedrocivita/tocket init --minimal
 
-# Or just the essentials (3 files)
-npx @pedrocivita/tocket init --minimal
-
-# 2. One-shot skill (catalog: skills/tocket/SKILL.md)
-npx skills add pedrocivita/tocket --skill tocket
-
-# 3. Init also writes .context/ and .agents/skills/tocket/SKILL.md
-#    Phrase: Before expensive tools: tocket decide --dry-run, or read .context/decisions/.
-
-# 4. Check the notebook, then write a dry-run decision (no API key required)
+# 2. Conventions check
 tocket doctor
+
+# 3. Next move (no API key; stub)
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
 
-# 5. Optional: live Jev
-#    export TYPESAFE_API_KEY=…   # else decide stays on the deterministic stub
+# 4. Agents read the choice
+#    .context/decisions/<research|write|review>/*.json
 ```
+
+Optional one-shot skill: `npx skills add pedrocivita/tocket --skill tocket`.
+
+Optional live Jev: `export TYPESAFE_API_KEY=…` (never print the value). Without it, decide stays on the stub.
 
 Workers execute the chosen move. Tocket only writes the notebook.
 

@@ -129,3 +129,4 @@ Files in `.context/` follow a fixed schema:
 | Official skill is `.agents/skills/tocket/SKILL.md` | Short Cursor/Claude/Codex skill; `tocket init` writes it | 2026-09-20 |
 | Skill catalog is `skills/tocket/SKILL.md` | YAML `name`+`description` for `npx skills add pedrocivita/tocket --skill tocket` | 2026-09-20 |
 | No laya-mlx in this PR | Local↔`.context` file harness still unproven on X | 2026-09-20 |
+| Tocket is the notebook, not the worker | Agents work · Tocket remembers · Jev only chooses the next step | 2026-09-20 |

@@ -2,9 +2,11 @@
 
 ## What is Tocket?
 
-**A file convention and context scaffold for multi-agent workspaces.**
+**The project notebook: folders/files many AI agents read and write together.**
 
-Tocket is a set of markdown files — committed to git, readable by any AI — that give agents shared memory across sessions. It is not a library, not a runtime dependency, and not a build plugin. It's a dev-time convention that structures how AI agents share context, hand off work, and build on each other's output.
+Tocket is not a chat and does not do the work alone. Jev (and similar) only picks among options and saves that choice in the notebook. Cursor, Claude, GrokBot, and CI still do the work. Agents work · Tocket remembers · Jev only chooses the next step.
+
+It is a set of files committed to git, readable by any AI. Not a library, not a runtime dependency, not a chatbot, not a computer-use runtime, and not codegen.
 
 ## Problem
 
