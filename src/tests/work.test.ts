@@ -85,7 +85,7 @@ describe("tocket work help", () => {
     assert.match(result.stdout, /TypeSafe/);
     assert.match(result.stdout, /--apply/);
     assert.match(result.stdout, /--force/);
-    assert.match(result.stdout, /exit 2/i);
+    assert.match(result.stdout, /2 refuse/);
     assert.match(result.stdout, /does not re-decide/i);
   });
 });
