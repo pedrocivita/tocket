@@ -22,11 +22,14 @@ import {
   parseChoiceSpec,
   parseDecideRecord,
   parseConfidenceThreshold,
+  parseFork,
+  parseScoreSpec,
   resolveDecideMode,
   resolveDestination,
   runDecide,
   stubChoice,
   stubNoul,
+  stubScore,
 } from "../utils/decide.js";
 import { askJev, buildTriageQuestions } from "../utils/jev.js";
 import { evaluateDecideStub } from "../eval/decide-eval.js";
@@ -85,6 +88,15 @@ describe("decide parsers", () => {
     assert.deepEqual(resolveDestination("write", 0.85), { destination: "write", gated: false });
     assert.deepEqual(resolveDestination("review", 0.99), { destination: "review", gated: false });
     assert.deepEqual(resolveDestination("retry", 0.99), { destination: "review", gated: false });
+    assert.deepEqual(resolveDestination("write", 0.99, 0.85, "human"), {
+      destination: "review",
+      gated: true,
+    });
+    assert.equal(parseFork(), "action");
+    assert.equal(parseFork("human"), "human");
+    assert.throws(() => parseFork("graph"), /agent, model, tool, action, human/);
+    assert.deepEqual(parseScoreSpec("relevance"), { name: "relevance", min: 0, max: 1 });
+    assert.deepEqual(parseScoreSpec("relevance:0,10"), { name: "relevance", min: 0, max: 10 });
     assert.equal(parseConfidenceThreshold(), 0.85);
     assert.equal(parseConfidenceThreshold("0.7"), 0.7);
     assert.throws(() => parseConfidenceThreshold("2"), /0 and 1/);
@@ -96,6 +108,7 @@ describe("decide stub", () => {
     const state = { task: "write the handoff docs", status: "ready", notes: "draft is clear" };
     assert.equal(stubChoice("next", ["research", "write", "review"], state).choice, "write");
     assert.ok(stubNoul("needs_human_review", state).noul <= 0.4);
+    assert.ok(stubScore("relevance", 0, 1, state).score <= 0.4);
   });
 
   it("is deterministic across two calls", () => {
@@ -140,6 +153,11 @@ describe("askJev generic Choice + Noul", () => {
           type: "noul",
           criteria: { true: "yes", false: "no" },
         },
+        relevance: {
+          type: "score",
+          min: 0,
+          max: 1,
+        },
       },
       fetchImpl: async () =>
         new Response(
@@ -148,6 +166,7 @@ describe("askJev generic Choice + Noul", () => {
             answers: {
               next: { type: "choice", choice: "write", confidence: 0.8 },
               needs_human_review: { type: "noul", noul: 0.2, confidence: 0.7 },
+              relevance: { type: "score", score: 0.4, confidence: 0.6 },
             },
           }),
           { status: 200 },
@@ -157,6 +176,10 @@ describe("askJev generic Choice + Noul", () => {
     assert.equal(result.answers.next.type, "choice");
     if (result.answers.next.type === "choice") {
       assert.equal(result.answers.next.choice, "write");
+    }
+    assert.equal(result.answers.relevance.type, "score");
+    if (result.answers.relevance.type === "score") {
+      assert.equal(result.answers.relevance.score, 0.4);
     }
     assert.ok(buildTriageQuestions().action);
   });
@@ -210,6 +233,13 @@ describe("tocket decide", () => {
     assert.equal(record.gated, true);
     assert.equal(record.semantics, "log-only");
     assert.equal(record.status, "logged");
+    assert.equal(record.executes, false);
+    assert.equal(record.loop, "state-questions-action-verify");
+    assert.equal(record.fork, "action");
+    assert.equal(record.batched, true);
+    assert.equal(record.rank_wide, false);
+    assert.equal(record.narrow, "write");
+    assert.ok(record.primitives.includes("choice"));
     assert.ok(record.state && typeof record.state === "object");
     assert.equal(record.answers.next.type, "choice");
     if (record.answers.next.type === "choice") {
@@ -365,7 +395,61 @@ describe("tocket decide", () => {
     writeFileSync(join(cwd, "state.json"), "{\"ok\":true}\n", "utf-8");
     const missingQ = runCli(["decide", "--from", join(cwd, "state.json"), "--dry-run"], cwd);
     assert.equal(missingQ.status, 2);
-    assert.match(missingQ.stderr, /--choice|--noul/);
+    assert.match(missingQ.stderr, /--choice|--noul|--score/);
+  });
+
+  it("batches Choice + Noul + Score and marks executes=false", async () => {
+    const cwd = join(tempDir, "batch");
+    mkdirSync(cwd, { recursive: true });
+    const { record } = await runDecide({
+      cwd,
+      state: '{"task":"write docs","status":"ready"}',
+      choices: ["next:research,write,review"],
+      nouls: ["needs_human_review"],
+      scores: ["relevance"],
+      dryRun: true,
+      now: () => "2026-09-20T15:04:00.000Z",
+      id: "next",
+    });
+    assert.equal(record.batched, true);
+    assert.deepEqual(record.primitives.slice().sort(), ["choice", "noul", "score"]);
+    assert.equal(record.executes, false);
+    assert.equal(record.answers.relevance.type, "score");
+  });
+
+  it("human fork always queues review (escalate)", async () => {
+    const cwd = join(tempDir, "human-fork");
+    mkdirSync(cwd, { recursive: true });
+    const { record, outPath } = await runDecide({
+      cwd,
+      state: '{"task":"write docs"}',
+      choices: ["next:research,write,review"],
+      fork: "human",
+      dryRun: true,
+      confidenceThreshold: 0.5,
+      now: () => "2026-09-20T15:05:00.000Z",
+      id: "next",
+    });
+    assert.equal(record.fork, "human");
+    assert.equal(record.destination, "review");
+    assert.equal(record.gated, true);
+    assert.ok(outPath.includes("/review/"));
+  });
+
+  it("marks rank_wide when Choice lists many options", async () => {
+    const cwd = join(tempDir, "rank-wide");
+    mkdirSync(cwd, { recursive: true });
+    const { record } = await runDecide({
+      cwd,
+      state: '{"task":"alpha"}',
+      choices: ["next:alpha,bravo,charlie,delta,echo"],
+      dryRun: true,
+      now: () => "2026-09-20T15:06:00.000Z",
+      id: "next",
+    });
+    assert.equal(record.rank_wide, true);
+    assert.equal(record.narrow, "alpha");
+    assert.equal(record.executes, false);
   });
 });
 

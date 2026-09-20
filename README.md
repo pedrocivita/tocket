@@ -132,10 +132,10 @@ tocket suite init
 tocket suite triage --from path/to/last-run.json --dry-run
 tocket suite loop --app tempestivita --map out/tempestivita.appmap.json --last-run last-run.json --dry-run
 
-# Generic decision (Choice/Noul). Always file-first; never hooks the app.
+# Generic decision (Choice + optional Noul/Score). File handoff only.
 tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dry-run
-tocket decide --from path/to/state.json --noul needs_human_review --shadow
-tocket decide --from path/to/state.json --choice next:research,write,review --confidence-threshold 0.85
+tocket decide --from path/to/state.json --noul needs_human_review --score relevance --shadow
+tocket decide --from path/to/state.json --choice next:research,write,review --fork action --confidence-threshold 0.85
 ```
 
 ### Tempestivita loop (Oficina)
@@ -162,16 +162,33 @@ tocket suite status
 
 ### `tocket decide` (Codila-style file handoff)
 
-`tocket decide` is Tocket's file-handoff cousin of [Codila's `chief.py` queues](https://x.com/0xCodila/status/2100984487802708306). State + Choice (optional Noul) go to TypeSafe; the CLI writes a JSON that agents or other CLIs consume later. Tocket does not run the workers.
+`tocket decide` is Tocket's file-handoff cousin of [Codila's `chief.py` queues](https://x.com/0xCodila/status/2100984487802708306) (DataChaz 10-step summary). LLMs create, agents act, Jev decides the next move. The CLI writes a JSON that agents or other CLIs consume later.
 
 ```
-state + Choice  →  .context/decisions/<research|write|review>/<timestamp>-<id>.json
+State → Questions (batched) → Action (this file) → Verify (the consumer)
 ```
 
-- Payload includes `choice`, `confidence`, `destination`, and a `state` snapshot (same idea as the chief.py handoff).
+- Payload includes `choice`, `confidence`, `destination`, `state`, `fork`, and `executes: false`.
+- Primitives: Choice + Noul now; `--score name` or `--score name:min,max` is optional. All flags batch into one System One request.
 - Research/write route only when confidence >= 0.85 (override with `--confidence-threshold`). Below that, `destination` is `review` and `gated` is true.
-- `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only` (do not claim execution).
+- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews.
+- `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only`.
 - `tocket suite triage` is suite-specific (last-run failures). Suite loop still calls triage, not decide.
+
+#### Boundaries (do / do not)
+
+1. **Jev decides the next move.** LLMs create. Agents act. This command is the decision node.
+2. **Primitives are Choice, Score, Noul.** Start with Choice + Noul. Score is optional. Do not send prose generation to Jev.
+3. **Swap the decision node.** Do not rebuild the agent graph around Jev.
+4. **Shared state + parallel questions + risk threshold + file queue.** Writes stay under `.context/decisions/<research|write|review>/`.
+5. **Batch questions in one request.** Repeat `--choice` / `--noul` / `--score`; they share one System One call.
+6. **Bounded forks only:** agent, model, tool, action, or human escalate. Not an open-ended graph.
+7. **Whole-loop benchmark is out of scope** for this command (do that later, separately).
+8. **Rank wide / read narrow.** Choice may list many options; the handoff stores the single `narrow` route (not every option).
+9. **Reuse the loop:** State → Questions → Action (file) → Verify (consumer). Tocket is not the consumer.
+10. **Keep Jev out of math, writing, and irreversible execution.** This CLI writes a file. It does not compute, draft, publish, or apply.
+
+`executes` is always `false`. Workers (or humans) read the JSON. Tocket does not run them.
 
 What lands in `.context/appmaps/`:
 

@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**`tocket decide` aligned with Codila's chief.py queues.** State + Choice (optional Noul) via TypeSafe. Writes a handoff JSON under `.context/decisions/<research|write|review>/`. Confidence gate 0.85 (configurable): low-confidence research/write becomes `destination=review`. Tocket does not run workers.
+**`tocket decide` aligned with Codila / DataChaz 10-step.** State + batched Choice/Noul (optional Score). File handoff under `.context/decisions/<research|write|review>/`. Confidence gate 0.85. Bounded `--fork`. `executes: false`. Jev stays out of math, writing, and irreversible execution.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 

@@ -50,7 +50,15 @@ export interface JevNoulQuestion {
   criteria?: Record<string, string>;
 }
 
-export type JevQuestion = JevChoiceQuestion | JevNoulQuestion;
+export interface JevScoreQuestion {
+  type: "score";
+  instructions?: string;
+  min?: number;
+  max?: number;
+  criteria?: Record<string, string>;
+}
+
+export type JevQuestion = JevChoiceQuestion | JevNoulQuestion | JevScoreQuestion;
 
 export interface JevChoiceAnswer {
   type: "choice";
@@ -65,7 +73,13 @@ export interface JevNoulAnswer {
   confidence: number;
 }
 
-export type JevAnswer = JevChoiceAnswer | JevNoulAnswer;
+export interface JevScoreAnswer {
+  type: "score";
+  score: number;
+  confidence: number;
+}
+
+export type JevAnswer = JevChoiceAnswer | JevNoulAnswer | JevScoreAnswer;
 
 export interface PostJevOptions {
   apiKey: string;
@@ -134,6 +148,21 @@ function parseNoulAnswer(value: unknown): number {
     return value.noul;
   }
   return 0;
+}
+
+function parseScoreAnswer(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (isRecord(value) && typeof value.score === "number" && Number.isFinite(value.score)) {
+    return value.score;
+  }
+  return 0;
+}
+
+function answerConfidence(value: unknown, fallback: number): number {
+  if (isRecord(value) && typeof value.confidence === "number" && Number.isFinite(value.confidence)) {
+    return value.confidence;
+  }
+  return fallback;
 }
 
 export function buildTriageQuestions(): Record<string, unknown> {
@@ -222,13 +251,18 @@ export async function askJev(
         confidence: parsed.confidence,
         probabilities: parsed.probabilities,
       };
+    } else if (question.type === "noul") {
+      answers[name] = {
+        type: "noul",
+        noul: parseNoulAnswer(raw),
+        confidence: answerConfidence(raw, 0.7),
+      };
     } else {
-      const noul = parseNoulAnswer(raw);
-      const confidence =
-        isRecord(raw) && typeof raw.confidence === "number" && Number.isFinite(raw.confidence)
-          ? raw.confidence
-          : 0.7;
-      answers[name] = { type: "noul", noul, confidence };
+      answers[name] = {
+        type: "score",
+        score: parseScoreAnswer(raw),
+        confidence: answerConfidence(raw, 0.7),
+      };
     }
   }
 

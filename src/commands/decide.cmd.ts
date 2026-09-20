@@ -20,16 +20,18 @@ function resolveFromPath(cwd: string, from: string): string {
 export function registerDecideCommand(program: Command): void {
   program
     .command("decide")
-    .description("State + Choice handoff into .context/decisions/ (does not run workers)")
+    .description("State + Questions handoff (Jev decides; does not write, compute, or run workers)")
     .option("--state <json|text>", "Inline state (JSON object/array or plain text)")
     .option("--from <path.json>", "Load state from a JSON (or text) file")
     .option(
       "--choice <spec>",
-      "Choice question as name:opt1,opt2,... (repeatable)",
+      "Choice question as name:opt1,opt2,... (repeatable; batched in one request)",
       collect,
       [] as string[],
     )
-    .option("--noul <name>", "Noul question name (repeatable)", collect, [] as string[])
+    .option("--noul <name>", "Noul question name (repeatable; batched)", collect, [] as string[])
+    .option("--score <spec>", "Optional Score name or name:min,max (repeatable; batched)", collect, [] as string[])
+    .option("--fork <kind>", "Bounded fork: agent, model, tool, action, or human (default action)")
     .option("--dry-run", "Force the deterministic stub and mark mode=dry-run (log-only)")
     .option("--shadow", "Call Jev if TYPESAFE_API_KEY is set, but mark log-only (do not claim execution)")
     .option("--confidence-threshold <n>", "Route research/write only at or above this confidence (default 0.85)")
@@ -40,6 +42,8 @@ export function registerDecideCommand(program: Command): void {
         from?: string;
         choice: string[];
         noul: string[];
+        score: string[];
+        fork?: string;
         dryRun?: boolean;
         shadow?: boolean;
         confidenceThreshold?: string;
@@ -53,6 +57,8 @@ export function registerDecideCommand(program: Command): void {
             fromPath: options.from ? resolveFromPath(cwd, options.from) : undefined,
             choices: options.choice,
             nouls: options.noul,
+            scores: options.score,
+            fork: options.fork,
             dryRun: options.dryRun === true,
             shadow: options.shadow === true,
             confidenceThreshold: parseConfidenceThreshold(options.confidenceThreshold),
