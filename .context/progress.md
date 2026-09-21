@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-21 (Windows test/path)
+
+**Summary**: v2.6.3. Skill/template equality tests normalize CRLF vs LF (git `core.autocrlf` on Windows). `toRepoRelative` uses posix `/` in CLI `from=` lines, decide/work summaries, and receipt `decision_path`. 2.6.2 never published successfully.
+
+---
+
 ## Session: 2026-09-21 (tool-risk gate)
 
 **Summary**: v2.6.2. File-first tool-risk gate (AutoMode *pattern*, no LangChain runtime). `tocket decide --choice tool_gate:allow,block,ask` records the gate. `tocket work --apply` refuses `block` and `ask` (exit 2; `ask` escalates to a human) unless `--force`. Shadow / log-only apply still needs `--force`. Installer docs + auto-config: README how-it-works, root `AGENTS.md`, skill, `TOCKET.md`; `tocket init` writes `AGENTS.md` and the matching agent file (detect / flags / config / ask once). Jev (or stub) is the judge; workers execute; Tocket does not run tools.

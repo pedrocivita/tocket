@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.3 - 2026-09-21
+
+Windows test/path fixes (2.6.2 never published successfully). Skill/template equality tests normalize CRLF so a checkout with `core.autocrlf` still matches LF generators. `toRepoRelative` (CLI `from=` lines, decide/work summaries, receipt `decision_path`) uses posix-style forward slashes on every OS.
+
 ## 2.6.2 - 2026-09-21
 
 Tool-risk gate (file-first AutoMode *pattern*, no LangChain middleware). `tocket decide` can record `tool_gate` / `action_gate` as `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` (exit 2; `ask` says escalate/human) unless `--force`. Shadow / log-only apply still needs `--force`. Jev (or the stub) is the judge; workers execute; Tocket does not run tools.

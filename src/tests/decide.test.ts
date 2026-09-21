@@ -30,6 +30,7 @@ import {
   resolveDestination,
   resolveRecordToolGate,
   runDecide,
+  toRepoRelative,
   stubChoice,
   stubNoul,
   stubScore,
@@ -37,6 +38,7 @@ import {
 } from "../utils/decide.js";
 import { askJev, buildTriageQuestions } from "../utils/jev.js";
 import { evaluateDecideStub } from "../eval/decide-eval.js";
+import { posixPath } from "./helpers.js";
 
 const cliPath = join(import.meta.dirname, "..", "index.js");
 const fixturesDir = join(import.meta.dirname, "..", "..", "fixtures");
@@ -83,8 +85,20 @@ describe("decide parsers", () => {
     const cwd = "/tmp/tocket-decide-root";
     const inside = decisionOutputPath(cwd, "2026-09-20T14:52:00.000Z", "next", "write");
     assert.equal(isInsideContext(cwd, inside), true);
-    assert.match(inside, /\.context\/decisions\/write\/20260920T145200Z-next\.json$/);
+    assert.match(
+      posixPath(inside),
+      /\.context\/decisions\/write\/20260920T145200Z-next\.json$/,
+    );
     assert.equal(isInsideContext(cwd, join(cwd, "tmp", "out.json")), false);
+  });
+
+  it("emits posix-style repo-relative paths for CLI display", () => {
+    const cwd = join(tmpdir(), "tocket-posix-rel");
+    const outPath = join(cwd, ".context", "decisions", "write", "20260920T150130Z-next.json");
+    assert.equal(
+      toRepoRelative(cwd, outPath),
+      ".context/decisions/write/20260920T150130Z-next.json",
+    );
   });
 
   it("gates research/write below the Codila 0.85 threshold to review", () => {
