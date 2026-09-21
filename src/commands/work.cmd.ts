@@ -18,17 +18,21 @@ tocket decide writes the next move. tocket work is the first-party reference wor
 it reads that Choice and stamps a notebook receipt. It does not re-decide, call
 TypeSafe/Jev, open a browser, or edit application code.
 
-Default is dry-run / plan (exit 0): print choice, destination, confidence, gated.
+Default is dry-run / plan (exit 0): print choice, destination, confidence, gated, tool_gate.
   --apply        write <id>.applied.json next to the decision and a progress line
   --from <json>  decision file (default: newest under .context/decisions/{research,write,review}/)
-  --force        required to --apply a shadow / log-only / dry-run decision
+  --force        required to --apply a shadow / log-only / dry-run decision, or to override tool_gate=block|ask
 
-Exit codes: 0 ok, 1 missing/invalid decision, 2 refuse (shadow apply without --force).
+A tool_gate / action_gate Choice (allow|block|ask) is the file-first risk gate.
+  block → exit 2; ask → exit 2 (escalate/human); allow or no gate field → apply as usual.
+Shadow / log-only apply still needs --force even when tool_gate=allow.
+
+Exit codes: 0 ok, 1 missing/invalid decision, 2 refuse (shadow or tool_gate block/ask without --force).
 `,
     )
     .option("--from <decision.json>", "Decision JSON (default: newest queue decision)")
     .option("--apply", "Stamp an execution receipt and a progress line (default is dry-run/plan)")
-    .option("--force", "Allow --apply on shadow/log-only decisions (stamps applied_from_shadow)")
+    .option("--force", "Allow --apply on shadow/log-only decisions or tool_gate=block|ask")
     .action(
       async (options: {
         from?: string;

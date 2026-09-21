@@ -13,11 +13,19 @@ Jev (and similar) only **picks among options** and **saves that choice in the no
 
 Tocket é o caderno do projeto: pastas e arquivos que vários agentes leem e escrevem juntos. Não é um chat e não faz o trabalho sozinho. O Jev só escolhe entre opções e grava essa escolha no caderno.
 
+## Harness your context
+
+Tocket is a file-first harness, not a LangChain runtime. The AutoMode *pattern* (judge before irreversible tools) lives in `.context/decisions/` JSON, not in middleware. Jev is the judge, not the writer. Before bash, deploy, or browser, `tocket decide` records `tool_gate: allow|block|ask`; `tocket work --apply` honors that gate. No new runtime deps.
+
 The Context Engineering Framework for Multi-Agent Workspaces. Agents forget everything between sessions. Tocket keeps shared context in files any agent can read: no vendor lock-in, no special integrations.
 
 <p align="center">
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
+
+## What's new in 2.6.2
+
+- Tool-risk gate: `tocket decide --choice tool_gate:allow,block,ask` records allow|block|ask. `tocket work --apply` refuses `block`/`ask` (exit 2) unless `--force`. Shadow apply still needs `--force`.
 
 ## What's new in 2.6.1
 
@@ -36,7 +44,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 | Piece | Role |
 | --- | --- |
 | `tocket decide` | Writes the next move as JSON under `.context/decisions/`. Does not run workers. |
-| `tocket work` | Reads that Choice and plans (default) or `--apply` a notebook receipt. Does not call Jev. |
+| `tocket work` | Reads that Choice and plans (default) or `--apply` a notebook receipt. Honors `tool_gate`. Does not call Jev. |
 | `tocket doctor` | Green/yellow/red checks for the notebook, skill file, and `TYPESAFE_API_KEY` yes/no. |
 | `tocket suite loop` | Copies AppMap + last-run into `.context/appmaps/` and triages. Suite-specific. |
 | Official skill | One-shot install. Phrase: before expensive tools, `tocket decide --dry-run` or read `.context/decisions/`. |
@@ -189,6 +197,11 @@ tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dr
 tocket decide --from path/to/state.json --noul needs_human_review --score relevance --shadow
 tocket decide --from path/to/state.json --choice next:research,write,review --fork action --confidence-threshold 0.85
 
+# Tool-risk gate (Jev judges; workers execute; Tocket does not run tools)
+tocket decide --from path/to/state.json --choice tool_gate:allow,block,ask --shadow
+tocket work --from path/to/decision.json
+tocket work --from path/to/decision.json --apply
+
 # Reference worker (no Jev). Default is plan/dry-run.
 tocket work --from path/to/decision.json
 tocket work --apply
@@ -229,7 +242,8 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 - Payload includes `choice`, `confidence`, `destination`, `state`, `fork`, and `executes: false`.
 - Primitives: Choice + Noul now; `--score name` or `--score name:min,max` is optional. All flags batch into one System One request.
 - Research/write route only when confidence >= 0.85 (override with `--confidence-threshold`). Below that, `destination` is `review` and `gated` is true.
-- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews.
+- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews. `--fork model` is the existing cheap model-router hook (no extra UX in this release).
+- `--choice tool_gate:allow,block,ask` (or `action_gate`) records a tool-risk gate. `tocket work --apply` refuses `block` and `ask` unless `--force`.
 - `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only`.
 - `tocket suite triage` is suite-specific (last-run failures). Suite loop still calls triage, not decide.
 
@@ -252,7 +266,7 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 
 `tocket decide` writes. `tocket work` is the first-party consumer: it reads a Choice and acts on the notebook only. It does not call Jev, open a browser, or edit application code.
 
-Default is a dry-run plan (choice, destination, confidence, gated). `--apply` writes `<id>.applied.json` next to the decision and a `worker applied: next=…` line into `.context/progress.md`. Shadow / `semantics: log-only` decisions refuse `--apply` with exit 2 unless `--force` (receipt then has `applied_from_shadow: true`). Missing or invalid JSON exits 1.
+Default is a dry-run plan (choice, destination, confidence, gated, tool_gate). `--apply` writes `<id>.applied.json` next to the decision and a `worker applied: next=…` line into `.context/progress.md`. Shadow / `semantics: log-only` decisions refuse `--apply` with exit 2 unless `--force` (receipt then has `applied_from_shadow: true`). A `tool_gate` of `block` or `ask` also refuses `--apply` (exit 2; `ask` tells you to escalate to a human) unless `--force`. Missing or invalid JSON exits 1.
 
 A later `--backend laya` (local Apple Silicon) is not implemented. Today: stub, or live Jev with `TYPESAFE_API_KEY`.
 

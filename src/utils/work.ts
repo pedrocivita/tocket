@@ -9,11 +9,14 @@ import {
   isInsideContext,
   parseDecideRecord,
   prettyDecideJson,
+  resolveRecordToolGate,
   toRepoRelative,
+  toolGateRefusesApply,
   type DecideMode,
   type DecideRecord,
   type DecideSemantics,
   type QueueDestination,
+  type ToolGate,
 } from "./decide.js";
 
 export const WORK_APPLIED_SCHEMA = "tocket.work.applied/v0";
@@ -38,6 +41,7 @@ export interface WorkAppliedRecord {
   destination: QueueDestination;
   confidence: number;
   gated: boolean;
+  tool_gate: ToolGate | null;
   semantics: DecideSemantics;
   mode: DecideMode;
   applied_from_shadow: boolean;
@@ -56,6 +60,7 @@ export interface WorkPlan {
   record: DecideRecord;
   decisionPath: string;
   shadow: boolean;
+  toolGate: ToolGate | null;
   wouldRefuse: boolean;
 }
 
@@ -159,32 +164,63 @@ export function loadDecision(
 export function planWork(options: RunWorkOptions): WorkPlan {
   const { record, path } = loadDecision(options.cwd, options.fromPath);
   const shadow = isShadowDecision(record);
+  const toolGate = resolveRecordToolGate(record);
+  const gateRefuse = toolGateRefusesApply(toolGate);
   return {
     record,
     decisionPath: path,
     shadow,
-    wouldRefuse: shadow && options.force !== true,
+    toolGate,
+    wouldRefuse: (shadow || gateRefuse) && options.force !== true,
   };
+}
+
+export function formatRefuseApply(plan: WorkPlan): string {
+  const gateRefuse = toolGateRefusesApply(plan.toolGate);
+  if (!gateRefuse && plan.shadow) {
+    return "Refuse apply: shadow/log-only decision. Dry-run is always OK. Pass --force to stamp applied_from_shadow.";
+  }
+  if (plan.toolGate === "block") {
+    const shadow = plan.shadow ? " Shadow/log-only decision." : "";
+    return `Refuse apply: tool_gate=block.${shadow} Dry-run is always OK. Pass --force to override the gate.`;
+  }
+  if (plan.toolGate === "ask") {
+    const shadow = plan.shadow ? " Shadow/log-only decision." : "";
+    return `Refuse apply: tool_gate=ask. Escalate to a human before irreversible tools.${shadow} Dry-run is always OK. Pass --force to override the gate.`;
+  }
+  return "Refuse apply: decision is not applyable. Dry-run is always OK. Pass --force to override.";
 }
 
 export function formatWorkProgressLine(record: DecideRecord): string {
   const choice = record.choice ?? record.narrow ?? record.id;
   const gate = record.gated ? " gated" : "";
-  return `- worker applied: next=${choice} dest=${record.destination} confidence=${record.confidence.toFixed(2)}${gate}`;
+  const toolGate = record.tool_gate ? ` tool_gate=${record.tool_gate}` : "";
+  return `- worker applied: next=${choice} dest=${record.destination} confidence=${record.confidence.toFixed(2)}${gate}${toolGate}`;
+}
+
+function formatApplyHint(plan: WorkPlan): string {
+  if (!plan.wouldRefuse) {
+    return "apply=ok  (pass --apply to write receipt)";
+  }
+  if (plan.toolGate === "block") {
+    return "apply=refuse  (tool_gate=block; pass --apply --force to override)";
+  }
+  if (plan.toolGate === "ask") {
+    return "apply=refuse  (tool_gate=ask; escalate/human; pass --apply --force to override)";
+  }
+  return "apply=refuse  (shadow/log-only; pass --apply --force to stamp applied_from_shadow)";
 }
 
 export function formatWorkPlan(plan: WorkPlan, cwd: string): string {
   const { record } = plan;
   const gate = record.gated ? "gated" : "route";
   const from = toRepoRelative(cwd, plan.decisionPath);
-  const applyHint = plan.wouldRefuse
-    ? "apply=refuse  (shadow/log-only; pass --apply --force to stamp applied_from_shadow)"
-    : "apply=ok  (pass --apply to write receipt)";
+  const toolGate = plan.toolGate ?? "none";
   return [
-    `work plan  choice=${record.choice ?? "null"}  dest=${record.destination}  confidence=${record.confidence.toFixed(2)}  ${gate}  semantics=${record.semantics}  mode=${record.mode}`,
+    `work plan  choice=${record.choice ?? "null"}  dest=${record.destination}  confidence=${record.confidence.toFixed(2)}  ${gate}  tool_gate=${toolGate}  semantics=${record.semantics}  mode=${record.mode}`,
     `  from=${from}`,
     `  next=${record.choice ?? record.narrow ?? record.id}`,
-    `  ${applyHint}`,
+    `  ${formatApplyHint(plan)}`,
   ].join("\n");
 }
 
@@ -223,10 +259,7 @@ export function applyWork(options: RunWorkOptions): {
 } {
   const plan = planWork(options);
   if (plan.wouldRefuse) {
-    throw new WorkError(
-      "Refuse apply: shadow/log-only decision. Dry-run is always OK. Pass --force to stamp applied_from_shadow.",
-      2,
-    );
+    throw new WorkError(formatRefuseApply(plan), 2);
   }
 
   const receiptPath = appliedReceiptPath(plan.decisionPath);
@@ -246,6 +279,7 @@ export function applyWork(options: RunWorkOptions): {
     destination: plan.record.destination,
     confidence: plan.record.confidence,
     gated: plan.record.gated,
+    tool_gate: plan.toolGate,
     semantics: plan.record.semantics,
     mode: plan.record.mode,
     applied_from_shadow: plan.shadow,

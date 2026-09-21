@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.6.2 - 2026-09-21
+
+Tool-risk gate (file-first AutoMode *pattern*, no LangChain middleware). `tocket decide` can record `tool_gate` / `action_gate` as `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` (exit 2; `ask` says escalate/human) unless `--force`. Shadow / log-only apply still needs `--force`. Jev (or the stub) is the judge; workers execute; Tocket does not run tools.
+
+```bash
+tocket decide --from state.json --choice tool_gate:allow,block,ask --shadow
+tocket work --from <decision>
+tocket work --from <decision> --apply
+```
+
 ## 2.6.1 - 2026-09-20
 
 `tocket work` is the first-party reference worker: it reads a Choice from `.context/decisions/` and plans or stamps a notebook receipt. It does not call Jev or re-decide. Default is dry-run. `--apply` writes `*.applied.json` plus a `worker applied:` line in `progress.md`. Shadow / log-only apply needs `--force` (exit 2 otherwise).

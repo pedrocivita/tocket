@@ -7,6 +7,10 @@ tocket decide --from fixtures/decide/state.json \
   --choice next:research,write,review \
   --noul needs_human_review \
   --dry-run
+
+tocket decide --from fixtures/decide/tool-gate-state.json \
+  --choice tool_gate:allow,block,ask \
+  --shadow
 ```
 
 `--dry-run` and a missing `TYPESAFE_API_KEY` both use the deterministic stub

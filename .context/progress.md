@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-21 (tool-risk gate)
+
+**Summary**: v2.6.2. File-first tool-risk gate (AutoMode *pattern*, no LangChain runtime). `tocket decide --choice tool_gate:allow,block,ask` records the gate. `tocket work --apply` refuses `block` and `ask` (exit 2; `ask` escalates to a human) unless `--force`. Shadow / log-only apply still needs `--force`. Jev (or stub) is the judge; workers execute; Tocket does not run tools.
+
+---
+
 ## Session: 2026-09-20 (work)
 
 **Summary**: v2.6.1. `tocket work` is the first-party reference worker. It reads a Choice from `.context/decisions/` and prints a plan (default) or `--apply` a notebook receipt (`*.applied.json` + `worker applied:` line in `progress.md`). Never calls Jev. Shadow / log-only apply needs `--force` (exit 2 otherwise). Missing/invalid decision exits 1.

@@ -30,6 +30,9 @@ const cliPath = join(import.meta.dirname, "..", "index.js");
 const fixturesDir = join(import.meta.dirname, "..", "..", "fixtures", "work");
 const handoffFixture = join(fixturesDir, "handoff.json");
 const shadowFixture = join(fixturesDir, "shadow.json");
+const gateAllowFixture = join(fixturesDir, "gate-allow.json");
+const gateBlockFixture = join(fixturesDir, "gate-block.json");
+const gateAskFixture = join(fixturesDir, "gate-ask.json");
 
 function runCli(
   args: string[],
@@ -87,6 +90,8 @@ describe("tocket work help", () => {
     assert.match(result.stdout, /--force/);
     assert.match(result.stdout, /2 refuse/);
     assert.match(result.stdout, /does not re-decide/i);
+    assert.match(result.stdout, /tool_gate/);
+    assert.match(result.stdout, /escalate\/human/);
   });
 });
 
@@ -238,6 +243,81 @@ describe("tocket work", () => {
     const cli = runCli(["work"], cwd);
     assert.equal(cli.status, 0, cli.stderr);
     assert.match(cli.stdout, /from=.*write\/20260920T150130Z-next\.json/);
+  });
+
+  it("applies allow and no-gate; refuses block/ask unless --force", () => {
+    const cwd = join(tempDir, "gate");
+    mkdirSync(cwd, { recursive: true });
+
+    const allowPlan = runWork({ cwd, fromPath: gateAllowFixture });
+    assert.equal(allowPlan.applied, false);
+    assert.equal(allowPlan.plan.toolGate, "allow");
+    assert.equal(allowPlan.plan.wouldRefuse, false);
+    assert.match(allowPlan.summary, /tool_gate=allow/);
+    assert.match(allowPlan.summary, /apply=ok/);
+
+    const allowDir = join(cwd, "allow", ".context", "decisions", "review");
+    mkdirSync(allowDir, { recursive: true });
+    const allowDecision = join(allowDir, "20260921T001000Z-tool_gate.json");
+    copyFileSync(gateAllowFixture, allowDecision);
+    const allowed = runWork({
+      cwd: join(cwd, "allow"),
+      fromPath: allowDecision,
+      apply: true,
+      now: () => "2026-09-21T00:30:00.000Z",
+    });
+    assert.equal(allowed.applied, true);
+    assert.equal(allowed.receipt!.tool_gate, "allow");
+    assert.equal(existsSync(appliedReceiptPath(allowDecision)), true);
+
+    const blocked = runCli(["work", "--from", gateBlockFixture, "--apply"], cwd);
+    assert.equal(blocked.status, 2);
+    assert.match(blocked.stderr, /tool_gate=block/);
+    assert.equal(existsSync(appliedReceiptPath(gateBlockFixture)), false);
+
+    const asked = runCli(["work", "--from", gateAskFixture, "--apply"], cwd);
+    assert.equal(asked.status, 2);
+    assert.match(asked.stderr, /tool_gate=ask/);
+    assert.match(asked.stderr, /Escalate to a human/);
+    assert.equal(existsSync(appliedReceiptPath(gateAskFixture)), false);
+
+    const askDir = join(cwd, "ask-force", ".context", "decisions", "review");
+    mkdirSync(askDir, { recursive: true });
+    const askDecision = join(askDir, "20260921T001200Z-tool_gate.json");
+    copyFileSync(gateAskFixture, askDecision);
+    const forced = runWork({
+      cwd: join(cwd, "ask-force"),
+      fromPath: askDecision,
+      apply: true,
+      force: true,
+      now: () => "2026-09-21T00:31:00.000Z",
+    });
+    assert.equal(forced.applied, true);
+    assert.equal(forced.receipt!.tool_gate, "ask");
+    assert.equal(forced.receipt!.forced, true);
+
+    assert.throws(
+      () => runWork({ cwd, fromPath: gateBlockFixture, apply: true }),
+      (err: unknown) => err instanceof WorkError && err.exitCode === 2,
+    );
+  });
+
+  it("still requires --force to apply a shadow allow", () => {
+    const cwd = join(tempDir, "shadow-allow");
+    mkdirSync(cwd, { recursive: true });
+    const destDir = join(cwd, ".context", "decisions", "review");
+    mkdirSync(destDir, { recursive: true });
+    const decision = join(destDir, "20260921T001000Z-tool_gate.json");
+    const shadowAllow = JSON.parse(readFileSync(gateAllowFixture, "utf-8")) as Record<string, unknown>;
+    shadowAllow.mode = "shadow";
+    shadowAllow.semantics = "log-only";
+    shadowAllow.status = "logged";
+    writeFileSync(decision, `${JSON.stringify(shadowAllow, null, 2)}\n`, "utf-8");
+
+    const refused = runCli(["work", "--from", decision, "--apply"], cwd);
+    assert.equal(refused.status, 2);
+    assert.match(refused.stderr, /shadow\/log-only/);
+    assert.equal(existsSync(appliedReceiptPath(decision)), false);
   });
 
   it("exits 1 for a missing or invalid decision", () => {

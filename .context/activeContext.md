@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**`tocket work` on 2.6.1.** First-party reference worker: reads a Choice from `.context/decisions/` and plans or stamps a notebook receipt. Never calls Jev. `decide` writes; workers execute; Tocket does not re-decide.
+**Tool-risk gate on 2.6.2.** `tocket decide` can record `tool_gate` / `action_gate` as `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` unless `--force`. Shadow apply still needs `--force`. Jev (or stub) judges; workers execute; Tocket does not run tools. File-first AutoMode *pattern*, no LangChain middleware.
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 
@@ -12,6 +12,7 @@
 
 | Date       | Change                                                           | Agent             |
 | ---------- | ---------------------------------------------------------------- | ----------------- |
+| 2026-09-21 | Tool-risk gate (`tool_gate` allow\|block\|ask) + bump to 2.6.2 | Cursor (Executor) |
 | 2026-09-20 | `tocket work` reference worker + bump to 2.6.1 | Claude (Executor) |
 | 2026-09-20 | README thesis + bump to 2.6.0 (decide, doctor, skill) | Claude (Executor) |
 | 2026-09-20 | Skill catalog + `npx skills add`; init/doctor print disk conventions | Claude (Executor) |
@@ -51,7 +52,8 @@
 - ~~Custom domain for tocket-site (tocket.ai)~~ **Done — live at tocket.ai**
 - ~~OG image generation for social sharing~~ **Done — public/og-image.png on tocket-site**
 - ~~npm publish v2.4.0 pending~~ **Superseded by v2.5.0**
-- Thin notebook worker is `tocket work` (2.6.1). Richer `tocket run` (payload execution) still possible for v3.0
+- Thin notebook worker is `tocket work` (2.6.1). Tool-risk gate is 2.6.2. Richer `tocket run` (payload execution) still possible for v3.0
+- Model-router UX polish is a follow-up (`--fork model` already exists)
 - Consider `tocket split` (swarm mode / multi-teammate payloads) for v3.0
 
 ## Session Debt (Identified by Self-Improve)

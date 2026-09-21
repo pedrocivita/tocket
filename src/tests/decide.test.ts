@@ -24,12 +24,16 @@ import {
   parseConfidenceThreshold,
   parseFork,
   parseScoreSpec,
+  parseToolGate,
+  extractToolGate,
   resolveDecideMode,
   resolveDestination,
+  resolveRecordToolGate,
   runDecide,
   stubChoice,
   stubNoul,
   stubScore,
+  toolGateRefusesApply,
 } from "../utils/decide.js";
 import { askJev, buildTriageQuestions } from "../utils/jev.js";
 import { evaluateDecideStub } from "../eval/decide-eval.js";
@@ -37,6 +41,7 @@ import { evaluateDecideStub } from "../eval/decide-eval.js";
 const cliPath = join(import.meta.dirname, "..", "index.js");
 const fixturesDir = join(import.meta.dirname, "..", "..", "fixtures");
 const stateFixture = join(fixturesDir, "decide", "state.json");
+const toolGateStateFixture = join(fixturesDir, "decide", "tool-gate-state.json");
 const expectedFixture = join(fixturesDir, "decide-expected.json");
 
 function runCli(
@@ -100,6 +105,44 @@ describe("decide parsers", () => {
     assert.equal(parseConfidenceThreshold(), 0.85);
     assert.equal(parseConfidenceThreshold("0.7"), 0.7);
     assert.throws(() => parseConfidenceThreshold("2"), /0 and 1/);
+  });
+
+  it("parses the file-first tool-risk gate", () => {
+    assert.equal(parseToolGate("allow"), "allow");
+    assert.equal(parseToolGate("BLOCK"), "block");
+    assert.equal(parseToolGate("ask"), "ask");
+    assert.equal(parseToolGate("write"), null);
+    assert.equal(parseToolGate(null), null);
+    assert.equal(
+      extractToolGate({
+        tool_gate: { type: "choice", choice: "block", confidence: 0.8, rationale: "r" },
+      }),
+      "block",
+    );
+    assert.equal(
+      extractToolGate({
+        action_gate: { type: "choice", choice: "ask", confidence: 0.7, rationale: "r" },
+      }),
+      "ask",
+    );
+    assert.equal(
+      extractToolGate({
+        next: { type: "choice", choice: "write", confidence: 0.9, rationale: "r" },
+      }),
+      null,
+    );
+    assert.equal(
+      resolveRecordToolGate({
+        answers: {
+          next: { type: "choice", choice: "write", confidence: 0.9, rationale: "r" },
+        },
+      }),
+      null,
+    );
+    assert.equal(toolGateRefusesApply("block"), true);
+    assert.equal(toolGateRefusesApply("ask"), true);
+    assert.equal(toolGateRefusesApply("allow"), false);
+    assert.equal(toolGateRefusesApply(null), false);
   });
 });
 
@@ -195,6 +238,7 @@ describe("tocket decide help", () => {
     assert.match(result.stdout, /--backend laya/);
     assert.match(result.stdout, /npx skills add pedrocivita\/tocket --skill tocket/);
     assert.match(result.stdout, /Before expensive tools: tocket decide --dry-run, or read \.context\/decisions\/\./);
+    assert.match(result.stdout, /tool_gate:allow,block,ask/);
   });
 });
 
@@ -447,6 +491,53 @@ describe("tocket decide", () => {
     assert.equal(record.destination, "review");
     assert.equal(record.gated, true);
     assert.ok(outPath.includes("/review/"));
+  });
+
+  it("records tool_gate from a well-known Choice (stub, no network)", async () => {
+    const cwd = join(tempDir, "tool-gate");
+    mkdirSync(cwd, { recursive: true });
+    const { record } = await runDecide({
+      cwd,
+      fromPath: toolGateStateFixture,
+      choices: ["tool_gate:allow,block,ask"],
+      fork: "tool",
+      dryRun: true,
+      now: () => "2026-09-21T00:20:00.000Z",
+      id: "tool_gate",
+    });
+    assert.equal(record.choice, "block");
+    assert.equal(record.tool_gate, "block");
+    assert.equal(record.fork, "tool");
+    assert.equal(record.executes, false);
+    assert.equal(record.answers.tool_gate.type, "choice");
+    if (record.answers.tool_gate.type === "choice") {
+      assert.equal(record.answers.tool_gate.choice, "block");
+    }
+
+    const actionCwd = join(tempDir, "action-gate");
+    mkdirSync(actionCwd, { recursive: true });
+    const action = await runDecide({
+      cwd: actionCwd,
+      state: '{"tool":"browser","note":"ask a human first"}',
+      choices: ["action_gate:allow,block,ask"],
+      dryRun: true,
+      now: () => "2026-09-21T00:21:00.000Z",
+      id: "action_gate",
+    });
+    assert.equal(action.record.tool_gate, "ask");
+    assert.equal(action.record.choice, "ask");
+
+    const noneCwd = join(tempDir, "no-gate");
+    mkdirSync(noneCwd, { recursive: true });
+    const none = await runDecide({
+      cwd: noneCwd,
+      state: '{"task":"write docs"}',
+      choices: ["next:research,write,review"],
+      dryRun: true,
+      now: () => "2026-09-21T00:22:00.000Z",
+      id: "next",
+    });
+    assert.equal(none.record.tool_gate, null);
   });
 
   it("marks rank_wide when Choice lists many options", async () => {

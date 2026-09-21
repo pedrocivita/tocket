@@ -1,6 +1,6 @@
 {
   "name": "@pedrocivita/tocket",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "Project notebook for multi-agent workspaces. Agents work. Tocket remembers. Jev only chooses the next step.",
   "type": "module",
   "main": "dist/index.js",

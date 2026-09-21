@@ -1,0 +1,43 @@
+{
+  "schema": "tocket.decide/v0",
+  "id": "tool_gate",
+  "generated_at": "2026-09-21T00:11:00.000Z",
+  "mode": "active",
+  "source": "stub",
+  "model": "stub-v0",
+  "choice": "block",
+  "confidence": 0.78,
+  "destination": "review",
+  "gated": false,
+  "tool_gate": "block",
+  "confidence_threshold": 0.85,
+  "semantics": "handoff",
+  "status": "queued",
+  "executes": false,
+  "loop": "state-questions-action-verify",
+  "fork": "tool",
+  "primitives": ["choice"],
+  "batched": false,
+  "rank_wide": false,
+  "narrow": "block",
+  "state_summary": "{\"tool\":\"bash\",\"action\":\"npm publish\",\"note\":\"block this until a human reviews\"}",
+  "state": { "tool": "bash", "action": "npm publish", "note": "block this until a human reviews" },
+  "questions": {
+    "tool_gate": {
+      "type": "choice",
+      "criteria": {
+        "allow": "The proposed tool or action is in scope and reversible enough to proceed.",
+        "block": "Refuse the proposed tool or action; too risky or out of scope.",
+        "ask": "Escalate to a human before running the proposed tool or action."
+      }
+    }
+  },
+  "answers": {
+    "tool_gate": {
+      "type": "choice",
+      "choice": "block",
+      "confidence": 0.78,
+      "rationale": "Fixture block gate for tocket work."
+    }
+  }
+}

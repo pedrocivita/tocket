@@ -25,7 +25,12 @@ It never calls Jev. Shadow / log-only apply requires `--force`.
 Research/write route only when confidence >= 0.85 (configurable).
 Below that, `destination` is `review` (`gated: true`).
 
+A `tool_gate` / `action_gate` Choice (`allow|block|ask`) is the file-first
+tool-risk gate. `tocket work --apply` refuses `block` and `ask` unless `--force`.
+Jev (or the stub) is the judge; workers execute; Tocket does not run tools.
+
 Bounded forks: `--fork agent|model|tool|action|human`. `human` always reviews.
+`--fork model` is the cheap model-router hook (no extra UX in this release).
 Questions batch into one System One request. Loop: State → Questions → Action (this file) → Verify (consumer).
 
 `--dry-run` uses the deterministic stub. `--shadow` may call Jev when

@@ -133,3 +133,4 @@ Files in `.context/` follow a fixed schema:
 | No laya-mlx in this PR | Local↔`.context` file harness still unproven on X | 2026-09-20 |
 | Tocket is the notebook, not the worker | Agents work · Tocket remembers · Jev only chooses the next step | 2026-09-20 |
 | `tocket work` is the reference consumer | Reads a Choice; dry-run plan by default; `--apply` stamps notebook only; never calls Jev | 2026-09-20 |
+| File-first tool-risk gate | `tool_gate` / `action_gate` Choice (`allow\|block\|ask`); work `--apply` refuses block/ask unless `--force`; no LangChain middleware | 2026-09-21 |
