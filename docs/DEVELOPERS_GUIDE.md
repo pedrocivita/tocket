@@ -206,6 +206,10 @@ npx @pedrocivita/tocket handoff --to handoff.md
 
 # Include more history
 npx @pedrocivita/tocket handoff --commits 10 --since 1d
+
+# Filtered handoff (Jev or stub). Receipt under .context/attention/
+npx @pedrocivita/tocket handoff --query "fix auth midflight" --aware --dry-run --to stdout
+npx @pedrocivita/tocket packs load --query "frontend form" --dry-run --to stdout
 ```
 
 This generates a condensed markdown summary with the current focus, branch, recent commits, modified files, and open decisions — then copies it to your clipboard. Paste it into the new conversation to give the agent full context.

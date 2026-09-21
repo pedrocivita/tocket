@@ -306,6 +306,9 @@ describe("tocketSkillMd", () => {
     assert.ok(output.includes("tocket decide"));
     assert.ok(output.includes("tocket doctor"));
     assert.ok(output.includes("Never paste API keys"));
+    assert.ok(output.includes("Jev judges chunks"));
+    assert.ok(output.includes("handoff --aware"));
+    assert.ok(output.includes("packs load"));
     assert.ok(output.split("\n").length < 50);
     assert.equal(TOCKET_SKILL_REL, ".agents/skills/tocket/SKILL.md");
   });
@@ -346,6 +349,8 @@ describe("agentsMd", () => {
     assert.ok(agentsProtocolSection().includes("tool_gate"));
     assert.ok(output.includes("Do not call `tocket decide` again"));
     assert.ok(output.includes("TYPESAFE_API_KEY"));
+    assert.ok(output.includes("handoff --aware"));
+    assert.ok(output.includes("packs load"));
     assert.ok(output.includes("Cursor"));
   });
 });

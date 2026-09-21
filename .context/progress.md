@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-21 (meta-attention 2.6.5)
+
+**Summary**: v2.6.5. `tocket handoff --aware` splits `.context/` into chunks, scores batched Noul `relevant` and Score `relevance` (stub on `--dry-run` or no key; live log-only with `TYPESAFE_API_KEY` + `--shadow`), and writes only chunks at or above the threshold. Receipt: `.context/attention/`. Filtered markdown: `.context/handoffs/`. `tocket packs load --query` loads `.context/gotchas/` packs into `.context/active/packs.md`. Without `--aware`, handoff is unchanged. Jev judges chunks; workers read the filtered handoff.
+
+---
+
 ## Session: 2026-09-21 (Windows path/init 2.6.4)
 
 **Summary**: v2.6.4. Shared `toRepoRelative` for suite loop/triage, doctor last-decision, and init created-path printing (posix `/`). Decide tests use `includesPath` so raw `outPath` backslashes match `.context/decisions/{review,write}`. Cursor env lookup is case-insensitive; init CLI tests isolate `HOME`/`USERPROFILE` so `~/.tocketrc.json` cannot hide `CURSOR_*` detection.

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.6.5 - 2026-09-21
+
+Meta-attention handoff: Jev judges chunks; workers read the filtered handoff. `tocket handoff --aware` splits `.context/` into small chunks, asks batched Noul `relevant` and Score `relevance` (stub without a key, live Jev with `TYPESAFE_API_KEY` + `--shadow`), and writes only the chunks at or above the threshold (default 0.5). Receipt: `.context/attention/`. Filtered markdown: `.context/handoffs/`. Without `--aware`, handoff is unchanged.
+
+Conditional packs: markdown under `.context/gotchas/` (for example `frontend.md`, `path-src-api.md`, or `##` sections inside a file). `tocket packs load --query` asks Noul "load this pack?" and writes the overlay `.context/active/packs.md`. Harness your context. Jev is the judge. The flow stays decide, then work, then `tool_gate`.
+
+```bash
+tocket handoff --query "fix auth midflight" --aware
+tocket handoff --aware --dry-run --to stdout
+tocket handoff --aware --threshold 0.6 --query "fix auth midflight" --to stdout
+tocket packs load --query "frontend form" --dry-run
+tocket packs load --query "frontend form" --to stdout
+```
+
 ## 2.6.4 - 2026-09-21
 
 Windows path/init follow-up after 2.6.3. `toRepoRelative` is the shared posix display helper for CLI `wrote …` / `from=` lines (suite loop/triage, doctor last-decision, init created paths, decide/work). Decide tests assert destinations with `includesPath` so raw `outPath` backslashes do not fail. `tocket init` detects Cursor via case-insensitive `CURSOR_*` env flags; init tests isolate `HOME`/`USERPROFILE` so `~/.tocketrc.json` cannot hide env detection.

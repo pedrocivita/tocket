@@ -53,7 +53,8 @@ tocket/
       doctor.cmd.ts       # tocket doctor — deep diagnostics
       lint.cmd.ts         # tocket lint — context quality audit
       diff.cmd.ts         # tocket diff — payload vs git changes
-      handoff.cmd.ts      # tocket handoff — session context summary
+      handoff.cmd.ts      # tocket handoff — session summary; --aware filters chunks
+      packs.cmd.ts        # tocket packs load — gotcha overlay
       eject.cmd.ts        # tocket eject — remove scaffolding
       suite.cmd.ts        # tocket suite — AppMap last-run index + triage + loop
       decide.cmd.ts       # tocket decide — generic Choice/Noul → .context/decisions/
@@ -73,6 +74,7 @@ tocket/
       decide.ts           # generic decide record (stub or Jev)
       work.ts             # reference worker (read Choice, notebook receipt)
       jev.ts              # TypeSafe System One client
+      attention.ts        # meta-attention chunks, handoff --aware, packs load
     eval/
       triage-eval.ts      # POC C agreement / stability
       decide-eval.ts      # optional decide stub vs fixture label

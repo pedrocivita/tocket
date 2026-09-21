@@ -8,7 +8,14 @@ import {
   getRecentlyModifiedFiles,
   isGitRepo,
 } from "../utils/git.js";
-import { extractFocus } from "../utils/context.js";
+import { extractFocus, toRepoRelative } from "../utils/context.js";
+import {
+  AttentionError,
+  formatAwareSummary,
+  parseThreshold,
+  queryFromFocus,
+  runAwareHandoff,
+} from "../utils/attention.js";
 
 export interface HandoffData {
   focus: string;
@@ -115,8 +122,33 @@ export function registerHandoffCommand(program: Command): void {
       "Time window for modified files (e.g., 2h, 30m, 1d)",
       "2h",
     )
+    .option(
+      "--aware",
+      "Score .context/ chunks with Jev (or the stub) and emit only relevant ones",
+    )
+    .option("--query <text>", "Query for --aware (defaults to Current Focus)")
+    .option(
+      "--threshold <n>",
+      "Keep a chunk when noul or score is at or above this (default 0.5)",
+    )
+    .option("--dry-run", "Force the deterministic stub (log-only)")
+    .option(
+      "--shadow",
+      "Call Jev if TYPESAFE_API_KEY is set, but mark the attention receipt log-only",
+    )
+    .option("--id <id>", "Attention receipt id", "handoff")
     .action(
-      async (options: { to?: string; commits?: string; since?: string }) => {
+      async (options: {
+        to?: string;
+        commits?: string;
+        since?: string;
+        aware?: boolean;
+        query?: string;
+        threshold?: string;
+        dryRun?: boolean;
+        shadow?: boolean;
+        id?: string;
+      }) => {
         const cwd = process.cwd();
         const contextDir = join(cwd, ".context");
 
@@ -136,9 +168,11 @@ export function registerHandoffCommand(program: Command): void {
         let openDecisions = "";
         let projectName = "Project";
 
+        let focusQuery = "";
         if (existsSync(activeContextPath)) {
           const content = readFileSync(activeContextPath, "utf-8");
           focus = extractFocus(content);
+          focusQuery = queryFromFocus(content);
           openDecisions = extractOpenDecisions(content);
           projectName = extractProjectName(content);
         }
@@ -149,6 +183,51 @@ export function registerHandoffCommand(program: Command): void {
         const branch = isGitRepo(cwd) ? getCurrentBranch(cwd) : "";
         const recentCommits = getRecentCommits(commitCount, cwd);
         const modifiedFiles = getRecentlyModifiedFiles(sinceMinutes, cwd);
+
+        if (options.aware) {
+          try {
+            const aware = await runAwareHandoff({
+              cwd,
+              query: options.query,
+              focus: focusQuery || focus,
+              projectName,
+              branch,
+              recentCommits,
+              modifiedFiles,
+              threshold: parseThreshold(options.threshold),
+              dryRun: options.dryRun === true,
+              shadow: options.shadow === true,
+              id: options.id,
+            });
+            const summary = formatAwareSummary(
+              aware.record,
+              toRepoRelative(cwd, aware.handoffPath),
+              toRepoRelative(cwd, aware.attentionPath),
+            );
+            const target = options.to ?? "clipboard";
+            if (target === "stdout") {
+              console.log(aware.markdown);
+              console.error(dim(summary));
+            } else if (target === "clipboard") {
+              const { default: clipboard } = await import("clipboardy");
+              clipboard.writeSync(aware.markdown);
+              console.log(
+                "\n" +
+                  success("Aware handoff copied to clipboard.") +
+                  "\n" +
+                  dim(`  ${summary}\n`),
+              );
+            } else {
+              writeFileSync(target, aware.markdown, "utf-8");
+              console.log("\n" + success(summary) + "\n");
+            }
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(themeError(message));
+            process.exitCode = err instanceof AttentionError ? 2 : 1;
+          }
+          return;
+        }
 
         const data: HandoffData = {
           focus,

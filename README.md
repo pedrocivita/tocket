@@ -23,6 +23,10 @@ The Context Engineering Framework for Multi-Agent Workspaces. Agents forget ever
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
 
+## What's new in 2.6.5
+
+Meta-attention handoff: Jev judges chunks; workers read the filtered handoff. `tocket handoff --aware` scores `.context/` chunks and writes `.context/handoffs/` plus a receipt under `.context/attention/`. Conditional packs live in `.context/gotchas/`; `tocket packs load --query` writes `.context/active/packs.md`. `--dry-run` or no key uses the stub. Harness your context. Jev is the judge. decide, then work, then `tool_gate` stays the same, and agent auto-config is unchanged.
+
 ## What's new in 2.6.4
 
 - Windows follow-up: suite/triage/doctor/init print posix `toRepoRelative` paths; decide tests use `includesPath` (separators); Cursor `CURSOR_*` env detection is case-insensitive and init tests isolate `HOME` so `.cursorrules` is written.
@@ -152,7 +156,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket generate` | Build structured payload XML (auto-fills scope from git, saves to `.tocket/`) |
 | `tocket diff` | Compare payload targets against actual git changes (verify executor compliance) |
 | `tocket sync` | Append session summary + git log to `.context/progress.md` |
-| `tocket handoff` | Generate clipboard-ready context summary for a new agent conversation |
+| `tocket handoff` | Clipboard summary. `--aware` keeps only chunks Jev (or the stub) scores as relevant |
 | `tocket validate` | Check if the workspace has a valid Memory Bank |
 | `tocket focus` | Update the Current Focus in `activeContext.md` |
 | `tocket status` | Quick overview: workspace health, branch, focus, agents |
@@ -166,6 +170,7 @@ See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for detailed safe-testing wo
 | `tocket suite loop` | Copy mapper AppMap + optional last-run into `.context/appmaps/` and triage |
 | `tocket decide` | State + Choice handoff into `.context/decisions/` (Codila-style queues; does not run workers) |
 | `tocket work` | Read a decision and print a plan (default) or `--apply` a notebook receipt. Never calls Jev. |
+| `tocket packs load` | Load gotcha packs from `.context/gotchas/` into `.context/active/packs.md` |
 | `tocket eject` | Remove all Tocket files (with confirmation) |
 
 ### CI-friendly flags
@@ -189,6 +194,15 @@ tocket diff --json
 
 # Handoff context to a new session
 tocket handoff --to stdout
+
+# Meta-attention: Jev judges chunks; workers read the filtered handoff
+tocket handoff --query "fix auth midflight" --aware
+tocket handoff --aware --dry-run --to stdout
+tocket handoff --aware --threshold 0.6 --query "fix auth midflight" --to stdout
+
+# Conditional packs (Noul: load this pack?)
+tocket packs load --query "frontend form" --dry-run
+tocket packs load --query "frontend form" --to stdout
 
 # AppMap last-run (file-first; does not execute maps)
 tocket suite status
@@ -306,6 +320,8 @@ init (detect agent, write AGENTS.md + instruction files)
 | `tool_gate` | `allow` proceeds. `block` stops. `ask` escalates to a human. `--force` overrides. |
 | `--fork model` | Cheap model-router hook (bounded forks: agent, model, tool, action, human). |
 | Shadow-first | `--dry-run` / `--shadow` is log-only. Shadow apply still needs `--force`. |
+| `tocket handoff --aware` | Meta-attention. Jev judges chunks; workers read the filtered handoff. |
+| `tocket packs load` | Conditional gotcha packs into `.context/active/packs.md`. |
 | `tocket doctor` | Checks `.context/`, `AGENTS.md`, skill, last decision, key yes/no. |
 | Skill | `npx skills add pedrocivita/tocket --skill tocket`. Same rules as `AGENTS.md`. |
 
@@ -322,6 +338,10 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
 | `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) plus `*.applied.json` receipts | `tocket decide` / `tocket work` |
+| `attention/` | Meta-attention receipts (per-chunk Noul and Score) | `tocket handoff --aware` / `tocket packs load` |
+| `handoffs/` | Filtered session handoff markdown | `tocket handoff --aware` |
+| `gotchas/` | Conditional section packs (`frontend.md`, `path-src-api.md`) | authors |
+| `active/packs.md` | Packs the judge loaded for the current query | `tocket packs load` |
 | `AGENTS.md` (repo root) | Agent-first rules: decide vs work, `tool_gate`, do not re-ask Jev | `tocket init` / `tocket agents-md` |
 
 ### Triangulation
@@ -356,6 +376,10 @@ tocket handoff                 # copies context summary to clipboard
 tocket handoff --to stdout     # print instead
 tocket handoff --commits 10    # include more history
 tocket handoff --since 1d      # files modified in last day
+
+# Filtered handoff (stub). Workers read this, not the whole Memory Bank.
+tocket handoff --query "fix auth midflight" --aware --dry-run --to stdout
+tocket packs load --query "frontend form" --dry-run --to stdout
 ```
 
 ## Who is this for?

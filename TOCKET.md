@@ -26,6 +26,10 @@ Project context lives in `.context/`, not in chat history. **Read it before doin
   techContext.md      ← Tech stack, build tools, critical rules.
   productContext.md   ← What the product is, who it's for, why it exists.
   progress.md         ← What's done, what's next.
+  gotchas/            ← Optional section packs (frontend.md, path-src-api.md).
+  active/packs.md     ← Packs loaded for the current query (`tocket packs load`).
+  attention/          ← Meta-attention receipts. Jev judges chunks.
+  handoffs/           ← Filtered handoff markdown (`tocket handoff --aware`).
 ```
 
 ### Rules
@@ -37,6 +41,8 @@ Project context lives in `.context/`, not in chat history. **Read it before doin
 - **Decide is a file** — `tocket decide` writes the next move into `.context/decisions/`. Before expensive tools, run it or read the latest decision. Consume it with `tocket work` (plan) or `tocket work --apply` (notebook receipt).
 - **Do not re-ask Jev** — If a decision file already exists, honor `choice`, `destination`, `gated`, and `tool_gate`. Call `tocket work`, not `tocket decide` again.
 - **Tool-risk gate** — `tool_gate` / `action_gate` is `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` unless `--force`. Shadow / log-only still needs `--force`.
+- **Meta-attention handoff** — `tocket handoff --aware` asks Jev (or the stub) to score chunks. Workers read the filtered handoff, not the whole Memory Bank. Receipt: `.context/attention/`.
+- **Conditional packs** — `.context/gotchas/*.md`. `tocket packs load --query` writes `.context/active/packs.md`.
 
 ---
 
@@ -159,6 +165,8 @@ Jev (or the stub) is the **judge**, not the writer. `tocket decide` writes JSON.
 | Plan | `tocket work --from <decision>` | Dry-run. Never calls Jev. |
 | Apply | `tocket work --apply` | Receipt only if gate is `allow` or missing. `block`/`ask` exit 2 unless `--force`. |
 | Fork | `--fork agent\|model\|tool\|action\|human` | Bounded. `--fork model` is the cheap model-router hook. `human` always reviews. |
+| Handoff | `tocket handoff --aware` | Jev judges chunks; workers read the filtered handoff (`.context/handoffs/` + `.context/attention/`). |
+| Packs | `tocket packs load --query` | Noul "load this pack?" for `.context/gotchas/`. Overlay: `.context/active/packs.md`. |
 
 ---
 
