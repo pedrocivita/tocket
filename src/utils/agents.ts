@@ -52,6 +52,17 @@ const EXECUTOR_FILE_HINTS: ReadonlyArray<{ file: string; agent: string }> = [
   { file: "CLAUDE.md", agent: "Claude Code" },
 ];
 
+/** Case-insensitive env lookup so Windows spawn/casing still detects Cursor / Claude. */
+export function envFlag(env: NodeJS.ProcessEnv, name: string): boolean {
+  const want = name.toUpperCase();
+  for (const [key, value] of Object.entries(env)) {
+    if (key.toUpperCase() === want) {
+      return Boolean(value && value.trim());
+    }
+  }
+  return false;
+}
+
 /** Detect preferred agents from existing instruction files or env (Cursor / Claude). */
 export function detectPreferredAgents(
   cwd: string,
@@ -75,10 +86,10 @@ export function detectPreferredAgents(
   }
 
   if (!executor) {
-    if (env.CURSOR_TRACE_ID || env.CURSOR_AGENT || env.CURSOR) {
+    if (envFlag(env, "CURSOR_TRACE_ID") || envFlag(env, "CURSOR_AGENT") || envFlag(env, "CURSOR")) {
       executor = "Cursor";
       executorSource = "env";
-    } else if (env.CLAUDECODE || env.CLAUDE_CODE) {
+    } else if (envFlag(env, "CLAUDECODE") || envFlag(env, "CLAUDE_CODE")) {
       executor = "Claude Code";
       executorSource = "env";
     }

@@ -13,6 +13,7 @@ import {
   findLatestDecision,
   formatAge,
 } from "../commands/doctor.cmd.js";
+import { includesPath } from "./helpers.js";
 
 const cliPath = join(import.meta.dirname, "..", "index.js");
 
@@ -169,7 +170,7 @@ describe("checkNotebookLight", () => {
     assert.ok(!results.some((r) => /sk-|typesafe_[A-Za-z0-9]{8,}/.test(r.message)));
     const latest = findLatestDecision(cwd);
     assert.ok(latest);
-    assert.ok(latest!.rel.includes("20260920T150000Z-next.json"));
+    assert.ok(includesPath(latest!.rel, ".context/decisions/review/20260920T150000Z-next.json"));
     assert.match(formatAge(Date.now() - 90_000, Date.now()), /1m ago|2m ago/);
   });
 

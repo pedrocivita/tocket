@@ -3,12 +3,42 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { checkGitignoreConflict } from "../commands/init.cmd.js";
 import { lf } from "./helpers.js";
 
 // Path to the built CLI
 const cliPath = join(import.meta.dirname, "..", "index.js");
+
+/** Isolate ~/.tocketrc.json (HOME/USERPROFILE) so global config cannot leak into init tests. */
+function isolatedInitEnv(home: string, extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    HOME: home,
+    USERPROFILE: home,
+    CURSOR_TRACE_ID: "",
+    CURSOR_AGENT: "",
+    CURSOR: "",
+    CLAUDECODE: "",
+    CLAUDE_CODE: "",
+    ...extra,
+  };
+}
+
+function runInitCli(
+  cwd: string,
+  args: string[],
+  extraEnv: NodeJS.ProcessEnv = {},
+  home = join(cwd, "_tocket-home"),
+): string {
+  mkdirSync(home, { recursive: true });
+  return execFileSync(process.execPath, [cliPath, "init", ...args], {
+    cwd,
+    encoding: "utf-8",
+    env: isolatedInitEnv(home, extraEnv),
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 
 describe("init --minimal", () => {
   const tempDir = mkdtempSync(join(tmpdir(), "tocket-init-minimal-"));
@@ -18,10 +48,7 @@ describe("init --minimal", () => {
   });
 
   it("creates only essential files with --minimal --name --description --force", () => {
-    execSync(
-      `node "${cliPath}" init --minimal --name testproject --description "A test" --force`,
-      { cwd: tempDir, encoding: "utf-8" },
-    );
+    runInitCli(tempDir, ["--minimal", "--name", "testproject", "--description", "A test", "--force"]);
 
     // Essential files should exist
     assert.ok(existsSync(join(tempDir, ".context", "activeContext.md")));
@@ -47,21 +74,17 @@ describe("init --name --description (non-interactive)", () => {
   });
 
   it("creates full workspace without interactive prompts", () => {
-    const stdout = execSync(
-      `node "${cliPath}" init --name flagproject --description "Flag desc" --executor "Claude Code" --architect Gemini --force`,
-      {
-        cwd: tempDir,
-        encoding: "utf-8",
-        env: {
-          ...process.env,
-          CURSOR_TRACE_ID: "",
-          CURSOR_AGENT: "",
-          CURSOR: "",
-          CLAUDECODE: "",
-          CLAUDE_CODE: "",
-        },
-      },
-    );
+    const stdout = runInitCli(tempDir, [
+      "--name",
+      "flagproject",
+      "--description",
+      "Flag desc",
+      "--executor",
+      "Claude Code",
+      "--architect",
+      "Gemini",
+      "--force",
+    ]);
 
     // All 8 files should exist (not minimal, no .cursorrules by default)
     assert.ok(existsSync(join(tempDir, ".context", "activeContext.md")));
@@ -95,10 +118,7 @@ describe("init --minimal file count", () => {
   });
 
   it("minimal creates exactly 3 files + 1 directory", () => {
-    execSync(
-      `node "${cliPath}" init --minimal --name counttest --description "test" --force`,
-      { cwd: tempDir, encoding: "utf-8" },
-    );
+    runInitCli(tempDir, ["--minimal", "--name", "counttest", "--description", "test", "--force"]);
 
     // Count files in .context/
     const contextDir = join(tempDir, ".context");
@@ -128,25 +148,31 @@ describe("init --executor Cursor", () => {
   it("detects Cursor from env and writes .cursorrules", () => {
     const envDir = join(tempDir, "from-env");
     mkdirSync(envDir, { recursive: true });
-    const stdout = execSync(
-      `node "${cliPath}" init --name envcursor --description "From env" --force`,
-      {
-        cwd: envDir,
-        encoding: "utf-8",
-        env: { ...process.env, CURSOR_TRACE_ID: "test-trace", CLAUDECODE: "", CLAUDE_CODE: "" },
-      },
+    const home = join(tempDir, "from-env-home");
+    const stdout = runInitCli(
+      envDir,
+      ["--name", "envcursor", "--description", "From env", "--force"],
+      { CURSOR_TRACE_ID: "test-trace", cursor_trace_id: "test-trace" },
+      home,
     );
-    assert.ok(existsSync(join(envDir, ".cursorrules")));
+    assert.ok(existsSync(join(envDir, ".cursorrules")), stdout);
     assert.ok(existsSync(join(envDir, "AGENTS.md")));
     assert.ok(!existsSync(join(envDir, "CLAUDE.md")));
     assert.match(stdout, /executor=Cursor \(\.cursorrules, env\)/);
   });
 
   it("writes .cursorrules and AGENTS.md without a human tutorial", () => {
-    const stdout = execSync(
-      `node "${cliPath}" init --name cursorproj --description "Cursor app" --executor Cursor --architect Gemini --force`,
-      { cwd: tempDir, encoding: "utf-8" },
-    );
+    const stdout = runInitCli(tempDir, [
+      "--name",
+      "cursorproj",
+      "--description",
+      "Cursor app",
+      "--executor",
+      "Cursor",
+      "--architect",
+      "Gemini",
+      "--force",
+    ]);
     assert.ok(existsSync(join(tempDir, ".cursorrules")));
     assert.ok(existsSync(join(tempDir, "AGENTS.md")));
     assert.ok(existsSync(join(tempDir, "GEMINI.md")));

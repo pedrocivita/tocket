@@ -10,6 +10,7 @@ import {
   getArchitectDisplayName,
   detectPreferredAgents,
   resolveInitAgents,
+  envFlag,
   DEFAULT_EXECUTOR,
   DEFAULT_ARCHITECT,
   EXECUTOR_FILE_MAP,
@@ -143,6 +144,16 @@ describe("agent constants", () => {
   });
 });
 
+describe("envFlag", () => {
+  it("is case-insensitive and treats blank values as unset", () => {
+    assert.equal(envFlag({ cursor_trace_id: "abc" }, "CURSOR_TRACE_ID"), true);
+    assert.equal(envFlag({ CURSOR_TRACE_ID: "abc" }, "cursor_trace_id"), true);
+    assert.equal(envFlag({ CURSOR_TRACE_ID: "" }, "CURSOR_TRACE_ID"), false);
+    assert.equal(envFlag({ CURSOR_TRACE_ID: "  " }, "CURSOR_TRACE_ID"), false);
+    assert.equal(envFlag({}, "CURSOR_TRACE_ID"), false);
+  });
+});
+
 describe("detectPreferredAgents", () => {
   it("detects Cursor from .cursorrules and Claude from env", () => {
     const dir = mkdtempSync(join(tmpdir(), "tocket-detect-"));
@@ -157,6 +168,11 @@ describe("detectPreferredAgents", () => {
         const fromEnv = detectPreferredAgents(empty, { CURSOR_TRACE_ID: "abc" });
         assert.equal(fromEnv.executor, "Cursor");
         assert.equal(fromEnv.executorSource, "env");
+        const fromEnvCasing = detectPreferredAgents(empty, { cursor_trace_id: "abc" });
+        assert.equal(fromEnvCasing.executor, "Cursor");
+        assert.equal(fromEnvCasing.executorSource, "env");
+        const emptyCursor = detectPreferredAgents(empty, { CURSOR_TRACE_ID: "  " });
+        assert.equal(emptyCursor.executor, undefined);
         const claude = detectPreferredAgents(empty, { CLAUDECODE: "1" });
         assert.equal(claude.executor, "Claude Code");
       } finally {

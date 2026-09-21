@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.4 - 2026-09-21
+
+Windows path/init follow-up after 2.6.3. `toRepoRelative` is the shared posix display helper for CLI `wrote …` / `from=` lines (suite loop/triage, doctor last-decision, init created paths, decide/work). Decide tests assert destinations with `includesPath` so raw `outPath` backslashes do not fail. `tocket init` detects Cursor via case-insensitive `CURSOR_*` env flags; init tests isolate `HOME`/`USERPROFILE` so `~/.tocketrc.json` cannot hide env detection.
+
 ## 2.6.3 - 2026-09-21
 
 Windows test/path fixes (2.6.2 never published successfully). Skill/template equality tests normalize CRLF so a checkout with `core.autocrlf` still matches LF generators. `toRepoRelative` (CLI `from=` lines, decide/work summaries, receipt `decision_path`) uses posix-style forward slashes on every OS.
