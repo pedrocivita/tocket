@@ -34,6 +34,9 @@ Project context lives in `.context/`, not in chat history. **Read it before doin
 - **Write before leaving** — Update `activeContext.md` with what changed after completing significant work.
 - **Trust the files** — If `.context/` says the project uses ESM, it uses ESM. Don't second-guess documented decisions.
 - **Don't duplicate** — Context belongs in `.context/`, not scattered in code comments or chat summaries.
+- **Decide is a file** — `tocket decide` writes the next move into `.context/decisions/`. Before expensive tools, run it or read the latest decision. Consume it with `tocket work` (plan) or `tocket work --apply` (notebook receipt).
+- **Do not re-ask Jev** — If a decision file already exists, honor `choice`, `destination`, `gated`, and `tool_gate`. Call `tocket work`, not `tocket decide` again.
+- **Tool-risk gate** — `tool_gate` / `action_gate` is `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` unless `--force`. Shadow / log-only still needs `--force`.
 
 ---
 
@@ -145,11 +148,26 @@ A payload is the structured handoff from Architect to Executor. It uses XML to b
 
 ---
 
+## 4. Decide and work
+
+Jev (or the stub) is the **judge**, not the writer. `tocket decide` writes JSON. `tocket work` plans (default) then `--apply` stamps a notebook receipt. Tocket does not run tools.
+
+| Step | Command | Rule |
+| --- | --- | --- |
+| Judge | `tocket decide` | Writes `.context/decisions/`. Shadow-first: `--dry-run` / `--shadow` is log-only. Optional `TYPESAFE_API_KEY` (stub without it). |
+| Gate | `--choice tool_gate:allow,block,ask` | Before bash, deploy, or browser. |
+| Plan | `tocket work --from <decision>` | Dry-run. Never calls Jev. |
+| Apply | `tocket work --apply` | Receipt only if gate is `allow` or missing. `block`/`ask` exit 2 unless `--force`. |
+| Fork | `--fork agent\|model\|tool\|action\|human` | Bounded. `--fork model` is the cheap model-router hook. `human` always reviews. |
+
+---
+
 ## Quick Start
 
-If you're an AI agent encountering a Tocket repository for the first time:
+If you are an AI agent encountering a Tocket repository for the first time:
 
-1. Read this file (`TOCKET.md`)
+1. Read `AGENTS.md` (single source agents read first), then this file (`TOCKET.md`)
 2. Read `.context/activeContext.md` for current state
-3. Read your role-specific config (`CLAUDE.md` or `GEMINI.md`)
-4. Proceed with your task, following the Memory Bank rules above
+3. Read your role-specific config (`CLAUDE.md`, `.cursorrules`, `GEMINI.md`, …)
+4. If `.context/decisions/` already has a handoff, honor it. Do not re-ask Jev.
+5. Proceed with your task, following the Memory Bank rules above

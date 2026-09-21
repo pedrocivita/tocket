@@ -1,10 +1,10 @@
 import type { Command } from "commander";
-import { input, confirm } from "@inquirer/prompts";
+import { input, confirm, select } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { banner, heading, info, success, warn, dim } from "../utils/theme.js";
 import { isContextIgnored } from "../utils/git.js";
-import { getConfig } from "../utils/config.js";
+import { getConfig, updateConfig } from "../utils/config.js";
 import { readGlobalTemplate } from "../utils/templates.js";
 import type { TemplateVars } from "../utils/templates.js";
 import {
@@ -12,6 +12,10 @@ import {
   getArchitectFileName,
   getExecutorDisplayName,
   getArchitectDisplayName,
+  detectPreferredAgents,
+  resolveInitAgents,
+  EXECUTOR_CHOICES,
+  ARCHITECT_CHOICES,
 } from "../utils/agents.js";
 import type { StackInfo } from "../templates/memory-bank.js";
 import {
@@ -155,10 +159,20 @@ export function registerInitCommand(program: Command): void {
     .description("Ensure the shared .context/ notebook (agents read and write files)")
     .option("-f, --force", "Overwrite existing files without prompting")
     .option("--minimal", "Scaffold only essential files (.context/ + TOCKET.md)")
-    .option("--agents-md", "Also generate AGENTS.md for cross-tool compatibility")
+    .option("--agents-md", "Write AGENTS.md (default on full init; kept for compatibility)")
+    .option("--executor <name>", "Executor agent: Claude Code, Cursor, Windsurf, Copilot")
+    .option("--architect <name>", "Architect agent: Gemini (or any name)")
     .option("--name <name>", "Project name (skip prompt)")
     .option("--description <desc>", "Project description (skip prompt)")
-    .action(async (options: { force?: boolean; minimal?: boolean; agentsMd?: boolean; name?: string; description?: string }) => {
+    .action(async (options: {
+      force?: boolean;
+      minimal?: boolean;
+      agentsMd?: boolean;
+      executor?: string;
+      architect?: string;
+      name?: string;
+      description?: string;
+    }) => {
       const force = options.force ?? false;
       const minimal = options.minimal ?? false;
       const cwd = process.cwd();
@@ -194,11 +208,56 @@ export function registerInitCommand(program: Command): void {
       const contextDir = join(cwd, ".context");
       await mkdir(contextDir, { recursive: true });
 
-      // Resolve agent names and file conventions
-      const executorName = getExecutorDisplayName(globalConfig.agents?.executor);
-      const architectName = getArchitectDisplayName(globalConfig.agents?.architect);
-      const executorFile = getExecutorFileName(globalConfig.agents?.executor);
-      const architectFile = getArchitectFileName(globalConfig.agents?.architect);
+      const detectedAgents = detectPreferredAgents(cwd);
+      const interactiveAgents =
+        process.stdin.isTTY === true &&
+        !options.name &&
+        !options.executor &&
+        !options.architect &&
+        !globalConfig.agents?.executor &&
+        !detectedAgents.executor;
+
+      let askedExecutor: string | undefined;
+      let askedArchitect: string | undefined;
+      if (interactiveAgents) {
+        askedExecutor = await select({
+          message: "Preferred executor agent (writes the matching instruction file):",
+          choices: EXECUTOR_CHOICES.map((name) => ({ name, value: name })),
+          default: EXECUTOR_CHOICES[0],
+        });
+        askedArchitect = await select({
+          message: "Preferred architect agent:",
+          choices: [
+            ...ARCHITECT_CHOICES.map((name) => ({ name, value: name })),
+            { name: "Other (generic ARCHITECT.md)", value: "Other" },
+          ],
+          default: ARCHITECT_CHOICES[0],
+        });
+        if (askedArchitect === "Other") askedArchitect = "Architect";
+        await updateConfig({
+          agents: {
+            executor: askedExecutor,
+            architect: askedArchitect,
+          },
+        });
+      }
+
+      const resolved = resolveInitAgents({
+        executorFlag: options.executor ?? askedExecutor,
+        architectFlag: options.architect ?? askedArchitect,
+        configExecutor: globalConfig.agents?.executor,
+        configArchitect: globalConfig.agents?.architect,
+        detected: detectedAgents,
+      });
+      const executorName = getExecutorDisplayName(resolved.executor);
+      const architectName = getArchitectDisplayName(resolved.architect);
+      const executorFile = getExecutorFileName(resolved.executor);
+      const architectFile = getArchitectFileName(resolved.architect);
+      console.log(
+        info(
+          `Agents: executor=${executorName} (${executorFile}, ${resolved.executorSource})  architect=${architectName} (${architectFile}, ${resolved.architectSource})`,
+        ),
+      );
 
       const files: Array<[string, string]> = [
         ["TOCKET.md", tocketMd(projectName, executorFile, architectFile)],
@@ -220,7 +279,7 @@ export function registerInitCommand(program: Command): void {
         [TOCKET_SKILL_REL, tocketSkillMd()],
       ];
 
-      if (options.agentsMd) {
+      if (!minimal) {
         files.push(["AGENTS.md", agentsMd(projectName, description, executorName, architectName)]);
       }
 

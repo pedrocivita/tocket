@@ -26,6 +26,7 @@ The Context Engineering Framework for Multi-Agent Workspaces. Agents forget ever
 ## What's new in 2.6.2
 
 - Tool-risk gate: `tocket decide --choice tool_gate:allow,block,ask` records allow|block|ask. `tocket work --apply` refuses `block`/`ask` (exit 2) unless `--force`. Shadow apply still needs `--force`.
+- Installer docs + auto-config: `AGENTS.md`, fuller README how-it-works, skill rules, `tocket init` writes `AGENTS.md` and the matching agent file (detect or ask once).
 
 ## What's new in 2.6.1
 
@@ -61,18 +62,21 @@ Tocket is a file convention. It adds a `.context/` directory to your repo with m
 
 ```
 your-project/
+  AGENTS.md               # Start here (any agent: Cursor, Claude, Gemini, Copilot, …)
   .context/
     activeContext.md      # What's happening right now
     systemPatterns.md     # How the codebase is organized
     techContext.md        # Stack and build tools
     productContext.md     # What the product is and why
     progress.md           # What's done, what's next
+    decisions/            # decide JSON + work receipts
   TOCKET.md               # Protocol rules (agent-agnostic)
-  CLAUDE.md               # Executor instructions (auto-detected per agent)
-  GEMINI.md               # Architect instructions (auto-detected per agent)
+  CLAUDE.md / .cursorrules / …  # Executor file (init detects or asks once)
+  GEMINI.md               # Architect instructions
+  .agents/skills/tocket/SKILL.md
 ```
 
-All files are plain markdown, committed to git, and readable by any tool.
+All files are plain markdown, committed to git, and readable by any tool. `npx @pedrocivita/tocket init` writes them so the preferred agent is wired without copy-paste.
 
 ## You don't need the CLI
 
@@ -87,37 +91,30 @@ The CLI automates the scaffolding, provides smart defaults, and adds quality-of-
 ## Quick Start (5 minutes)
 
 ```bash
-# 1. Notebook on disk (agents already know how to read these files)
+# 1. Self-configuring notebook (detects or asks once for Cursor / Claude / …)
 npx @pedrocivita/tocket init
+#    npx @pedrocivita/tocket init --executor Cursor --architect Gemini --force
 #    or: npx @pedrocivita/tocket init --minimal
 
-# 2. Conventions check
+# 2. Conventions check (notebook, AGENTS.md, skill, key yes/no)
 tocket doctor
 
-# 3. Next move (no API key; stub)
+# 3. Next move (no API key: stub). Jev is the judge, not the writer.
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
 
-# 4. Agents read the choice
+# 4. Agents read the choice (do not re-ask Jev if this file exists)
 #    .context/decisions/<research|write|review>/*.json
 
-# 5. Reference worker (plan only; never calls Jev)
+# 5. Staging: dry-run plan, then apply a notebook receipt
 tocket work --from .context/decisions/review/<file>.json
+tocket work --from .context/decisions/review/<file>.json --apply
 ```
 
 Optional one-shot skill: `npx skills add pedrocivita/tocket --skill tocket`.
 
 Optional live Jev: `export TYPESAFE_API_KEY=…` (never print the value). Without it, decide stays on the stub.
 
-Workers execute the chosen move. Tocket only writes the notebook.
-
-Configure roles if you want (defaults are Claude Code + Gemini):
-
-```bash
-npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
-npx @pedrocivita/tocket
-```
-
-Every AI session starts by reading `.context/activeContext.md`.
+Workers execute the chosen move. Tocket only writes the notebook. Every AI session starts at `AGENTS.md`, then `.context/activeContext.md`.
 
 ### Safe testing — use a branch
 
@@ -282,6 +279,28 @@ Thin wrapper: `scripts/tempestivita-loop.sh` (sets `--app tempestivita` and `--m
 
 ## How it works
 
+Installers (`npm i` / `npx`) get ready context in the package. Any agent that can read files is productive after `init` + `doctor` + the skill phrase.
+
+```
+init (detect agent, write AGENTS.md + instruction files)
+  → doctor (notebook green/yellow/red; TYPESAFE_API_KEY yes/no)
+  → decide (Jev or stub writes .context/decisions/)
+  → work          dry-run plan (never calls Jev)
+  → work --apply  notebook receipt if tool_gate allows
+```
+
+| Piece | Role |
+| --- | --- |
+| `.context/` | Shared notebook. Read before acting. Update after work. |
+| `AGENTS.md` | Single source agents read first. Decide vs work, never re-ask Jev, honor `tool_gate`. |
+| `tocket decide` | Judge. Writes allow/block/ask or the next move. Does not run tools. |
+| `tocket work` | Staging: plan by default, `--apply` stamps a receipt. Honors `tool_gate`. |
+| `tool_gate` | `allow` proceeds. `block` stops. `ask` escalates to a human. `--force` overrides. |
+| `--fork model` | Cheap model-router hook (bounded forks: agent, model, tool, action, human). |
+| Shadow-first | `--dry-run` / `--shadow` is log-only. Shadow apply still needs `--force`. |
+| `tocket doctor` | Checks `.context/`, `AGENTS.md`, skill, last decision, key yes/no. |
+| Skill | `npx skills add pedrocivita/tocket --skill tocket`. Same rules as `AGENTS.md`. |
+
 ### Memory Bank
 
 The `.context/` directory is the project's shared memory. Agents read it before acting and update it after completing work. Context lives in files, not in chat history.
@@ -295,6 +314,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
 | `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) plus `*.applied.json` receipts | `tocket decide` / `tocket work` |
+| `AGENTS.md` (repo root) | Agent-first rules: decide vs work, `tool_gate`, do not re-ask Jev | `tocket init` / `tocket agents-md` |
 
 ### Triangulation
 
@@ -390,6 +410,7 @@ Don't see your agent? It still works — unknown agents get generic files, and y
 | [Getting Started](docs/GETTING_STARTED.md) | Set up your first Tocket workspace in 5 minutes |
 | [Developer Guide](docs/DEVELOPERS_GUIDE.md) | How to run the Tocket protocol safely in any project |
 | [Tocket Rules](docs/TOCKET_RULES.md) | Complete reference for all protocol rules |
+| [AGENTS.md](AGENTS.md) | What agents read first (decide vs work, tool_gate) |
 | [Protocol Spec](TOCKET.md) | The agent-agnostic protocol specification |
 | [Walkthrough](examples/walkthrough.md) | End-to-end payload exchange example |
 

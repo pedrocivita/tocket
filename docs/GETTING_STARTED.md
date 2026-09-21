@@ -21,13 +21,14 @@ After setup, your project will have:
 
 ```
 your-project/
+  AGENTS.md               # What agents read first
   .context/
     activeContext.md      # Current session focus
     systemPatterns.md     # Architecture decisions
     decisions/            # Next move from `tocket decide`
   .agents/skills/tocket/SKILL.md
   TOCKET.md               # Protocol spec (for any AI)
-  CLAUDE.md               # Executor instructions (for Claude Code)
+  CLAUDE.md / .cursorrules / …  # Executor file (init detects or asks once)
   GEMINI.md               # Architect instructions (for Gemini)
 ```
 
@@ -47,6 +48,8 @@ Or run the init command directly:
 
 ```bash
 npx @pedrocivita/tocket init
+# or non-interactive:
+npx @pedrocivita/tocket init --name myproject --description "My app" --executor Cursor --force
 ```
 
 ## Option B: Manual setup

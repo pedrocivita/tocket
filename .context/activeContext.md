@@ -4,7 +4,7 @@
 
 ## Current Focus
 
-**Tool-risk gate on 2.6.2.** `tocket decide` can record `tool_gate` / `action_gate` as `allow|block|ask`. `tocket work --apply` refuses `block` and `ask` unless `--force`. Shadow apply still needs `--force`. Jev (or stub) judges; workers execute; Tocket does not run tools. File-first AutoMode *pattern*, no LangChain middleware.
+**Tool-risk gate + installer auto-config on 2.6.2.** Gate: `tool_gate` allow|block|ask; `work --apply` honors it. Docs: README how-it-works, root `AGENTS.md`, skill, `TOCKET.md`. `tocket init` writes `AGENTS.md` and the matching agent file (detect / flags / config / ask once).
 
 `decide` is generic. `suite triage` remains suite-specific; `suite loop` still calls triage, not decide.
 
