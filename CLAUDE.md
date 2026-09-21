@@ -41,7 +41,7 @@ Commands follow the registration pattern:
 
 ```
 src/index.ts                    # Entry: registers commands + dashboard detection
-src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, diff, handoff, doctor, lint, eject, suite/loop, decide, work)
+src/commands/<name>.cmd.ts      # One file per command (init, generate, sync, validate, config, focus, status, diff, handoff, doctor, lint, eject, suite/loop, decide, work, packs)
 src/commands/dashboard.ts       # Interactive menu (no-args entry point)
 src/templates/memory-bank.ts    # Template generators for tocket init
 src/utils/theme.ts              # Purple theme, banner, semantic helpers (chalk)

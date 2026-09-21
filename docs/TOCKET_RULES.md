@@ -172,3 +172,5 @@ When an agent starts a session, it should read files in this order:
 | 10 | Don't write code — produce specs | Architect |
 | 11 | Run `tocket diff` after payload execution to verify compliance | Human |
 | 12 | Use `tocket handoff` when transferring context to a new session | Human |
+| 13 | `tocket handoff --aware` so Jev judges chunks and workers read the filtered handoff | Human |
+| 14 | Keep section packs in `.context/gotchas/` and load them with `tocket packs load --query` | Human |

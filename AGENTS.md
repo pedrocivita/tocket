@@ -44,6 +44,10 @@ tocket work --from <decision> --apply
 - `--force` overrides the gate.
 - Shadow / log-only apply still needs `--force`.
 
+## Meta-attention and packs
+
+Harness your context. Jev is the judge, not the writer. Meta-attention handoff: Jev judges chunks; workers read the filtered handoff. `tocket handoff --aware` scores `.context/` chunks (batched Noul `relevant` and Score `relevance`) and writes `.context/handoffs/` plus a receipt under `.context/attention/`. `--dry-run` or no `TYPESAFE_API_KEY` uses the stub; a key plus `--shadow` is live and log-only. Conditional packs live in `.context/gotchas/` (`frontend.md`, `path-src-api.md`, or `##` sections). `tocket packs load --query` asks Noul "load this pack?" and writes `.context/active/packs.md`. Without `--aware`, `tocket handoff` stays the full session summary. The flow is still decide, then work, then `tool_gate`. Agent auto-config is unchanged.
+
 ## Shadow-first
 
 - `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub.

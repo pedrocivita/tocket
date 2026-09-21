@@ -175,6 +175,12 @@ This copies a condensed markdown summary to your clipboard — current focus, re
 # Or output to stdout/file instead
 npx @pedrocivita/tocket handoff --to stdout
 npx @pedrocivita/tocket handoff --commits 10 --since 1d
+
+# Meta-attention: only chunks relevant to the query (stub without a key)
+npx @pedrocivita/tocket handoff --query "fix auth midflight" --aware --dry-run --to stdout
+
+# Conditional packs from .context/gotchas/
+npx @pedrocivita/tocket packs load --query "frontend form" --dry-run --to stdout
 ```
 
 ### Syncing progress

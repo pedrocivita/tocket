@@ -9,12 +9,16 @@ Tocket is the shared project notebook (`.context/`). Agents read and write those
 
 **Before expensive tools: tocket decide --dry-run, or read .context/decisions/.**
 
+Harness your context. Jev is the judge, not the writer. Meta-attention handoff: Jev judges chunks; workers read the filtered handoff.
+
 ## When to use
 
 - Read `AGENTS.md` and `.context/` before expensive tools.
 - If `.context/decisions/` already has a handoff, honor it. Do not re-ask Jev.
 - `tocket decide` = judge (Jev or stub). `tocket work` = plan. `tocket work --apply` = receipt.
 - Honor `tool_gate` (`allow|block|ask`). Before bash/deploy/browser: `--choice tool_gate:allow,block,ask`, then `tocket work`.
+- `tocket handoff --aware --query "..."` filters `.context/` chunks. Receipt: `.context/attention/`. Filtered handoff: `.context/handoffs/`.
+- Gotcha packs live in `.context/gotchas/`. `tocket packs load --query "..."` writes `.context/active/packs.md`.
 - After work: update `.context/activeContext.md`.
 
 ## Setup

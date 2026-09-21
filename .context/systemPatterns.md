@@ -17,7 +17,8 @@
 │     ├── doctor.cmd.ts     (deep diagnostics)          │
 │     ├── lint.cmd.ts       (context quality audit)     │
 │     ├── diff.cmd.ts       (payload vs git changes)    │
-│     ├── handoff.cmd.ts    (session context summary)   │
+│     ├── handoff.cmd.ts    (session summary; --aware filters chunks) │
+│     ├── packs.cmd.ts      (gotcha packs → active/packs.md) │
 │     ├── eject.cmd.ts      (remove scaffolding)        │
 │     ├── suite.cmd.ts      (AppMap last-run + triage + loop) │
 │     ├── decide.cmd.ts     (generic Choice/Noul → decisions/)│
@@ -37,7 +38,8 @@
 │     ├── triage.ts         (suite triage report)       │
 │     ├── decide.ts         (generic decide record)     │
 │     ├── work.ts           (reference worker, no Jev)  │
-│     └── jev.ts            (System One Choice/Noul)    │
+│     ├── jev.ts            (System One Choice/Noul)    │
+│     └── attention.ts      (chunk scores, handoff --aware, packs) │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -100,6 +102,10 @@ Files in `.context/` follow a fixed schema:
 | `progress.md` | Executor / `tocket sync` | Per milestone |
 | `appmaps/` | `tocket suite` (map copy + last-run + triage) | After mapper/suite runner, via `suite loop` or `sync` |
 | `decisions/` | `tocket decide` (handoff queues) + `tocket work` receipts | On each decide / work apply |
+| `attention/` | `tocket handoff --aware` and `tocket packs load` receipts | Each aware handoff or pack load |
+| `handoffs/` | Filtered handoff markdown | `tocket handoff --aware` |
+| `gotchas/` | Conditional section packs | Authors |
+| `active/packs.md` | Packs loaded for the current query | `tocket packs load` |
 
 ## Conventions
 
@@ -135,3 +141,5 @@ Files in `.context/` follow a fixed schema:
 | `tocket work` is the reference consumer | Reads a Choice; dry-run plan by default; `--apply` stamps notebook only; never calls Jev | 2026-09-20 |
 | File-first tool-risk gate | `tool_gate` / `action_gate` Choice (`allow\|block\|ask`); work `--apply` refuses block/ask unless `--force`; no LangChain middleware | 2026-09-21 |
 | Init writes AGENTS.md | Full init auto-config: detect/ask once for executor+architect, write AGENTS.md + matching instruction file | 2026-09-21 |
+| Meta-attention handoff | `handoff --aware` scores chunks; workers read the filtered handoff. Receipt under `.context/attention/` | 2026-09-21 |
+| Conditional packs | `.context/gotchas/` plus `tocket packs load` writes `.context/active/packs.md` | 2026-09-21 |
