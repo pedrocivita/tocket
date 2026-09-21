@@ -13,11 +13,20 @@ Jev (and similar) only **picks among options** and **saves that choice in the no
 
 Tocket é o caderno do projeto: pastas e arquivos que vários agentes leem e escrevem juntos. Não é um chat e não faz o trabalho sozinho. O Jev só escolhe entre opções e grava essa escolha no caderno.
 
+## Harness your context
+
+Tocket is a file-first harness, not a LangChain runtime. The AutoMode *pattern* (judge before irreversible tools) lives in `.context/decisions/` JSON, not in middleware. Jev is the judge, not the writer. Before bash, deploy, or browser, `tocket decide` records `tool_gate: allow|block|ask`; `tocket work --apply` honors that gate. No new runtime deps.
+
 The Context Engineering Framework for Multi-Agent Workspaces. Agents forget everything between sessions. Tocket keeps shared context in files any agent can read: no vendor lock-in, no special integrations.
 
 <p align="center">
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
+
+## What's new in 2.6.2
+
+- Tool-risk gate: `tocket decide --choice tool_gate:allow,block,ask` records allow|block|ask. `tocket work --apply` refuses `block`/`ask` (exit 2) unless `--force`. Shadow apply still needs `--force`.
+- Installer docs + auto-config: `AGENTS.md`, fuller README how-it-works, skill rules, `tocket init` writes `AGENTS.md` and the matching agent file (detect or ask once).
 
 ## What's new in 2.6.1
 
@@ -36,7 +45,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 | Piece | Role |
 | --- | --- |
 | `tocket decide` | Writes the next move as JSON under `.context/decisions/`. Does not run workers. |
-| `tocket work` | Reads that Choice and plans (default) or `--apply` a notebook receipt. Does not call Jev. |
+| `tocket work` | Reads that Choice and plans (default) or `--apply` a notebook receipt. Honors `tool_gate`. Does not call Jev. |
 | `tocket doctor` | Green/yellow/red checks for the notebook, skill file, and `TYPESAFE_API_KEY` yes/no. |
 | `tocket suite loop` | Copies AppMap + last-run into `.context/appmaps/` and triages. Suite-specific. |
 | Official skill | One-shot install. Phrase: before expensive tools, `tocket decide --dry-run` or read `.context/decisions/`. |
@@ -53,18 +62,21 @@ Tocket is a file convention. It adds a `.context/` directory to your repo with m
 
 ```
 your-project/
+  AGENTS.md               # Start here (any agent: Cursor, Claude, Gemini, Copilot, …)
   .context/
     activeContext.md      # What's happening right now
     systemPatterns.md     # How the codebase is organized
     techContext.md        # Stack and build tools
     productContext.md     # What the product is and why
     progress.md           # What's done, what's next
+    decisions/            # decide JSON + work receipts
   TOCKET.md               # Protocol rules (agent-agnostic)
-  CLAUDE.md               # Executor instructions (auto-detected per agent)
-  GEMINI.md               # Architect instructions (auto-detected per agent)
+  CLAUDE.md / .cursorrules / …  # Executor file (init detects or asks once)
+  GEMINI.md               # Architect instructions
+  .agents/skills/tocket/SKILL.md
 ```
 
-All files are plain markdown, committed to git, and readable by any tool.
+All files are plain markdown, committed to git, and readable by any tool. `npx @pedrocivita/tocket init` writes them so the preferred agent is wired without copy-paste.
 
 ## You don't need the CLI
 
@@ -79,37 +91,30 @@ The CLI automates the scaffolding, provides smart defaults, and adds quality-of-
 ## Quick Start (5 minutes)
 
 ```bash
-# 1. Notebook on disk (agents already know how to read these files)
+# 1. Self-configuring notebook (detects or asks once for Cursor / Claude / …)
 npx @pedrocivita/tocket init
+#    npx @pedrocivita/tocket init --executor Cursor --architect Gemini --force
 #    or: npx @pedrocivita/tocket init --minimal
 
-# 2. Conventions check
+# 2. Conventions check (notebook, AGENTS.md, skill, key yes/no)
 tocket doctor
 
-# 3. Next move (no API key; stub)
+# 3. Next move (no API key: stub). Jev is the judge, not the writer.
 tocket decide --dry-run --state '{"goal":"docs"}' --choice next:research,write,review
 
-# 4. Agents read the choice
+# 4. Agents read the choice (do not re-ask Jev if this file exists)
 #    .context/decisions/<research|write|review>/*.json
 
-# 5. Reference worker (plan only; never calls Jev)
+# 5. Staging: dry-run plan, then apply a notebook receipt
 tocket work --from .context/decisions/review/<file>.json
+tocket work --from .context/decisions/review/<file>.json --apply
 ```
 
 Optional one-shot skill: `npx skills add pedrocivita/tocket --skill tocket`.
 
 Optional live Jev: `export TYPESAFE_API_KEY=…` (never print the value). Without it, decide stays on the stub.
 
-Workers execute the chosen move. Tocket only writes the notebook.
-
-Configure roles if you want (defaults are Claude Code + Gemini):
-
-```bash
-npx @pedrocivita/tocket config --architect "Gemini" --executor "Claude Code"
-npx @pedrocivita/tocket
-```
-
-Every AI session starts by reading `.context/activeContext.md`.
+Workers execute the chosen move. Tocket only writes the notebook. Every AI session starts at `AGENTS.md`, then `.context/activeContext.md`.
 
 ### Safe testing — use a branch
 
@@ -189,6 +194,11 @@ tocket decide --state '{"goal":"docs"}' --choice next:research,write,review --dr
 tocket decide --from path/to/state.json --noul needs_human_review --score relevance --shadow
 tocket decide --from path/to/state.json --choice next:research,write,review --fork action --confidence-threshold 0.85
 
+# Tool-risk gate (Jev judges; workers execute; Tocket does not run tools)
+tocket decide --from path/to/state.json --choice tool_gate:allow,block,ask --shadow
+tocket work --from path/to/decision.json
+tocket work --from path/to/decision.json --apply
+
 # Reference worker (no Jev). Default is plan/dry-run.
 tocket work --from path/to/decision.json
 tocket work --apply
@@ -229,7 +239,8 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 - Payload includes `choice`, `confidence`, `destination`, `state`, `fork`, and `executes: false`.
 - Primitives: Choice + Noul now; `--score name` or `--score name:min,max` is optional. All flags batch into one System One request.
 - Research/write route only when confidence >= 0.85 (override with `--confidence-threshold`). Below that, `destination` is `review` and `gated` is true.
-- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews.
+- `--fork agent|model|tool|action|human` (default `action`). `--fork human` always reviews. `--fork model` is the existing cheap model-router hook (no extra UX in this release).
+- `--choice tool_gate:allow,block,ask` (or `action_gate`) records a tool-risk gate. `tocket work --apply` refuses `block` and `ask` unless `--force`.
 - `--dry-run` or no `TYPESAFE_API_KEY`: deterministic stub. With a key: live Jev. `--shadow`: live call, `semantics: log-only`.
 - `tocket suite triage` is suite-specific (last-run failures). Suite loop still calls triage, not decide.
 
@@ -252,7 +263,7 @@ State → Questions (batched) → Action (this file) → Verify (the consumer)
 
 `tocket decide` writes. `tocket work` is the first-party consumer: it reads a Choice and acts on the notebook only. It does not call Jev, open a browser, or edit application code.
 
-Default is a dry-run plan (choice, destination, confidence, gated). `--apply` writes `<id>.applied.json` next to the decision and a `worker applied: next=…` line into `.context/progress.md`. Shadow / `semantics: log-only` decisions refuse `--apply` with exit 2 unless `--force` (receipt then has `applied_from_shadow: true`). Missing or invalid JSON exits 1.
+Default is a dry-run plan (choice, destination, confidence, gated, tool_gate). `--apply` writes `<id>.applied.json` next to the decision and a `worker applied: next=…` line into `.context/progress.md`. Shadow / `semantics: log-only` decisions refuse `--apply` with exit 2 unless `--force` (receipt then has `applied_from_shadow: true`). A `tool_gate` of `block` or `ask` also refuses `--apply` (exit 2; `ask` tells you to escalate to a human) unless `--force`. Missing or invalid JSON exits 1.
 
 A later `--backend laya` (local Apple Silicon) is not implemented. Today: stub, or live Jev with `TYPESAFE_API_KEY`.
 
@@ -268,6 +279,28 @@ Thin wrapper: `scripts/tempestivita-loop.sh` (sets `--app tempestivita` and `--m
 
 ## How it works
 
+Installers (`npm i` / `npx`) get ready context in the package. Any agent that can read files is productive after `init` + `doctor` + the skill phrase.
+
+```
+init (detect agent, write AGENTS.md + instruction files)
+  → doctor (notebook green/yellow/red; TYPESAFE_API_KEY yes/no)
+  → decide (Jev or stub writes .context/decisions/)
+  → work          dry-run plan (never calls Jev)
+  → work --apply  notebook receipt if tool_gate allows
+```
+
+| Piece | Role |
+| --- | --- |
+| `.context/` | Shared notebook. Read before acting. Update after work. |
+| `AGENTS.md` | Single source agents read first. Decide vs work, never re-ask Jev, honor `tool_gate`. |
+| `tocket decide` | Judge. Writes allow/block/ask or the next move. Does not run tools. |
+| `tocket work` | Staging: plan by default, `--apply` stamps a receipt. Honors `tool_gate`. |
+| `tool_gate` | `allow` proceeds. `block` stops. `ask` escalates to a human. `--force` overrides. |
+| `--fork model` | Cheap model-router hook (bounded forks: agent, model, tool, action, human). |
+| Shadow-first | `--dry-run` / `--shadow` is log-only. Shadow apply still needs `--force`. |
+| `tocket doctor` | Checks `.context/`, `AGENTS.md`, skill, last decision, key yes/no. |
+| Skill | `npx skills add pedrocivita/tocket --skill tocket`. Same rules as `AGENTS.md`. |
+
 ### Memory Bank
 
 The `.context/` directory is the project's shared memory. Agents read it before acting and update it after completing work. Context lives in files, not in chat history.
@@ -281,6 +314,7 @@ The `.context/` directory is the project's shared memory. Agents read it before 
 | `progress.md` | Milestones and completed work | Per milestone |
 | `appmaps/` | Optional AppMap index + map copy + last-run + triage | `tocket suite loop` / `sync` |
 | `decisions/` | Choice/Noul handoff queues (`research/`, `write/`, `review/`) plus `*.applied.json` receipts | `tocket decide` / `tocket work` |
+| `AGENTS.md` (repo root) | Agent-first rules: decide vs work, `tool_gate`, do not re-ask Jev | `tocket init` / `tocket agents-md` |
 
 ### Triangulation
 
@@ -376,6 +410,7 @@ Don't see your agent? It still works — unknown agents get generic files, and y
 | [Getting Started](docs/GETTING_STARTED.md) | Set up your first Tocket workspace in 5 minutes |
 | [Developer Guide](docs/DEVELOPERS_GUIDE.md) | How to run the Tocket protocol safely in any project |
 | [Tocket Rules](docs/TOCKET_RULES.md) | Complete reference for all protocol rules |
+| [AGENTS.md](AGENTS.md) | What agents read first (decide vs work, tool_gate) |
 | [Protocol Spec](TOCKET.md) | The agent-agnostic protocol specification |
 | [Walkthrough](examples/walkthrough.md) | End-to-end payload exchange example |
 

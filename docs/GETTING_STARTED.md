@@ -21,17 +21,18 @@ After setup, your project will have:
 
 ```
 your-project/
+  AGENTS.md               # What agents read first
   .context/
     activeContext.md      # Current session focus
     systemPatterns.md     # Architecture decisions
     decisions/            # Next move from `tocket decide`
   .agents/skills/tocket/SKILL.md
   TOCKET.md               # Protocol spec (for any AI)
-  CLAUDE.md               # Executor instructions (for Claude Code)
+  CLAUDE.md / .cursorrules / …  # Executor file (init detects or asks once)
   GEMINI.md               # Architect instructions (for Gemini)
 ```
 
-Phrase for any agent: `Before expensive tools: tocket decide --dry-run, or read .context/decisions/.` Consume a handoff with `tocket work` (plan) or `tocket work --apply` (notebook receipt; never calls Jev).
+Phrase for any agent: `Before expensive tools: tocket decide --dry-run, or read .context/decisions/.` Before bash/deploy/browser, record `tool_gate:allow,block,ask` then `tocket work`. Consume a handoff with `tocket work` (plan) or `tocket work --apply` (notebook receipt; never calls Jev).
 
 One-shot skill install: `npx skills add pedrocivita/tocket --skill tocket`. Then `tocket doctor` lists the same files.
 
@@ -47,6 +48,8 @@ Or run the init command directly:
 
 ```bash
 npx @pedrocivita/tocket init
+# or non-interactive:
+npx @pedrocivita/tocket init --name myproject --description "My app" --executor Cursor --force
 ```
 
 ## Option B: Manual setup

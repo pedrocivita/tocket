@@ -1,6 +1,6 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
@@ -30,6 +30,7 @@ describe("init --minimal", () => {
     // Non-essential files should NOT exist
     assert.ok(!existsSync(join(tempDir, "CLAUDE.md")));
     assert.ok(!existsSync(join(tempDir, "GEMINI.md")));
+    assert.ok(!existsSync(join(tempDir, "AGENTS.md")));
     assert.ok(!existsSync(join(tempDir, ".cursorrules")));
     assert.ok(!existsSync(join(tempDir, ".context", "productContext.md")));
     assert.ok(!existsSync(join(tempDir, ".context", "techContext.md")));
@@ -46,8 +47,19 @@ describe("init --name --description (non-interactive)", () => {
 
   it("creates full workspace without interactive prompts", () => {
     const stdout = execSync(
-      `node "${cliPath}" init --name flagproject --description "Flag desc" --force`,
-      { cwd: tempDir, encoding: "utf-8" },
+      `node "${cliPath}" init --name flagproject --description "Flag desc" --executor "Claude Code" --architect Gemini --force`,
+      {
+        cwd: tempDir,
+        encoding: "utf-8",
+        env: {
+          ...process.env,
+          CURSOR_TRACE_ID: "",
+          CURSOR_AGENT: "",
+          CURSOR: "",
+          CLAUDECODE: "",
+          CLAUDE_CODE: "",
+        },
+      },
     );
 
     // All 8 files should exist (not minimal, no .cursorrules by default)
@@ -64,7 +76,11 @@ describe("init --name --description (non-interactive)", () => {
     assert.match(skill, /npx skills add pedrocivita\/tocket --skill tocket/);
     // .cursorrules is only generated when executor is Cursor
     assert.ok(!existsSync(join(tempDir, ".cursorrules")));
+    assert.ok(existsSync(join(tempDir, "AGENTS.md")));
+    assert.match(readFileSync(join(tempDir, "AGENTS.md"), "utf-8"), /tool_gate/);
+    assert.match(readFileSync(join(tempDir, "AGENTS.md"), "utf-8"), /Do not call `tocket decide` again/);
     assert.match(stdout, /npx skills add pedrocivita\/tocket --skill tocket/);
+    assert.match(stdout, /Agents: executor=Claude Code/);
     assert.match(stdout, /Before expensive tools: tocket decide --dry-run/);
     assert.match(stdout, /\.agents\/skills\/tocket\/SKILL\.md/);
   });
@@ -98,6 +114,44 @@ describe("init --minimal file count", () => {
     for (const f of skippedContextFiles) {
       assert.ok(!existsSync(join(contextDir, f)), `${f} should not exist in minimal mode`);
     }
+  });
+});
+
+describe("init --executor Cursor", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "tocket-init-cursor-"));
+
+  after(() => {
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("detects Cursor from env and writes .cursorrules", () => {
+    const envDir = join(tempDir, "from-env");
+    mkdirSync(envDir, { recursive: true });
+    const stdout = execSync(
+      `node "${cliPath}" init --name envcursor --description "From env" --force`,
+      {
+        cwd: envDir,
+        encoding: "utf-8",
+        env: { ...process.env, CURSOR_TRACE_ID: "test-trace", CLAUDECODE: "", CLAUDE_CODE: "" },
+      },
+    );
+    assert.ok(existsSync(join(envDir, ".cursorrules")));
+    assert.ok(existsSync(join(envDir, "AGENTS.md")));
+    assert.ok(!existsSync(join(envDir, "CLAUDE.md")));
+    assert.match(stdout, /executor=Cursor \(\.cursorrules, env\)/);
+  });
+
+  it("writes .cursorrules and AGENTS.md without a human tutorial", () => {
+    const stdout = execSync(
+      `node "${cliPath}" init --name cursorproj --description "Cursor app" --executor Cursor --architect Gemini --force`,
+      { cwd: tempDir, encoding: "utf-8" },
+    );
+    assert.ok(existsSync(join(tempDir, ".cursorrules")));
+    assert.ok(existsSync(join(tempDir, "AGENTS.md")));
+    assert.ok(existsSync(join(tempDir, "GEMINI.md")));
+    assert.ok(!existsSync(join(tempDir, "CLAUDE.md")));
+    assert.match(readFileSync(join(tempDir, ".cursorrules"), "utf-8"), /tool_gate/);
+    assert.match(stdout, /executor=Cursor \(\.cursorrules, flag\)/);
   });
 });
 

@@ -48,6 +48,7 @@ export function checkStale(basePath: string, relativePath: string): CheckResult 
 
 export function checkAgentFile(basePath: string): CheckResult {
   const agentFiles = [
+    "AGENTS.md",
     "CLAUDE.md",
     "GEMINI.md",
     "EXECUTOR.md",

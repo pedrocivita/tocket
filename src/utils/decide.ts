@@ -21,6 +21,9 @@ export const HIGH_CONFIDENCE_ROUTES = ["research", "write"] as const;
 export const BOUNDED_FORKS = ["agent", "model", "tool", "action", "human"] as const;
 export const DECIDE_LOOP = "state-questions-action-verify";
 export const RANK_WIDE_MIN = 5;
+/** Well-known Choice names for the file-first tool-risk gate (AutoMode pattern, not LangChain APIs). */
+export const TOOL_GATE_NAMES = ["tool_gate", "action_gate"] as const;
+export const TOOL_GATE_OPTIONS = ["allow", "block", "ask"] as const;
 
 export type QueueDestination = (typeof QUEUE_DESTINATIONS)[number];
 export type BoundedFork = (typeof BOUNDED_FORKS)[number];
@@ -29,6 +32,8 @@ export type DecideSource = "jev" | "stub";
 export type DecideSemantics = "handoff" | "log-only";
 export type DecideHandoffStatus = "queued" | "logged";
 export type DecidePrimitive = "choice" | "noul" | "score";
+export type ToolGate = (typeof TOOL_GATE_OPTIONS)[number];
+export type ToolGateName = (typeof TOOL_GATE_NAMES)[number];
 
 export interface DecideChoiceSpec {
   name: string;
@@ -82,6 +87,11 @@ export interface DecideRecord {
   /** Queue hint: research | write | review. Low-confidence research/write becomes review. */
   destination: QueueDestination;
   gated: boolean;
+  /**
+   * Tool-risk gate from a `tool_gate` / `action_gate` Choice (`allow|block|ask`).
+   * Null when the handoff has no gate question. Independent of Codila `gated`.
+   */
+  tool_gate: ToolGate | null;
   confidence_threshold: number;
   /** handoff = workers may consume; log-only = shadow/dry-run (Tocket does not run workers). */
   semantics: DecideSemantics;
@@ -187,6 +197,9 @@ const CODILA_CRITERIA: Record<string, string> = {
   research: "Collect evidence still needed for the goal.",
   write: "Draft from sufficient evidence.",
   review: "Goal unclear, outside scope, or work complete.",
+  allow: "The proposed tool or action is in scope and reversible enough to proceed.",
+  block: "Refuse the proposed tool or action; too risky or out of scope.",
+  ask: "Escalate to a human before running the proposed tool or action.",
 };
 
 export function choiceCriterion(option: string): string {
@@ -199,6 +212,45 @@ export function isQueueDestination(value: string): value is QueueDestination {
 
 export function isHighConfidenceRoute(value: string): boolean {
   return (HIGH_CONFIDENCE_ROUTES as readonly string[]).includes(value);
+}
+
+export function isToolGateName(name: string): boolean {
+  return (TOOL_GATE_NAMES as readonly string[]).includes(name);
+}
+
+export function isToolGate(value: string | null | undefined): value is ToolGate {
+  return value != null && (TOOL_GATE_OPTIONS as readonly string[]).includes(value);
+}
+
+export function parseToolGate(value: unknown): ToolGate | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return isToolGate(normalized) ? normalized : null;
+}
+
+/** Read a well-known `tool_gate` / `action_gate` Choice from answers. */
+export function extractToolGate(answers: Record<string, DecideAnswer>): ToolGate | null {
+  for (const name of TOOL_GATE_NAMES) {
+    const answer = answers[name];
+    if (answer?.type === "choice") {
+      const parsed = parseToolGate(answer.choice);
+      if (parsed) return parsed;
+    }
+  }
+  return null;
+}
+
+export function resolveRecordToolGate(record: {
+  tool_gate?: ToolGate | null;
+  answers?: Record<string, DecideAnswer>;
+}): ToolGate | null {
+  const explicit = parseToolGate(record.tool_gate);
+  if (explicit) return explicit;
+  return extractToolGate(record.answers ?? {});
+}
+
+export function toolGateRefusesApply(gate: ToolGate | null): boolean {
+  return gate === "block" || gate === "ask";
 }
 
 export function parseConfidenceThreshold(raw?: string | number): number {
@@ -608,7 +660,12 @@ subfolder when the Choice maps cleanly). No app hooks, no runtime pollution.
 Research/write route only when confidence >= ${DEFAULT_CONFIDENCE_THRESHOLD}
 (configurable). Below that, \`destination\` is \`review\` (\`gated: true\`).
 
+A \`tool_gate\` / \`action_gate\` Choice (\`allow|block|ask\`) is the file-first
+tool-risk gate. \`tocket work --apply\` refuses \`block\` and \`ask\` unless \`--force\`.
+Jev (or the stub) is the judge; workers execute; Tocket does not run tools.
+
 Bounded forks: \`--fork agent|model|tool|action|human\`. \`human\` always reviews.
+\`--fork model\` is the cheap model-router hook (no extra UX in this release).
 Questions batch into one System One request. Loop: State → Questions → Action (this file) → Verify (consumer).
 
 \`--dry-run\` uses the deterministic stub. \`--shadow\` may call Jev when
@@ -621,7 +678,9 @@ export function parseDecideRecord(raw: string): DecideRecord {
   if (!isRecord(value) || (value as { schema?: unknown }).schema !== DECIDE_SCHEMA) {
     throw new DecideError(`Invalid decision record (expected ${DECIDE_SCHEMA})`);
   }
-  return value as DecideRecord;
+  const record = value as DecideRecord;
+  record.tool_gate = resolveRecordToolGate(record);
+  return record;
 }
 
 export function formatDecideSummary(record: DecideRecord, relPath: string): string {
@@ -636,7 +695,8 @@ export function formatDecideSummary(record: DecideRecord, relPath: string): stri
     }
   }
   const gate = record.gated ? "gated" : "route";
-  return `decide ${bits.join("  ")}  dest=${record.destination}  ${gate}  source=${record.source}  mode=${record.mode}  ${relPath}`;
+  const toolGate = record.tool_gate ? `  tool_gate=${record.tool_gate}` : "";
+  return `decide ${bits.join("  ")}  dest=${record.destination}  ${gate}${toolGate}  source=${record.source}  mode=${record.mode}  ${relPath}`;
 }
 
 function ensureDecisionsDir(cwd: string): string {
@@ -720,6 +780,7 @@ export async function runDecide(options: RunDecideOptions): Promise<{
     confidence: primary.confidence,
     destination,
     gated,
+    tool_gate: extractToolGate(answers),
     confidence_threshold: threshold,
     semantics,
     status,

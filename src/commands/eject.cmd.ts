@@ -8,6 +8,7 @@ import { success, warn, info, dim } from "../utils/theme.js";
 /** Files created by `tocket init` that eject should remove. */
 export const EJECT_FILES = [
   "TOCKET.md",
+  "AGENTS.md",
   "CLAUDE.md",
   "GEMINI.md",
   ".cursorrules",
@@ -34,7 +35,7 @@ export function registerEjectCommand(program: Command): void {
       if (!options.force) {
         const ok = await confirm({
           message:
-            "This will permanently remove .context/, CLAUDE.md, GEMINI.md, TOCKET.md, and .cursorrules. Continue?",
+            "This will permanently remove .context/, AGENTS.md, CLAUDE.md, GEMINI.md, TOCKET.md, and .cursorrules. Continue?",
           default: false,
         });
         if (!ok) {

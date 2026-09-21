@@ -14,6 +14,8 @@ import {
   techContextMd,
   progressMd,
   cursorrulesMd,
+  agentsMd,
+  agentsProtocolSection,
   tocketSkillMd,
   tocketConventionsHint,
   TOCKET_SKILL_REL,
@@ -138,6 +140,8 @@ describe("tocketMd", () => {
   it("references default executor and architect files in Quick Start", () => {
     assert.ok(output.includes("CLAUDE.md"));
     assert.ok(output.includes("GEMINI.md"));
+    assert.ok(output.includes("AGENTS.md"));
+    assert.ok(output.includes("tool_gate"));
   });
 
   it("accepts custom file names in Quick Start", () => {
@@ -301,7 +305,7 @@ describe("tocketSkillMd", () => {
     assert.ok(output.includes("tocket decide"));
     assert.ok(output.includes("tocket doctor"));
     assert.ok(output.includes("Never paste API keys"));
-    assert.ok(output.split("\n").length < 40);
+    assert.ok(output.split("\n").length < 50);
     assert.equal(TOCKET_SKILL_REL, ".agents/skills/tocket/SKILL.md");
   });
 
@@ -326,9 +330,22 @@ describe("tocketSkillMd", () => {
     const hint = tocketConventionsHint();
     assert.ok(hint.includes(".context/"));
     assert.ok(hint.includes(".context/decisions/"));
+    assert.ok(hint.includes("AGENTS.md"));
     assert.ok(hint.includes(TOCKET_SKILL_REL));
     assert.ok(hint.includes(TOCKET_SKILLS_ADD));
     assert.ok(hint.includes(TOCKET_AGENT_PHRASE));
+  });
+});
+
+describe("agentsMd", () => {
+  it("is the agent-first source for decide vs work and tool_gate", () => {
+    const output = agentsMd("Demo", "A demo app", "Cursor", "Gemini");
+    assert.ok(output.includes("# AGENTS.md — Demo"));
+    assert.ok(output.includes("A demo app"));
+    assert.ok(agentsProtocolSection().includes("tool_gate"));
+    assert.ok(output.includes("Do not call `tocket decide` again"));
+    assert.ok(output.includes("TYPESAFE_API_KEY"));
+    assert.ok(output.includes("Cursor"));
   });
 });
 

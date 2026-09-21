@@ -32,7 +32,8 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
-6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
+6. **Before expensive tools** — Read \`AGENTS.md\` and \`.context/decisions/\` first. If a handoff exists, honor it (do not re-ask Jev). Else run \`tocket decide\`. Workers execute. Tocket does not.
+7. **Tool-risk gate** — Before bash, deploy, or browser: \`tocket decide --choice tool_gate:allow,block,ask\`, then \`tocket work\`. Honor \`allow|block|ask\`. Consume with \`tocket work\` (plan) or \`tocket work --apply\` (receipt).
 
 ---
 
@@ -83,6 +84,7 @@ Your job is to **analyze, plan, and decide**. You do not write code directly —
 3. **Never write code inline** — Provide specs, not implementations. The Executor handles code.
 4. **Update systemPatterns.md** — When you make architectural decisions, record them.
 5. **Think in constraints** — Define what the system should and should not do.
+6. **Jev is the judge, not the writer** — Cheap next-move Choice goes to \`tocket decide\`. Do not ask Jev to write prose or run tools.
 
 ---
 
@@ -278,7 +280,8 @@ Your job is to **implement**, not to plan. Read the Memory Bank before every ses
 3. **Ask before deviating** — If the plan is unclear or blocked, ask the user. Do not improvise architecture.
 4. **Write code in English** — Variables, functions, comments, commits — all in \`en-US\`.
 5. **Update Memory Bank on completion** — After finishing a task, update activeContext.md with what changed.
-6. **Before expensive tools** — Run \`tocket decide\` or read the latest file in \`.context/decisions/\`. Workers execute. Tocket does not.
+6. **Before expensive tools** — Read \`AGENTS.md\` and \`.context/decisions/\` first. If a handoff exists, honor it (do not re-ask Jev). Else run \`tocket decide\`.
+7. **Tool-risk gate** — Before bash, deploy, or browser: \`tocket decide --choice tool_gate:allow,block,ask\`, then \`tocket work\`. Honor \`allow|block|ask\`.
 
 ## Memory Bank
 
@@ -328,6 +331,8 @@ Project context lives in \`.context/\`, not in chat history. **Read it before do
 - **Trust the files** — If \`.context/\` says the project uses ESM, it uses ESM. Don't second-guess documented decisions.
 - **Don't duplicate** — Context belongs in \`.context/\`, not scattered in code comments or chat summaries.
 - **Decide is a file** — \`tocket decide\` writes the next move into \`.context/decisions/\`. Before expensive tools, run it or read the latest decision. Consume it with \`tocket work\` (plan) or \`tocket work --apply\` (notebook receipt). Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not re-decide.
+- **Do not re-ask Jev** — If a decision file already exists, honor \`choice\`, \`destination\`, \`gated\`, and \`tool_gate\`. Call \`tocket work\`, not \`tocket decide\` again.
+- **Tool-risk gate** — \`tool_gate\` / \`action_gate\` is \`allow|block|ask\`. \`tocket work --apply\` refuses \`block\` and \`ask\` unless \`--force\`. Shadow / log-only still needs \`--force\`.
 
 ---
 
@@ -395,13 +400,44 @@ A payload is the structured handoff from Architect to Executor.
 
 ---
 
+## 4. Decide and work
+
+Jev (or the stub) is the **judge**, not the writer. \`tocket decide\` writes JSON. \`tocket work\` plans (default) then \`--apply\` stamps a notebook receipt. Tocket does not run tools.
+
+| Step | Command | Rule |
+| --- | --- | --- |
+| Judge | \`tocket decide\` | Writes \`.context/decisions/\`. Shadow-first: \`--dry-run\` / \`--shadow\` is log-only. Optional \`TYPESAFE_API_KEY\` (stub without it). |
+| Gate | \`--choice tool_gate:allow,block,ask\` | Before bash, deploy, or browser. |
+| Plan | \`tocket work --from <decision>\` | Dry-run. Never calls Jev. |
+| Apply | \`tocket work --apply\` | Receipt only if gate is \`allow\` or missing. \`block\`/\`ask\` exit 2 unless \`--force\`. |
+| Fork | \`--fork agent\\|model\\|tool\\|action\\|human\` | Bounded. \`--fork model\` is the cheap model-router hook. \`human\` always reviews. |
+
+---
+
 ## Quick Start
 
-1. Read this file (\`TOCKET.md\`)
+1. Read \`AGENTS.md\` (single source agents read first), then this file (\`TOCKET.md\`)
 2. Read \`.context/activeContext.md\` for current state
 3. Read your role-specific config (\`${executorFile}\` or \`${architectFile}\`)
-4. Proceed with your task, following the Memory Bank rules above
+4. If \`.context/decisions/\` already has a handoff, honor it. Do not re-ask Jev.
+5. Proceed with your task, following the Memory Bank rules above
 `;
+
+/** Shared decide/work/gate rules for AGENTS.md (init template and `tocket agents-md`). */
+export function agentsProtocolSection(): string {
+  return `## How Tocket works
+
+Tocket is the shared notebook (\`.context/\`). Agents work. Tocket remembers. Jev only chooses the next step.
+
+1. Read this file, then \`.context/activeContext.md\` and \`.context/systemPatterns.md\`, before expensive tools.
+2. If \`.context/decisions/\` already has a handoff, honor \`choice\`, \`destination\`, \`gated\`, and \`tool_gate\`. Do not call \`tocket decide\` again (do not re-ask Jev).
+3. \`tocket decide\` is the judge (Jev or stub). \`tocket work\` is the plan (dry-run). \`tocket work --apply\` stamps a notebook receipt. Never re-decide.
+4. Honor \`tool_gate\`: \`allow\` proceeds, \`block\` stops, \`ask\` escalates to a human. Shadow / log-only is advice unless \`--force\`.
+5. Before bash, deploy, or browser: \`tocket decide --choice tool_gate:allow,block,ask\`, then \`tocket work\`.
+
+Optional \`TYPESAFE_API_KEY\` for live Jev. Without it, decide uses the stub. Prefer \`--dry-run\` or \`--shadow\` first.
+`;
+}
 
 export const agentsMd = (
   projectName: string,
@@ -411,7 +447,7 @@ export const agentsMd = (
 ) =>
   `# AGENTS.md — ${projectName}
 
-> Auto-generated by [Tocket](https://tocket.ai) from \`.context/\`. Do not edit manually — run \`tocket agents-md\` to regenerate.
+> Written by \`tocket init\`. Refresh project facts with \`tocket agents-md\`. Keep the decide/work rules below.
 
 ## About this project
 
@@ -419,11 +455,12 @@ ${description || "_No description provided._"}
 
 ## Instructions for AI agents
 
-1. Read \`.context/activeContext.md\` for current focus and recent changes
+1. Read this file first, then \`.context/activeContext.md\`
 2. Read \`.context/systemPatterns.md\` for architecture decisions and conventions
 3. Update \`.context/activeContext.md\` after completing significant work
 4. Follow the full protocol in \`TOCKET.md\`
 
+${agentsProtocolSection()}
 ## Current Focus
 
 _Generated from .context/activeContext.md. Run \`tocket agents-md\` to update._
@@ -439,7 +476,7 @@ _Generated from .context/systemPatterns.md. Run \`tocket agents-md\` to update._
 ## Key Rules
 
 - Write all code, comments, and commits in \`en-US\`
-- Do not improvise architecture — follow documented decisions
+- Do not improvise architecture. Follow documented decisions
 - Context belongs in \`.context/\`, not in code comments or chat
 - Triangulation: ${architectName} (Architect) + ${executorName} (Executor)
 `;
@@ -455,6 +492,7 @@ export const TOCKET_AGENT_PHRASE =
 export function tocketConventionsHint(): string {
   return [
     "On disk (agents already read these):",
+    "  AGENTS.md                      start here (any agent)",
     "  .context/                      shared notebook",
     "  .context/decisions/            next move (tocket decide)",
     `  ${TOCKET_SKILL_REL}  official skill`,
@@ -476,9 +514,10 @@ Tocket is the shared project notebook (\`.context/\`). Agents read and write tho
 
 ## When to use
 
-- Before an expensive tool or long run: \`tocket decide --dry-run …\` or read the latest file under \`.context/decisions/\`.
-- Honor the latest decision (\`choice\`, \`destination\`, \`gated\`). If \`semantics\` is \`log-only\` or \`mode\` is \`shadow\`/\`dry-run\`, treat it as advice.
-- Consume a handoff without re-deciding: \`tocket work\` (plan) or \`tocket work --apply\` (notebook receipt).
+- Read \`AGENTS.md\` and \`.context/\` before expensive tools.
+- If \`.context/decisions/\` already has a handoff, honor it. Do not re-ask Jev.
+- \`tocket decide\` = judge (Jev or stub). \`tocket work\` = plan. \`tocket work --apply\` = receipt.
+- Honor \`tool_gate\` (\`allow|block|ask\`). Before bash/deploy/browser: \`--choice tool_gate:allow,block,ask\`, then \`tocket work\`.
 - After work: update \`.context/activeContext.md\`.
 
 ## Setup

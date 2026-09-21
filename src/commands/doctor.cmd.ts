@@ -205,6 +205,13 @@ export function checkNotebookLight(cwd: string, env: NodeJS.ProcessEnv = process
 
   results.push(checkTypesafeKeyPresent(env));
 
+  const agentsMdPath = join(cwd, "AGENTS.md");
+  if (existsSync(agentsMdPath)) {
+    results.push({ icon: PASS, message: "AGENTS.md found" });
+  } else {
+    results.push({ icon: WARN, message: "AGENTS.md missing (run tocket init, or tocket agents-md)" });
+  }
+
   const skillPath = join(cwd, TOCKET_SKILL_REL);
   if (existsSync(skillPath)) {
     results.push({ icon: PASS, message: `${TOCKET_SKILL_REL} found` });

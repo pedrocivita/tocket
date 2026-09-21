@@ -1,0 +1,6 @@
+{
+  "tool": "bash",
+  "action": "npm publish --access public",
+  "risk": "irreversible deploy",
+  "note": "block this until a human reviews"
+}

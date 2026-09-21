@@ -36,6 +36,11 @@ Workers (Cursor, Claude, GrokBot, CI) execute. Tocket does not.
   Phrase: ${TOCKET_AGENT_PHRASE}
   Optional TYPESAFE_API_KEY for live Jev; otherwise the stub
 
+Tool-risk gate (file-first; Jev judges, workers execute):
+  tocket decide --from state.json --choice tool_gate:allow,block,ask --shadow
+  tocket work --from <decision>
+  tocket work --from <decision> --apply
+
 A future --backend laya (local Apple Silicon) is not implemented yet.
 `,
     )
