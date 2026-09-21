@@ -5,5 +5,10 @@ export function lf(text: string): string {
 
 /** Normalize OS separators for assertions against filesystem paths. */
 export function posixPath(text: string): string {
-  return text.split("\\").join("/");
+  return text.split(/[\\/]/g).join("/");
+}
+
+/** True when hay contains needle after both sides use posix separators. */
+export function includesPath(hay: string, needle: string): boolean {
+  return posixPath(hay).includes(posixPath(needle));
 }

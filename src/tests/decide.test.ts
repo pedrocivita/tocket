@@ -38,7 +38,7 @@ import {
 } from "../utils/decide.js";
 import { askJev, buildTriageQuestions } from "../utils/jev.js";
 import { evaluateDecideStub } from "../eval/decide-eval.js";
-import { posixPath } from "./helpers.js";
+import { posixPath, includesPath } from "./helpers.js";
 
 const cliPath = join(import.meta.dirname, "..", "index.js");
 const fixturesDir = join(import.meta.dirname, "..", "..", "fixtures");
@@ -342,7 +342,7 @@ describe("tocket decide", () => {
     assert.equal(record.semantics, "log-only");
     assert.equal(record.destination, "review");
     assert.equal(record.gated, true);
-    assert.ok(outPath.includes(`${DECISIONS_DIR}/review`));
+    assert.ok(includesPath(outPath, `${DECISIONS_DIR}/review`));
     assert.ok(isInsideContext(cwd, outPath));
   });
 
@@ -411,7 +411,7 @@ describe("tocket decide", () => {
     assert.equal(record.confidence, 0.91);
     assert.equal(record.destination, "write");
     assert.equal(record.gated, false);
-    assert.ok(outPath.includes(`${DECISIONS_DIR}/write`));
+    assert.ok(includesPath(outPath, `${DECISIONS_DIR}/write`));
     assert.ok(isInsideContext(cwd, outPath));
   });
 
@@ -431,7 +431,7 @@ describe("tocket decide", () => {
     assert.ok(record.confidence >= 0.7);
     assert.equal(record.destination, "write");
     assert.equal(record.gated, false);
-    assert.ok(outPath.includes(`${DECISIONS_DIR}/write`));
+    assert.ok(includesPath(outPath, `${DECISIONS_DIR}/write`));
   });
 
   it("dry-run ignores TYPESAFE_API_KEY and does not call Jev", async () => {
@@ -504,7 +504,7 @@ describe("tocket decide", () => {
     assert.equal(record.fork, "human");
     assert.equal(record.destination, "review");
     assert.equal(record.gated, true);
-    assert.ok(outPath.includes("/review/"));
+    assert.ok(includesPath(outPath, "/review/"));
   });
 
   it("records tool_gate from a well-known Choice (stub, no network)", async () => {

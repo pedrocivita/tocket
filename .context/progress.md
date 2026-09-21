@@ -157,6 +157,12 @@ b6d1ded feat: release v2.2.0 - doctor, lint, minimal init, CI-friendly flags
 
 ---
 
+## Session: 2026-09-21 (Windows path/init 2.6.4)
+
+**Summary**: v2.6.4. Shared `toRepoRelative` for suite loop/triage, doctor last-decision, and init created-path printing (posix `/`). Decide tests use `includesPath` so raw `outPath` backslashes match `.context/decisions/{review,write}`. Cursor env lookup is case-insensitive; init CLI tests isolate `HOME`/`USERPROFILE` so `~/.tocketrc.json` cannot hide `CURSOR_*` detection.
+
+---
+
 ## Session: 2026-09-21 (Windows test/path)
 
 **Summary**: v2.6.3. Skill/template equality tests normalize CRLF vs LF (git `core.autocrlf` on Windows). `toRepoRelative` uses posix `/` in CLI `from=` lines, decide/work summaries, and receipt `decision_path`. 2.6.2 never published successfully.

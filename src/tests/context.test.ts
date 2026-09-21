@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { extractFocus, STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
+import { extractFocus, STALENESS_THRESHOLD_DAYS, toRepoRelative } from "../utils/context.js";
 
 describe("extractFocus", () => {
   it("extracts the first line after ## Current Focus", () => {
@@ -45,5 +45,22 @@ describe("STALENESS_THRESHOLD_DAYS", () => {
 
   it("equals 7", () => {
     assert.equal(STALENESS_THRESHOLD_DAYS, 7);
+  });
+});
+
+describe("toRepoRelative", () => {
+  it("emits posix display paths for absolute files under cwd", () => {
+    const cwd = "/tmp/tocket-rel";
+    assert.equal(
+      toRepoRelative(cwd, "/tmp/tocket-rel/.context/appmaps/tempestivita.triage.json"),
+      ".context/appmaps/tempestivita.triage.json",
+    );
+  });
+
+  it("posixifies already-relative Windows separators", () => {
+    assert.equal(
+      toRepoRelative("/tmp/proj", ".context\\appmaps\\tempestivita.triage.json"),
+      ".context/appmaps/tempestivita.triage.json",
+    );
   });
 });

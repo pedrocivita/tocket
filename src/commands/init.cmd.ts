@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { input, confirm, select } from "@inquirer/prompts";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join, dirname } from "node:path";
+import { toRepoRelative } from "../utils/context.js";
 import { banner, heading, info, success, warn, dim } from "../utils/theme.js";
 import { isContextIgnored } from "../utils/git.js";
 import { getConfig, updateConfig } from "../utils/config.js";
@@ -312,7 +313,7 @@ export function registerInitCommand(program: Command): void {
             default: false,
           });
           if (!overwrite) {
-            console.log("  " + dim(`skipped ${filePath}`));
+            console.log("  " + dim(`skipped ${toRepoRelative(cwd, filePath)}`));
             continue;
           }
         }
@@ -323,7 +324,7 @@ export function registerInitCommand(program: Command): void {
         const content = userContent ?? builtInContent;
 
         await writeFile(fullPath, content, "utf-8");
-        console.log("  " + success(`${exists ? "updated" : "created"} ${filePath}`));
+        console.log("  " + success(`${exists ? "updated" : "created"} ${toRepoRelative(cwd, filePath)}`));
       }
 
       const gitignoreWarning = checkGitignoreConflict(cwd);

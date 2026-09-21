@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
+import { toRepoRelative } from "../utils/context.js";
 import {
   APPMAPS_DIR,
   APPMAPS_GOALS,
@@ -185,7 +186,7 @@ async function runLoop(
         dryRun: options.dryRun === true,
       });
       report = result.report;
-      triageRel = result.outPath.startsWith(cwd) ? relative(cwd, result.outPath) : result.outPath;
+      triageRel = toRepoRelative(cwd, result.outPath);
       written.push(triageRel);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -197,9 +198,9 @@ async function runLoop(
 
   console.log(heading("\n  AppMap loop\n"));
   console.log("  " + info(`app: ${app}`));
-  console.log("  " + info(`map source: ${relative(cwd, mapSource) || mapSource}`));
+  console.log("  " + info(`map source: ${toRepoRelative(cwd, mapSource) || mapSource}`));
   for (const path of written) {
-    console.log(success(`  wrote ${path}`));
+    console.log(success(`  wrote ${toRepoRelative(cwd, path)}`));
   }
   if (run) {
     console.log(info(`  last-run: ${run.passed}/${run.total} passed  all_ok: ${run.all_ok}`));
@@ -327,11 +328,11 @@ function runInit(cwd: string): void {
 
   // ensureAppmapsDir may have already created the README stub
   for (const [path, contents] of files) {
-    const relative = `${APPMAPS_DIR}/${path.slice(dir.length + 1)}`;
+    const rel = toRepoRelative(cwd, path);
     if (writeIfMissing(path, contents)) {
-      created.push(relative);
+      created.push(rel);
     } else {
-      skipped.push(relative);
+      skipped.push(rel);
     }
   }
 
@@ -355,7 +356,7 @@ function defaultLastRunPath(cwd: string): string {
 }
 
 function printTriage(report: TriageReport, outPath: string, cwd: string): void {
-  const rel = outPath.startsWith(cwd) ? relative(cwd, outPath) : outPath;
+  const rel = toRepoRelative(cwd, outPath);
   console.log(heading("\n  AppMap triage\n"));
   console.log("  " + info(`app: ${report.app || "(empty)"}`));
   console.log("  " + info(`mode: ${report.mode}  model: ${report.model}`));

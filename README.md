@@ -23,6 +23,10 @@ The Context Engineering Framework for Multi-Agent Workspaces. Agents forget ever
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
 
+## What's new in 2.6.4
+
+- Windows follow-up: suite/triage/doctor/init print posix `toRepoRelative` paths; decide tests use `includesPath` (separators); Cursor `CURSOR_*` env detection is case-insensitive and init tests isolate `HOME` so `.cursorrules` is written.
+
 ## What's new in 2.6.3
 
 - Windows test/path fixes: skill/template equality ignores CRLF vs LF; CLI `from=` and other `toRepoRelative` display paths use posix `/` on every OS. 2.6.2 never published successfully.

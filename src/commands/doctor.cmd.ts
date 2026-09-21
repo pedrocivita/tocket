@@ -1,10 +1,10 @@
 import type { Command } from "commander";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { success as themePass, warn as themeWarn, error as themeFail, heading, dim } from "../utils/theme.js";
 import { isGitRepo, isContextIgnored } from "../utils/git.js";
-import { STALENESS_THRESHOLD_DAYS } from "../utils/context.js";
+import { STALENESS_THRESHOLD_DAYS, toRepoRelative } from "../utils/context.js";
 import { APPMAPS_DIR } from "../utils/appmaps.js";
 import { DECISIONS_DIR } from "../utils/decide.js";
 import { readTypesafeApiKey } from "../utils/jev.js";
@@ -154,7 +154,7 @@ export function findLatestDecision(
       mtimeMs = next;
     }
   }
-  return { path: latest, rel: relative(cwd, latest), mtimeMs };
+  return { path: latest, rel: toRepoRelative(cwd, latest), mtimeMs };
 }
 
 export function checkTypesafeKeyPresent(env: NodeJS.ProcessEnv = process.env): DiagResult {

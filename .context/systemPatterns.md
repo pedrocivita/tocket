@@ -31,7 +31,7 @@
 │     ├── theme.ts          (purple theme, banner)      │
 │     ├── git.ts            (git wrappers + diff/mtime) │
 │     ├── config.ts         (~/.tocketrc.json)          │
-│     ├── context.ts        (shared constants/helpers)  │
+│     ├── context.ts        (shared constants + posix paths) │
 │     ├── xml.ts            (payload XML parser)        │
 │     ├── appmaps.ts        (last-run v0 schema/md)     │
 │     ├── triage.ts         (suite triage report)       │

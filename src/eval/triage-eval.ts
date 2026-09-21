@@ -7,6 +7,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { toRepoRelative } from "../utils/context.js";
 import { parseLastRun } from "../utils/appmaps.js";
 import {
   heuristicCase,
@@ -236,7 +237,7 @@ function main(): void {
       console.log(`  ${item.id}: expected ${item.expected}, got ${item.got} (${item.flavor})`);
     }
   }
-  console.log(`wrote ${outPath}`);
+  console.log(`wrote ${toRepoRelative(root, outPath)}`);
 
   if (result.verdict === "FAIL") {
     process.exitCode = 1;

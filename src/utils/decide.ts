@@ -1,7 +1,7 @@
 /** Generic Choice/Noul decisions. File-first; writes only under `.context/decisions/`. */
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { dirname, resolve, sep } from "node:path";
 import {
   JEV_MODEL,
   askJev,
@@ -9,6 +9,8 @@ import {
   type JevAnswer,
   type JevQuestion,
 } from "./jev.js";
+
+export { toRepoRelative } from "./context.js";
 
 export const DECIDE_SCHEMA = "tocket.decide/v0";
 export const DECISIONS_DIR = ".context/decisions";
@@ -802,14 +804,4 @@ export async function runDecide(options: RunDecideOptions): Promise<{
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, prettyDecideJson(record), "utf-8");
   return { record, outPath };
-}
-
-export function toRepoRelative(cwd: string, outPath: string): string {
-  let rel: string;
-  if (isAbsolute(outPath) && outPath.startsWith(cwd)) {
-    rel = relative(cwd, outPath) || outPath;
-  } else {
-    rel = outPath.startsWith(cwd) ? relative(cwd, outPath) : outPath;
-  }
-  return rel.split(sep).join("/");
 }
