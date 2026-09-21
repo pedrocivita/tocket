@@ -805,8 +805,11 @@ export async function runDecide(options: RunDecideOptions): Promise<{
 }
 
 export function toRepoRelative(cwd: string, outPath: string): string {
+  let rel: string;
   if (isAbsolute(outPath) && outPath.startsWith(cwd)) {
-    return relative(cwd, outPath) || outPath;
+    rel = relative(cwd, outPath) || outPath;
+  } else {
+    rel = outPath.startsWith(cwd) ? relative(cwd, outPath) : outPath;
   }
-  return outPath.startsWith(cwd) ? relative(cwd, outPath) : outPath;
+  return rel.split(sep).join("/");
 }

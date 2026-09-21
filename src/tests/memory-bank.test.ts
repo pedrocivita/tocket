@@ -24,6 +24,7 @@ import {
   TOCKET_AGENT_PHRASE,
 } from "../templates/memory-bank.js";
 import type { StackInfo } from "../templates/memory-bank.js";
+import { lf } from "./helpers.js";
 
 describe("executorMd (claudeMd)", () => {
   const output = executorMd("TestProject", "A test project");
@@ -297,7 +298,7 @@ describe("progressMd", () => {
 });
 
 describe("tocketSkillMd", () => {
-  const output = tocketSkillMd();
+  const output = lf(tocketSkillMd());
 
   it("is a short official skill, not a novel", () => {
     assert.ok(output.includes("# Tocket"));
@@ -322,8 +323,8 @@ describe("tocketSkillMd", () => {
     const repoRoot = join(import.meta.dirname, "..", "..");
     const catalog = readFileSync(join(repoRoot, TOCKET_SKILL_CATALOG_REL), "utf-8");
     const local = readFileSync(join(repoRoot, TOCKET_SKILL_REL), "utf-8");
-    assert.equal(catalog, output);
-    assert.equal(local, output);
+    assert.equal(lf(catalog), output);
+    assert.equal(lf(local), output);
   });
 
   it("prints disk conventions for init and doctor", () => {

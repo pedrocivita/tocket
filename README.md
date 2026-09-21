@@ -23,6 +23,10 @@ The Context Engineering Framework for Multi-Agent Workspaces. Agents forget ever
   <img src="docs/assets/tocket-dashboard.png" alt="Tocket CLI Dashboard" width="700" />
 </p>
 
+## What's new in 2.6.3
+
+- Windows test/path fixes: skill/template equality ignores CRLF vs LF; CLI `from=` and other `toRepoRelative` display paths use posix `/` on every OS. 2.6.2 never published successfully.
+
 ## What's new in 2.6.2
 
 - Tool-risk gate: `tocket decide --choice tool_gate:allow,block,ask` records allow|block|ask. `tocket work --apply` refuses `block`/`ask` (exit 2) unless `--force`. Shadow apply still needs `--force`.

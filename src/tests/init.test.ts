@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { checkGitignoreConflict } from "../commands/init.cmd.js";
+import { lf } from "./helpers.js";
 
 // Path to the built CLI
 const cliPath = join(import.meta.dirname, "..", "index.js");
@@ -71,7 +72,7 @@ describe("init --name --description (non-interactive)", () => {
     assert.ok(existsSync(join(tempDir, "TOCKET.md")));
     assert.ok(existsSync(join(tempDir, "CLAUDE.md")));
     assert.ok(existsSync(join(tempDir, "GEMINI.md")));
-    const skill = readFileSync(join(tempDir, ".agents", "skills", "tocket", "SKILL.md"), "utf-8");
+    const skill = lf(readFileSync(join(tempDir, ".agents", "skills", "tocket", "SKILL.md"), "utf-8"));
     assert.match(skill, /^---\nname: tocket\n/);
     assert.match(skill, /npx skills add pedrocivita\/tocket --skill tocket/);
     // .cursorrules is only generated when executor is Cursor
